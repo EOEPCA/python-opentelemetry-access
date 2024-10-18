@@ -4,6 +4,7 @@ import json
 import opentelemetry_betterproto.opentelemetry.proto.collector.trace.v1 as trace_collector
 
 import python_opentelemetry_access.otlpjson as otlpjson
+import python_opentelemetry_access.otlpproto as otlpproto
 
 from pytest import mark
 
@@ -45,5 +46,10 @@ def test_example_trace(proto_rep_path: str, json_rep_path: str):
 
     assert (
         otlpjson.OTLPJsonSpanCollection(expected_json).to_otlp_protobuf()
+        == parsed_binary
+    )
+
+    assert (
+        otlpproto.OTLPProtoSpanCollection(parsed_binary).to_otlp_protobuf()
         == parsed_binary
     )

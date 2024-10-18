@@ -16,7 +16,7 @@ def test_roundtrip_complete_json():
         },
         {
             "key": "stuff",
-            "value": {"dictValue": [{"key": "inner", "value": {"boolValue": False}}]},
+            "value": {"kvlistValue": [{"key": "inner", "value": {"boolValue": False}}]},
         },
     ]
     field_dropped_attributes_count = 1
@@ -57,7 +57,7 @@ def test_roundtrip_complete_json():
     assert json.dumps(event1) == otlpjson.OTLPJsonSpanEvent(event1).to_otlp_json()
     field_events = [event1]
 
-    field_status = {"message": "some status message", "code": 5}
+    field_status = {"message": "some status message", "code": 2}
     assert (
         json.dumps(field_status) == otlpjson.OTLPJsonStatus(field_status).to_otlp_json()
     )
