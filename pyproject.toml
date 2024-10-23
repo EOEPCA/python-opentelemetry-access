@@ -9,6 +9,7 @@ authors = [
 requires-python = ">=3.11"
 dependencies = [
     "opentelemetry-betterproto",
+    "pandas>=2.2.3",
 ]
 
 [build-system]
@@ -17,6 +18,7 @@ build-backend = "hatchling.build"
 
 [tool.uv]
 dev-dependencies = [
+    "pandas-stubs>=2.2.3.241009",
     "pytest>=8.3.3",
 ]
 

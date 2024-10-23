@@ -1,0 +1,494 @@
+[
+  {
+    "attributes": {
+      "code.filepath": "examples/trivial_check.py",
+      "code.function": "test_which_will_fail",
+      "data_stream": {
+        "dataset": "default",
+        "namespace": "namespace",
+        "type": "span"
+      },
+      "pytest.nodeid": "examples/trivial_check.py::test_which_will_fail",
+      "pytest.span_type": "test",
+      "test.case.name": "test_which_will_fail"
+    },
+    "droppedAttributesCount": 0,
+    "droppedEventsCount": 0,
+    "droppedLinksCount": 0,
+    "endTime": "2024-10-15T15:46:34.857127603Z",
+    "instrumentationScope": {
+      "droppedAttributesCount": 0,
+      "name": "pytest-opentelemetry",
+      "schemaUrl": "",
+      "version": ""
+    },
+    "kind": "Internal",
+    "name": "examples/trivial_check.py::test_which_will_fail::setup",
+    "parentSpanId": "245aa3d85067b710",
+    "resource": {
+      "process.command": "/tmp/.venv_pytest/bin/python",
+      "process.command_args": "/tmp/.venv_pytest/bin/pytest examples/trivial_check.py --export-traces",
+      "process.command_line": "/tmp/.venv_pytest/bin/python /tmp/.venv_pytest/bin/pytest examples/trivial_check.py --export-traces",
+      "process.executable.name": "pytest",
+      "process.executable.path": "/usr/bin/python3.11",
+      "process.owner": "tilo",
+      "process.pid": "334",
+      "process.runtime.description": "3.11.9 (main, Aug 12 2024, 22:44:36) [GCC 13.3.1 20240614]",
+      "process.runtime.name": "cpython",
+      "process.runtime.version": "3.11.9",
+      "service.name": "instrumentation",
+      "service.version": "[unknown: not a git repository]",
+      "telemetry.sdk.language": "python",
+      "telemetry.sdk.name": "opentelemetry",
+      "telemetry.sdk.version": "1.25.0"
+    },
+    "spanId": "04dcc582528434ad",
+    "startTime": "2024-10-15T15:46:34.857023153Z",
+    "status": {
+      "code": "Unset",
+      "message": ""
+    },
+    "@timestamp": "0001-01-01T00:00:00Z",
+    "traceId": "697777f078628bc35093f4f376dfa62d",
+    "traceState": ""
+  },
+  {
+    "attributes": {
+      "code.filepath": "examples/trivial_check.py",
+      "code.function": "test_which_will_fail",
+      "data_stream": {
+        "dataset": "default",
+        "namespace": "namespace",
+        "type": "span"
+      },
+      "pytest.nodeid": "examples/trivial_check.py::test_which_will_fail",
+      "pytest.span_type": "test",
+      "test.case.name": "test_which_will_fail"
+    },
+    "droppedAttributesCount": 0,
+    "droppedEventsCount": 0,
+    "droppedLinksCount": 0,
+    "endTime": "2024-10-15T15:46:34.857519502Z",
+    "instrumentationScope": {
+      "droppedAttributesCount": 0,
+      "name": "pytest-opentelemetry",
+      "schemaUrl": "",
+      "version": ""
+    },
+    "kind": "Internal",
+    "name": "examples/trivial_check.py::test_which_will_fail::call",
+    "parentSpanId": "245aa3d85067b710",
+    "resource": {
+      "process.command": "/tmp/.venv_pytest/bin/python",
+      "process.command_args": "/tmp/.venv_pytest/bin/pytest examples/trivial_check.py --export-traces",
+      "process.command_line": "/tmp/.venv_pytest/bin/python /tmp/.venv_pytest/bin/pytest examples/trivial_check.py --export-traces",
+      "process.executable.name": "pytest",
+      "process.executable.path": "/usr/bin/python3.11",
+      "process.owner": "tilo",
+      "process.pid": "334",
+      "process.runtime.description": "3.11.9 (main, Aug 12 2024, 22:44:36) [GCC 13.3.1 20240614]",
+      "process.runtime.name": "cpython",
+      "process.runtime.version": "3.11.9",
+      "service.name": "instrumentation",
+      "service.version": "[unknown: not a git repository]",
+      "telemetry.sdk.language": "python",
+      "telemetry.sdk.name": "opentelemetry",
+      "telemetry.sdk.version": "1.25.0"
+    },
+    "spanId": "356971f364f350fb",
+    "startTime": "2024-10-15T15:46:34.857295003Z",
+    "status": {
+      "code": "Unset",
+      "message": ""
+    },
+    "@timestamp": "0001-01-01T00:00:00Z",
+    "traceId": "697777f078628bc35093f4f376dfa62d",
+    "traceState": ""
+  },
+  {
+    "attributes": {
+      "code.filepath": "examples/trivial_check.py",
+      "code.function": "test_which_will_fail",
+      "data_stream": {
+        "dataset": "default",
+        "namespace": "namespace",
+        "type": "span"
+      },
+      "pytest.nodeid": "examples/trivial_check.py::test_which_will_fail",
+      "pytest.span_type": "test",
+      "test.case.name": "test_which_will_fail"
+    },
+    "droppedAttributesCount": 0,
+    "droppedEventsCount": 0,
+    "droppedLinksCount": 0,
+    "endTime": "2024-10-15T15:46:34.883833942Z",
+    "instrumentationScope": {
+      "droppedAttributesCount": 0,
+      "name": "pytest-opentelemetry",
+      "schemaUrl": "",
+      "version": ""
+    },
+    "kind": "Internal",
+    "name": "examples/trivial_check.py::test_which_will_fail::teardown",
+    "parentSpanId": "245aa3d85067b710",
+    "resource": {
+      "process.command": "/tmp/.venv_pytest/bin/python",
+      "process.command_args": "/tmp/.venv_pytest/bin/pytest examples/trivial_check.py --export-traces",
+      "process.command_line": "/tmp/.venv_pytest/bin/python /tmp/.venv_pytest/bin/pytest examples/trivial_check.py --export-traces",
+      "process.executable.name": "pytest",
+      "process.executable.path": "/usr/bin/python3.11",
+      "process.owner": "tilo",
+      "process.pid": "334",
+      "process.runtime.description": "3.11.9 (main, Aug 12 2024, 22:44:36) [GCC 13.3.1 20240614]",
+      "process.runtime.name": "cpython",
+      "process.runtime.version": "3.11.9",
+      "service.name": "instrumentation",
+      "service.version": "[unknown: not a git repository]",
+      "telemetry.sdk.language": "python",
+      "telemetry.sdk.name": "opentelemetry",
+      "telemetry.sdk.version": "1.25.0"
+    },
+    "spanId": "2cbd2183e3b65a50",
+    "startTime": "2024-10-15T15:46:34.8836542Z",
+    "status": {
+      "code": "Unset",
+      "message": ""
+    },
+    "@timestamp": "0001-01-01T00:00:00Z",
+    "traceId": "697777f078628bc35093f4f376dfa62d",
+    "traceState": ""
+  },
+  {
+    "attributes": {
+      "code.filepath": "examples/trivial_check.py",
+      "code.function": "test_which_will_fail",
+      "data_stream": {
+        "dataset": "default",
+        "namespace": "namespace",
+        "type": "span"
+      },
+      "pytest.nodeid": "examples/trivial_check.py::test_which_will_fail",
+      "pytest.span_type": "test",
+      "test.case.name": "test_which_will_fail",
+      "test.case.result.status": "fail"
+    },
+    "droppedAttributesCount": 0,
+    "droppedEventsCount": 0,
+    "droppedLinksCount": 0,
+    "endTime": "2024-10-15T15:46:34.883972456Z",
+    "events": [
+      {
+        "attributes": {
+          "exception.escaped": "False",
+          "exception.message": "assert 2 == 3",
+          "exception.stacktrace": "def test_which_will_fail() -> None:\n>       assert 2 == 3\nE       assert 2 == 3\n\nexamples/trivial_check.py:2: AssertionError",
+          "exception.type": "AssertionError"
+        },
+        "droppedAttributesCount": 0,
+        "name": "exception",
+        "@timestamp": "2024-10-15T15:46:34.883512603Z"
+      }
+    ],
+    "instrumentationScope": {
+      "droppedAttributesCount": 0,
+      "name": "pytest-opentelemetry",
+      "schemaUrl": "",
+      "version": ""
+    },
+    "kind": "Internal",
+    "name": "examples/trivial_check.py::test_which_will_fail",
+    "parentSpanId": "482c08cbec039dee",
+    "resource": {
+      "process.command": "/tmp/.venv_pytest/bin/python",
+      "process.command_args": "/tmp/.venv_pytest/bin/pytest examples/trivial_check.py --export-traces",
+      "process.command_line": "/tmp/.venv_pytest/bin/python /tmp/.venv_pytest/bin/pytest examples/trivial_check.py --export-traces",
+      "process.executable.name": "pytest",
+      "process.executable.path": "/usr/bin/python3.11",
+      "process.owner": "tilo",
+      "process.pid": "334",
+      "process.runtime.description": "3.11.9 (main, Aug 12 2024, 22:44:36) [GCC 13.3.1 20240614]",
+      "process.runtime.name": "cpython",
+      "process.runtime.version": "3.11.9",
+      "service.name": "instrumentation",
+      "service.version": "[unknown: not a git repository]",
+      "telemetry.sdk.language": "python",
+      "telemetry.sdk.name": "opentelemetry",
+      "telemetry.sdk.version": "1.25.0"
+    },
+    "spanId": "245aa3d85067b710",
+    "startTime": "2024-10-15T15:46:34.856811203Z",
+    "status": {
+      "code": "Error",
+      "message": "<class 'AssertionError'>: assert 2 == 3"
+    },
+    "@timestamp": "0001-01-01T00:00:00Z",
+    "traceId": "697777f078628bc35093f4f376dfa62d",
+    "traceState": ""
+  },
+  {
+    "attributes": {
+      "code.filepath": "examples/trivial_check.py",
+      "code.function": "test_which_wont_fail",
+      "code.lineno": 4,
+      "data_stream": {
+        "dataset": "default",
+        "namespace": "namespace",
+        "type": "span"
+      },
+      "pytest.nodeid": "examples/trivial_check.py::test_which_wont_fail",
+      "pytest.span_type": "test",
+      "test.case.name": "test_which_wont_fail"
+    },
+    "droppedAttributesCount": 0,
+    "droppedEventsCount": 0,
+    "droppedLinksCount": 0,
+    "endTime": "2024-10-15T15:46:34.884330217Z",
+    "instrumentationScope": {
+      "droppedAttributesCount": 0,
+      "name": "pytest-opentelemetry",
+      "schemaUrl": "",
+      "version": ""
+    },
+    "kind": "Internal",
+    "name": "examples/trivial_check.py::test_which_wont_fail::setup",
+    "parentSpanId": "89a7dc3de4b065ad",
+    "resource": {
+      "process.command": "/tmp/.venv_pytest/bin/python",
+      "process.command_args": "/tmp/.venv_pytest/bin/pytest examples/trivial_check.py --export-traces",
+      "process.command_line": "/tmp/.venv_pytest/bin/python /tmp/.venv_pytest/bin/pytest examples/trivial_check.py --export-traces",
+      "process.executable.name": "pytest",
+      "process.executable.path": "/usr/bin/python3.11",
+      "process.owner": "tilo",
+      "process.pid": "334",
+      "process.runtime.description": "3.11.9 (main, Aug 12 2024, 22:44:36) [GCC 13.3.1 20240614]",
+      "process.runtime.name": "cpython",
+      "process.runtime.version": "3.11.9",
+      "service.name": "instrumentation",
+      "service.version": "[unknown: not a git repository]",
+      "telemetry.sdk.language": "python",
+      "telemetry.sdk.name": "opentelemetry",
+      "telemetry.sdk.version": "1.25.0"
+    },
+    "spanId": "d56c6e5d9ceaf6bd",
+    "startTime": "2024-10-15T15:46:34.884252894Z",
+    "status": {
+      "code": "Unset",
+      "message": ""
+    },
+    "@timestamp": "0001-01-01T00:00:00Z",
+    "traceId": "697777f078628bc35093f4f376dfa62d",
+    "traceState": ""
+  },
+  {
+    "attributes": {
+      "code.filepath": "examples/trivial_check.py",
+      "code.function": "test_which_wont_fail",
+      "code.lineno": 4,
+      "data_stream": {
+        "dataset": "default",
+        "namespace": "namespace",
+        "type": "span"
+      },
+      "pytest.nodeid": "examples/trivial_check.py::test_which_wont_fail",
+      "pytest.span_type": "test",
+      "test.case.name": "test_which_wont_fail"
+    },
+    "droppedAttributesCount": 0,
+    "droppedEventsCount": 0,
+    "droppedLinksCount": 0,
+    "endTime": "2024-10-15T15:46:34.884606785Z",
+    "instrumentationScope": {
+      "droppedAttributesCount": 0,
+      "name": "pytest-opentelemetry",
+      "schemaUrl": "",
+      "version": ""
+    },
+    "kind": "Internal",
+    "name": "examples/trivial_check.py::test_which_wont_fail::call",
+    "parentSpanId": "89a7dc3de4b065ad",
+    "resource": {
+      "process.command": "/tmp/.venv_pytest/bin/python",
+      "process.command_args": "/tmp/.venv_pytest/bin/pytest examples/trivial_check.py --export-traces",
+      "process.command_line": "/tmp/.venv_pytest/bin/python /tmp/.venv_pytest/bin/pytest examples/trivial_check.py --export-traces",
+      "process.executable.name": "pytest",
+      "process.executable.path": "/usr/bin/python3.11",
+      "process.owner": "tilo",
+      "process.pid": "334",
+      "process.runtime.description": "3.11.9 (main, Aug 12 2024, 22:44:36) [GCC 13.3.1 20240614]",
+      "process.runtime.name": "cpython",
+      "process.runtime.version": "3.11.9",
+      "service.name": "instrumentation",
+      "service.version": "[unknown: not a git repository]",
+      "telemetry.sdk.language": "python",
+      "telemetry.sdk.name": "opentelemetry",
+      "telemetry.sdk.version": "1.25.0"
+    },
+    "spanId": "7b080053d49c1ffc",
+    "startTime": "2024-10-15T15:46:34.884529858Z",
+    "status": {
+      "code": "Unset",
+      "message": ""
+    },
+    "@timestamp": "0001-01-01T00:00:00Z",
+    "traceId": "697777f078628bc35093f4f376dfa62d",
+    "traceState": ""
+  },
+  {
+    "attributes": {
+      "code.filepath": "examples/trivial_check.py",
+      "code.function": "test_which_wont_fail",
+      "code.lineno": 4,
+      "data_stream": {
+        "dataset": "default",
+        "namespace": "namespace",
+        "type": "span"
+      },
+      "pytest.nodeid": "examples/trivial_check.py::test_which_wont_fail",
+      "pytest.span_type": "test",
+      "test.case.name": "test_which_wont_fail"
+    },
+    "droppedAttributesCount": 0,
+    "droppedEventsCount": 0,
+    "droppedLinksCount": 0,
+    "endTime": "2024-10-15T15:46:34.884895239Z",
+    "instrumentationScope": {
+      "droppedAttributesCount": 0,
+      "name": "pytest-opentelemetry",
+      "schemaUrl": "",
+      "version": ""
+    },
+    "kind": "Internal",
+    "name": "examples/trivial_check.py::test_which_wont_fail::teardown",
+    "parentSpanId": "89a7dc3de4b065ad",
+    "resource": {
+      "process.command": "/tmp/.venv_pytest/bin/python",
+      "process.command_args": "/tmp/.venv_pytest/bin/pytest examples/trivial_check.py --export-traces",
+      "process.command_line": "/tmp/.venv_pytest/bin/python /tmp/.venv_pytest/bin/pytest examples/trivial_check.py --export-traces",
+      "process.executable.name": "pytest",
+      "process.executable.path": "/usr/bin/python3.11",
+      "process.owner": "tilo",
+      "process.pid": "334",
+      "process.runtime.description": "3.11.9 (main, Aug 12 2024, 22:44:36) [GCC 13.3.1 20240614]",
+      "process.runtime.name": "cpython",
+      "process.runtime.version": "3.11.9",
+      "service.name": "instrumentation",
+      "service.version": "[unknown: not a git repository]",
+      "telemetry.sdk.language": "python",
+      "telemetry.sdk.name": "opentelemetry",
+      "telemetry.sdk.version": "1.25.0"
+    },
+    "spanId": "7f2aedeb88337ec1",
+    "startTime": "2024-10-15T15:46:34.884804285Z",
+    "status": {
+      "code": "Unset",
+      "message": ""
+    },
+    "@timestamp": "0001-01-01T00:00:00Z",
+    "traceId": "697777f078628bc35093f4f376dfa62d",
+    "traceState": ""
+  },
+  {
+    "attributes": {
+      "code.filepath": "examples/trivial_check.py",
+      "code.function": "test_which_wont_fail",
+      "code.lineno": 4,
+      "data_stream": {
+        "dataset": "default",
+        "namespace": "namespace",
+        "type": "span"
+      },
+      "pytest.nodeid": "examples/trivial_check.py::test_which_wont_fail",
+      "pytest.span_type": "test",
+      "test.case.name": "test_which_wont_fail",
+      "test.case.result.status": "pass"
+    },
+    "droppedAttributesCount": 0,
+    "droppedEventsCount": 0,
+    "droppedLinksCount": 0,
+    "endTime": "2024-10-15T15:46:34.884967385Z",
+    "instrumentationScope": {
+      "droppedAttributesCount": 0,
+      "name": "pytest-opentelemetry",
+      "schemaUrl": "",
+      "version": ""
+    },
+    "kind": "Internal",
+    "name": "examples/trivial_check.py::test_which_wont_fail",
+    "parentSpanId": "482c08cbec039dee",
+    "resource": {
+      "process.command": "/tmp/.venv_pytest/bin/python",
+      "process.command_args": "/tmp/.venv_pytest/bin/pytest examples/trivial_check.py --export-traces",
+      "process.command_line": "/tmp/.venv_pytest/bin/python /tmp/.venv_pytest/bin/pytest examples/trivial_check.py --export-traces",
+      "process.executable.name": "pytest",
+      "process.executable.path": "/usr/bin/python3.11",
+      "process.owner": "tilo",
+      "process.pid": "334",
+      "process.runtime.description": "3.11.9 (main, Aug 12 2024, 22:44:36) [GCC 13.3.1 20240614]",
+      "process.runtime.name": "cpython",
+      "process.runtime.version": "3.11.9",
+      "service.name": "instrumentation",
+      "service.version": "[unknown: not a git repository]",
+      "telemetry.sdk.language": "python",
+      "telemetry.sdk.name": "opentelemetry",
+      "telemetry.sdk.version": "1.25.0"
+    },
+    "spanId": "89a7dc3de4b065ad",
+    "startTime": "2024-10-15T15:46:34.884138793Z",
+    "status": {
+      "code": "Ok",
+      "message": ""
+    },
+    "@timestamp": "0001-01-01T00:00:00Z",
+    "traceId": "697777f078628bc35093f4f376dfa62d",
+    "traceState": ""
+  },
+  {
+    "attributes": {
+      "data_stream": {
+        "dataset": "default",
+        "namespace": "namespace",
+        "type": "span"
+      },
+      "pytest.span_type": "run"
+    },
+    "droppedAttributesCount": 0,
+    "droppedEventsCount": 0,
+    "droppedLinksCount": 0,
+    "endTime": "2024-10-15T15:46:34.885089375Z",
+    "instrumentationScope": {
+      "droppedAttributesCount": 0,
+      "name": "pytest-opentelemetry",
+      "schemaUrl": "",
+      "version": ""
+    },
+    "kind": "Internal",
+    "name": "test run",
+    "parentSpanId": "",
+    "resource": {
+      "process.command": "/tmp/.venv_pytest/bin/python",
+      "process.command_args": "/tmp/.venv_pytest/bin/pytest examples/trivial_check.py --export-traces",
+      "process.command_line": "/tmp/.venv_pytest/bin/python /tmp/.venv_pytest/bin/pytest examples/trivial_check.py --export-traces",
+      "process.executable.name": "pytest",
+      "process.executable.path": "/usr/bin/python3.11",
+      "process.owner": "tilo",
+      "process.pid": "334",
+      "process.runtime.description": "3.11.9 (main, Aug 12 2024, 22:44:36) [GCC 13.3.1 20240614]",
+      "process.runtime.name": "cpython",
+      "process.runtime.version": "3.11.9",
+      "service.name": "instrumentation",
+      "service.version": "[unknown: not a git repository]",
+      "telemetry.sdk.language": "python",
+      "telemetry.sdk.name": "opentelemetry",
+      "telemetry.sdk.version": "1.25.0"
+    },
+    "spanId": "482c08cbec039dee",
+    "startTime": "2024-10-15T15:46:34.845169631Z",
+    "status": {
+      "code": "Error",
+      "message": ""
+    },
+    "@timestamp": "0001-01-01T00:00:00Z",
+    "traceId": "697777f078628bc35093f4f376dfa62d",
+    "traceState": ""
+  }
+]

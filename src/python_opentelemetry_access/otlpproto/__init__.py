@@ -3,6 +3,7 @@ from typing import Optional
 import binascii
 
 from .. import base
+from .. import util
 
 import opentelemetry_betterproto.opentelemetry.proto.common.v1 as common
 import opentelemetry_betterproto.opentelemetry.proto.trace.v1 as trace
@@ -10,7 +11,7 @@ import opentelemetry_betterproto.opentelemetry.proto.collector.trace.v1 as trace
 import opentelemetry_betterproto.opentelemetry.proto.resource.v1 as resource
 
 
-def _un_anyvalue(any_val: common.AnyValue) -> base.JSONLikeIter:
+def _un_anyvalue(any_val: common.AnyValue) -> util.JSONLikeIter:
     match any_val:
         case common.AnyValue(string_value=str_val):
             return str_val
@@ -21,9 +22,9 @@ def _un_anyvalue(any_val: common.AnyValue) -> base.JSONLikeIter:
         case common.AnyValue(double_value=double_value):
             return double_value
         case common.AnyValue(array_value=array_value):
-            return base.JSONLikeListIter((_un_anyvalue(x) for x in array_value.values))
+            return util.JSONLikeListIter((_un_anyvalue(x) for x in array_value.values))
         case common.AnyValue(kvlist_value=kvlist_value):
-            return base.JSONLikeDictIter(
+            return util.JSONLikeDictIter(
                 ((kv.key, _un_anyvalue(kv.value)) for kv in kvlist_value.values)
             )
     raise NotImplementedError()
@@ -44,8 +45,8 @@ class OTLPProtoSpanEvent(base.SpanEvent):
         return self._proto.name
 
     @property
-    def otlp_attributes(self) -> base.JSONLikeDictIter:
-        return base.JSONLikeDictIter(
+    def otlp_attributes(self) -> util.JSONLikeDictIter:
+        return util.JSONLikeDictIter(
             ((x.key, _un_anyvalue(x.value)) for x in self._proto.attributes)
         )
 
@@ -62,7 +63,7 @@ class OTLPProtoStatus(base.Status):
 
     @property
     def otlp_message(self) -> Optional[str]:
-        return self._proto.message
+        return self._proto.message if self._proto.message != "" else None
 
     @property
     def otlp_code(self) -> int:
@@ -99,8 +100,8 @@ class OTLPProtoSpanLink(base.SpanLink):
         return self._proto.trace_state
 
     @property
-    def otlp_attributes(self) -> base.JSONLikeDictIter:
-        return base.JSONLikeDictIter(
+    def otlp_attributes(self) -> util.JSONLikeDictIter:
+        return util.JSONLikeDictIter(
             ((x.key, _un_anyvalue(x.value)) for x in self._proto.attributes)
         )
 
@@ -156,8 +157,8 @@ class OTLPProtoSpan(base.Span):
         return self._proto.end_time_unix_nano
 
     @property
-    def otlp_attributes(self) -> base.JSONLikeDictIter:
-        return base.JSONLikeDictIter(
+    def otlp_attributes(self) -> util.JSONLikeDictIter:
+        return util.JSONLikeDictIter(
             ((x.key, _un_anyvalue(x.value)) for x in self._proto.attributes)
         )
 
@@ -198,11 +199,11 @@ class OTLPProtoInstrumentationScope(base.InstrumentationScope):
 
     @property
     def otlp_version(self) -> Optional[str]:
-        return self._proto.version
+        return self._proto.version if self._proto.version != "" else None
 
     @property
-    def otlp_attributes(self) -> base.JSONLikeDictIter:
-        return base.JSONLikeDictIter(
+    def otlp_attributes(self) -> util.JSONLikeDictIter:
+        return util.JSONLikeDictIter(
             ((x.key, _un_anyvalue(x.value)) for x in self._proto.attributes)
         )
 
@@ -218,8 +219,8 @@ class OTLPProtoResource(base.Resource):
         self._proto = proto
 
     @property
-    def otlp_attributes(self) -> base.JSONLikeDictIter:
-        return base.JSONLikeDictIter(
+    def otlp_attributes(self) -> util.JSONLikeDictIter:
+        return util.JSONLikeDictIter(
             ((x.key, _un_anyvalue(x.value)) for x in self._proto.attributes)
         )
 

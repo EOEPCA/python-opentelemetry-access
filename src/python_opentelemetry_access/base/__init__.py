@@ -1,7 +1,6 @@
 from collections.abc import Iterator
-from typing import List, Dict, Union, Protocol, Tuple, TypeVar, Generic, Optional
+from typing import Union, Protocol, Optional
 from abc import abstractmethod
-import itertools
 import json
 
 import binascii
@@ -11,92 +10,7 @@ import opentelemetry_betterproto.opentelemetry.proto.trace.v1 as trace
 import opentelemetry_betterproto.opentelemetry.proto.collector.trace.v1 as trace_collector
 import opentelemetry_betterproto.opentelemetry.proto.resource.v1 as resource
 
-T = TypeVar("T")
-
-
-class DumpIterator(Generic[T], Iterator[T]):
-    iterator: Iterator[T]
-
-    def __init__(self, iterable):
-        try:
-            head = next(iterable)
-            self.iterator = itertools.chain([head], iterable)
-            self._has_head = True
-        except StopIteration:
-            self.iterator = iter([])
-            self._has_head = False
-
-    def __iter__(self):
-        return iter(self.iterator)
-
-    def __next__(self):
-        return next(self.iterator)
-
-    def initially_empty(self) -> bool:
-        return not self._has_head
-
-    def __bool__(self) -> bool:
-        return self._has_head
-
-
-class ListLikeDumpIterator(DumpIterator[T], list):
-    def __len__(self):
-        raise NotImplementedError("JSONLikeListIter has no length")
-
-    def __getitem__(self, i):
-        raise NotImplementedError("JSONLikeListIter cannot getitem")
-
-    def __setitem__(self, i):
-        raise NotImplementedError("JSONLikeListIter cannot setitem")
-
-
-class JSONLikeDictIter(DumpIterator[Tuple[str, "JSONLikeIter"]]):
-    pass
-
-
-class JSONLikeListIter(ListLikeDumpIterator["JSONLikeIter"]):
-    pass
-
-
-JSONLikeLiteralIter = Union[str, bool, int, float]
-JSONLikeIter = Union[JSONLikeLiteralIter, JSONLikeDictIter, JSONLikeListIter]
-
-JSONLikeDict = Dict[str, "JSONLike"]
-JSONLikeList = List["JSONLike"]
-JSONLikeLiteral = Union[str, bool, int, float]
-JSONLike = Union[JSONLikeLiteral, JSONLikeDict, JSONLikeList]
-
-
-def jsonlike_iter_to_any_value(jsiter: JSONLikeIter) -> common.AnyValue:
-    if isinstance(jsiter, JSONLikeDictIter):
-        return common.AnyValue(
-            kvlist_value=common.KeyValueList(jsonlike_dict_iter_to_kvlist(jsiter))
-        )
-    elif isinstance(jsiter, JSONLikeListIter):
-        return common.AnyValue(
-            array_value=common.ArrayValue(
-                [jsonlike_iter_to_any_value(x) for x in iter(jsiter)]
-            )
-        )
-    elif isinstance(jsiter, str):
-        return common.AnyValue(string_value=jsiter)
-    ## Bool must be before int
-    elif isinstance(jsiter, bool):
-        return common.AnyValue(bool_value=jsiter)
-    elif isinstance(jsiter, int):
-        return common.AnyValue(int_value=jsiter)
-    elif isinstance(jsiter, float):
-        return common.AnyValue(double_value=jsiter)
-
-
-def jsonlike_dict_iter_to_kvlist(jsiter: JSONLikeDictIter) -> List[common.KeyValue]:
-    match jsiter:
-        case JSONLikeDictIter(iterator=inner):
-            return [
-                common.KeyValue(key=k, value=jsonlike_iter_to_any_value(v))
-                for k, v in inner
-            ]
-
+from .. import util
 
 OTLPProtobufType = Union[
     trace.SpanSpanKind,
@@ -115,23 +29,23 @@ OTLPProtobufType = Union[
 class OTLPJSONEncoder(json.JSONEncoder):
     ## TODO: Is there a better way to do this (without forcing the dict)?
     def default(self, o):
-        if isinstance(o, JSONLikeDictIter):
+        if isinstance(o, util.JSONLikeDictIter):
             return {k: v for k, v in iter(o)}
         else:
             return super().default(o)
 
 
-# def to_otlp_json_iter(self) -> JSONLikeIter:
+# def to_otlp_json_iter(self) -> util.JSONLikeIter:
 #     def inner():
 #         raise NotImplementedError("Not implemented yet")
 #         return
-#     return JSONLikeDictIter(inner())
+#     return util.JSONLikeDictIter(inner())
 #
 # def to_otlp_protobuf(self) -> OTLPProtobufType:
 #     raise NotImplementedError("Not implemented yet")
 class OTLPData(Protocol):
     @abstractmethod
-    def to_otlp_json_iter(self) -> JSONLikeIter:
+    def to_otlp_json_iter(self) -> util.JSONLikeIter:
         pass
 
     def to_otlp_json_str_iter(self) -> Iterator[str]:
@@ -148,25 +62,25 @@ class OTLPData(Protocol):
         return bytes(self.to_otlp_protobuf())
 
 
-def _to_otlp_any_value(jval: JSONLikeIter) -> JSONLikeDictIter:
+def _to_otlp_any_value(jval: util.JSONLikeIter) -> util.JSONLikeDictIter:
     ## Bool must be before int
     if isinstance(jval, bool):
-        return JSONLikeDictIter(iter([("boolValue", jval)]))
+        return util.JSONLikeDictIter(iter([("boolValue", jval)]))
     elif isinstance(jval, int):
-        return JSONLikeDictIter(iter([("intValue", str(jval))]))
+        return util.JSONLikeDictIter(iter([("intValue", str(jval))]))
     elif isinstance(jval, str):
-        return JSONLikeDictIter(iter([("stringValue", jval)]))
+        return util.JSONLikeDictIter(iter([("stringValue", jval)]))
     elif isinstance(jval, float):
-        return JSONLikeDictIter(iter([("doubleValue", jval)]))
-    elif isinstance(jval, JSONLikeDictIter):
-        return JSONLikeDictIter(iter([("kvlistValue", _to_kv_list(jval))]))
-    elif isinstance(jval, JSONLikeListIter):
-        return JSONLikeDictIter(
+        return util.JSONLikeDictIter(iter([("doubleValue", jval)]))
+    elif isinstance(jval, util.JSONLikeDictIter):
+        return util.JSONLikeDictIter(iter([("kvlistValue", _to_kv_list(jval))]))
+    elif isinstance(jval, util.JSONLikeListIter):
+        return util.JSONLikeDictIter(
             iter(
                 [
                     (
                         "arrayValue",
-                        JSONLikeListIter((_to_otlp_any_value(x) for x in jval)),
+                        util.JSONLikeListIter((_to_otlp_any_value(x) for x in jval)),
                     )
                 ]
             )
@@ -175,17 +89,17 @@ def _to_otlp_any_value(jval: JSONLikeIter) -> JSONLikeDictIter:
         raise TypeError(f"Unexpected anytype {type(jval)}")
 
 
-def _to_kv_list(jsdict: JSONLikeDictIter) -> JSONLikeListIter:
-    return JSONLikeListIter(
+def _to_kv_list(jsdict: util.JSONLikeDictIter) -> util.JSONLikeListIter:
+    return util.JSONLikeListIter(
         (
-            JSONLikeDictIter(iter([("key", k), ("value", _to_otlp_any_value(v))]))
+            util.JSONLikeDictIter(iter([("key", k), ("value", _to_otlp_any_value(v))]))
             for k, v in iter(jsdict)
         )
     )
 
 
 class SpanEvent(OTLPData, Protocol):
-    def to_otlp_json_iter(self) -> JSONLikeDictIter:
+    def to_otlp_json_iter(self) -> util.JSONLikeDictIter:
         def inner():
             yield ("timeUnixNano", str(self.otlp_time_unix_nano))
             yield ("name", self.otlp_name)
@@ -200,13 +114,13 @@ class SpanEvent(OTLPData, Protocol):
 
             return
 
-        return JSONLikeDictIter(inner())
+        return util.JSONLikeDictIter(inner())
 
     def to_otlp_protobuf(self) -> trace.SpanEvent:
         return trace.SpanEvent(
             self.otlp_time_unix_nano,
             self.otlp_name,
-            jsonlike_dict_iter_to_kvlist(self.otlp_attributes),
+            util.jsonlike_dict_iter_to_kvlist(self.otlp_attributes),
             self.otlp_dropped_attributes_count,
         )
 
@@ -222,7 +136,7 @@ class SpanEvent(OTLPData, Protocol):
 
     @property
     @abstractmethod
-    def otlp_attributes(self) -> JSONLikeDictIter:
+    def otlp_attributes(self) -> util.JSONLikeDictIter:
         pass
 
     @property
@@ -232,7 +146,7 @@ class SpanEvent(OTLPData, Protocol):
 
 
 class Status(OTLPData, Protocol):
-    def to_otlp_json_iter(self) -> JSONLikeDictIter:
+    def to_otlp_json_iter(self) -> util.JSONLikeDictIter:
         def inner():
             message = self.otlp_message
             if message is not None:
@@ -244,7 +158,7 @@ class Status(OTLPData, Protocol):
 
             return
 
-        return JSONLikeDictIter(inner())
+        return util.JSONLikeDictIter(inner())
 
     def to_otlp_protobuf(self) -> trace.Status:
         return trace.Status(
@@ -284,7 +198,7 @@ class SpanKind(OTLPData, Protocol):
 
 
 class SpanLink(OTLPData, Protocol):
-    def to_otlp_json_iter(self) -> JSONLikeIter:
+    def to_otlp_json_iter(self) -> util.JSONLikeIter:
         def inner():
             yield ("traceId", self.otlp_trace_id)
             yield ("spanId", self.otlp_span_id)
@@ -304,14 +218,14 @@ class SpanLink(OTLPData, Protocol):
 
             return
 
-        return JSONLikeDictIter(inner())
+        return util.JSONLikeDictIter(inner())
 
     def to_otlp_protobuf(self) -> trace.SpanLink:
         return trace.SpanLink(
             trace_id=binascii.a2b_hex(self.otlp_trace_id),
             span_id=binascii.a2b_hex(self.otlp_span_id),
             trace_state=self.otlp_state,
-            attributes=jsonlike_dict_iter_to_kvlist(self.otlp_attributes),
+            attributes=util.jsonlike_dict_iter_to_kvlist(self.otlp_attributes),
             dropped_attributes_count=self.otlp_dropped_attributes_count,
             flags=self.otlp_flags,
         )
@@ -333,7 +247,7 @@ class SpanLink(OTLPData, Protocol):
 
     @property
     @abstractmethod
-    def otlp_attributes(self) -> JSONLikeDictIter:
+    def otlp_attributes(self) -> util.JSONLikeDictIter:
         pass
 
     @property
@@ -348,7 +262,7 @@ class SpanLink(OTLPData, Protocol):
 
 
 class Span(OTLPData, Protocol):
-    def to_otlp_json_iter(self) -> JSONLikeDictIter:
+    def to_otlp_json_iter(self) -> util.JSONLikeDictIter:
         def inner():
             yield ("traceId", self.otlp_trace_id)
             yield ("spanId", self.otlp_span_id)
@@ -380,18 +294,21 @@ class Span(OTLPData, Protocol):
             if flags:
                 yield ("flags", flags)
 
-            events = self.otlp_events
-            if not events.initially_empty():
+            peek_events = util.peek_iterator(self.otlp_events)
+            if peek_events:
+                _, events = peek_events
                 yield (
                     "events",
-                    JSONLikeListIter((event.to_otlp_json_iter() for event in events)),
+                    util.JSONLikeListIter(
+                        (event.to_otlp_json_iter() for event in events)
+                    ),
                 )
 
             yield ("status", self.otlp_status.to_otlp_json_iter())
 
             return
 
-        return JSONLikeDictIter(inner())
+        return util.JSONLikeDictIter(inner())
 
     def to_otlp_protobuf(self) -> trace.Span:
         return trace.Span(
@@ -404,7 +321,7 @@ class Span(OTLPData, Protocol):
             kind=self.otlp_kind.to_otlp_protobuf(),
             start_time_unix_nano=self.otlp_start_time_unix_nano,
             end_time_unix_nano=self.otlp_end_time_unix_nano,
-            attributes=jsonlike_dict_iter_to_kvlist(self.otlp_attributes),
+            attributes=util.jsonlike_dict_iter_to_kvlist(self.otlp_attributes),
             dropped_attributes_count=self.otlp_dropped_attributes_count,
             events=[x.to_otlp_protobuf() for x in self.otlp_events],
             dropped_events_count=self.otlp_dropped_events_count,
@@ -460,7 +377,7 @@ class Span(OTLPData, Protocol):
 
     @property
     @abstractmethod
-    def otlp_attributes(self) -> JSONLikeDictIter:
+    def otlp_attributes(self) -> util.JSONLikeDictIter:
         pass
 
     @property
@@ -495,7 +412,7 @@ class Span(OTLPData, Protocol):
 
 
 class InstrumentationScope(OTLPData, Protocol):
-    def to_otlp_json_iter(self) -> JSONLikeIter:
+    def to_otlp_json_iter(self) -> util.JSONLikeIter:
         def inner():
             yield ("name", self.otlp_name)
 
@@ -513,13 +430,13 @@ class InstrumentationScope(OTLPData, Protocol):
 
             return
 
-        return JSONLikeDictIter(inner())
+        return util.JSONLikeDictIter(inner())
 
     def to_otlp_protobuf(self) -> common.InstrumentationScope:
         return common.InstrumentationScope(
             name=self.otlp_name,
             version=self.otlp_version or "",
-            attributes=jsonlike_dict_iter_to_kvlist(self.otlp_attributes),
+            attributes=util.jsonlike_dict_iter_to_kvlist(self.otlp_attributes),
             dropped_attributes_count=self.otlp_dropped_attributes_count,
         )
 
@@ -535,7 +452,7 @@ class InstrumentationScope(OTLPData, Protocol):
 
     @property
     @abstractmethod
-    def otlp_attributes(self) -> JSONLikeDictIter:
+    def otlp_attributes(self) -> util.JSONLikeDictIter:
         pass
 
     @property
@@ -545,7 +462,7 @@ class InstrumentationScope(OTLPData, Protocol):
 
 
 class Resource(OTLPData, Protocol):
-    def to_otlp_json_iter(self) -> JSONLikeDictIter:
+    def to_otlp_json_iter(self) -> util.JSONLikeDictIter:
         def inner():
             attributes = self.otlp_attributes
             if not attributes.initially_empty():
@@ -557,17 +474,17 @@ class Resource(OTLPData, Protocol):
 
             return
 
-        return JSONLikeDictIter(inner())
+        return util.JSONLikeDictIter(inner())
 
     def to_otlp_protobuf(self) -> resource.Resource:
         return resource.Resource(
-            attributes=jsonlike_dict_iter_to_kvlist(self.otlp_attributes),
+            attributes=util.jsonlike_dict_iter_to_kvlist(self.otlp_attributes),
             dropped_attributes_count=self.otlp_dropped_attributes_count,
         )
 
     @property
     @abstractmethod
-    def otlp_attributes(self) -> JSONLikeDictIter:
+    def otlp_attributes(self) -> util.JSONLikeDictIter:
         pass
 
     @property
@@ -581,19 +498,19 @@ class Resource(OTLPData, Protocol):
 
 
 class ScopeSpanCollection(OTLPData, Protocol):
-    def to_otlp_json_iter(self) -> JSONLikeDictIter:
+    def to_otlp_json_iter(self) -> util.JSONLikeDictIter:
         def inner():
             yield ("scope", self.otlp_scope.to_otlp_json_iter())
             yield (
                 "spans",
-                JSONLikeListIter((x.to_otlp_json_iter() for x in self.otlp_spans)),
+                util.JSONLikeListIter((x.to_otlp_json_iter() for x in self.otlp_spans)),
             )
             schema_url = self.otlp_schema_url
             if schema_url:
                 yield ("schemaUrl", schema_url)
             return
 
-        return JSONLikeDictIter(inner())
+        return util.JSONLikeDictIter(inner())
 
     def to_otlp_protobuf(self) -> trace.ScopeSpans:
         return trace.ScopeSpans(
@@ -619,12 +536,12 @@ class ScopeSpanCollection(OTLPData, Protocol):
 
 
 class ResourceSpanCollection(OTLPData, Protocol):
-    def to_otlp_json_iter(self) -> JSONLikeDictIter:
+    def to_otlp_json_iter(self) -> util.JSONLikeDictIter:
         def inner():
             yield ("resource", self.otlp_resource.to_otlp_json_iter())
             yield (
                 "scopeSpans",
-                JSONLikeListIter(
+                util.JSONLikeListIter(
                     (x.to_otlp_json_iter() for x in self.otlp_scope_spans)
                 ),
             )
@@ -634,7 +551,7 @@ class ResourceSpanCollection(OTLPData, Protocol):
 
             return
 
-        return JSONLikeDictIter(inner())
+        return util.JSONLikeDictIter(inner())
 
     def to_otlp_protobuf(self) -> trace.ResourceSpans:
         return trace.ResourceSpans(
@@ -662,18 +579,18 @@ class ResourceSpanCollection(OTLPData, Protocol):
 
 
 class SpanCollection(OTLPData, Protocol):
-    def to_otlp_json_iter(self) -> JSONLikeDictIter:
+    def to_otlp_json_iter(self) -> util.JSONLikeDictIter:
         def inner():
             yield (
                 "resourceSpans",
-                JSONLikeListIter(
+                util.JSONLikeListIter(
                     (x.to_otlp_json_iter() for x in self.otlp_resource_spans)
                 ),
             )
 
             return
 
-        return JSONLikeDictIter(inner())
+        return util.JSONLikeDictIter(inner())
 
     def to_otlp_protobuf(self) -> trace_collector.ExportTraceServiceRequest:
         return trace_collector.ExportTraceServiceRequest(
