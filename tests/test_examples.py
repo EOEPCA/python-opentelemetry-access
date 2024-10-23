@@ -1,5 +1,7 @@
 import json
 
+from typing import no_type_check
+
 # import opentelemetry_betterproto.opentelemetry.proto.common.v1 as common
 import opentelemetry_betterproto.opentelemetry.proto.collector.trace.v1 as trace_collector
 
@@ -16,6 +18,7 @@ def nop(x):
     return x
 
 
+@no_type_check
 @mark.parametrize(
     "proto_rep_path, json_rep_path, ss4o_rep_path",
     [
@@ -32,12 +35,12 @@ def nop(x):
     ],
 )
 def test_example_trace(proto_rep_path: str, json_rep_path: str, ss4o_rep_path: str):
-    with open(proto_rep_path, "rb") as f:
-        parsed_binary = trace_collector.ExportTraceServiceRequest().parse(f.read())
-    with open(json_rep_path, "r") as f:
-        expected_json = json.load(f)
-    with open(ss4o_rep_path, "r") as f:
-        ss4o_search_results = json.load(f)
+    with open(proto_rep_path, "rb") as f1:
+        parsed_binary = trace_collector.ExportTraceServiceRequest().parse(f1.read())
+    with open(json_rep_path, "r") as f2:
+        expected_json = json.load(f2)
+    with open(ss4o_rep_path, "r") as f3:
+        ss4o_search_results = json.load(f3)
 
     nop(ss4o_search_results)
 
@@ -87,7 +90,7 @@ def test_example_trace(proto_rep_path: str, json_rep_path: str, ss4o_rep_path: s
     ## TODO: Currently (somehow) resource does not get set in OpenSearch
     ##       This is an issue with the setup, not with this library.
     ss4o_scope_spans = [
-        util.force_jsonlike_iter(sss.to_otlp_json_iter())
+        util.force_jsonlike_dict_iter(sss.to_otlp_json_iter())
         for rss in opensearch_ss4o.SS4OSpanCollection(
             ss4o_search_results
         ).otlp_resource_spans
@@ -95,7 +98,7 @@ def test_example_trace(proto_rep_path: str, json_rep_path: str, ss4o_rep_path: s
     ]
 
     otlpjson_scope_spans = [
-        util.force_jsonlike_iter(sss.to_otlp_json_iter())
+        util.force_jsonlike_dict_iter(sss.to_otlp_json_iter())
         for rss in otlpjson.OTLPJsonSpanCollection(expected_json).otlp_resource_spans
         for sss in rss.otlp_scope_spans
     ]

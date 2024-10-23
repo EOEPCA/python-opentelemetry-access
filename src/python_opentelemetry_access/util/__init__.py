@@ -92,6 +92,42 @@ def jsonlike_dict_iter_to_kvlist(jsiter: JSONLikeDictIter) -> List[common.KeyVal
             ]
 
 
+def to_otlp_any_value(jval: JSONLikeIter) -> JSONLikeDictIter:
+    ## Bool must be before int
+    if isinstance(jval, bool):
+        return JSONLikeDictIter(iter([("boolValue", jval)]))
+    elif isinstance(jval, int):
+        return JSONLikeDictIter(iter([("intValue", str(jval))]))
+    elif isinstance(jval, str):
+        return JSONLikeDictIter(iter([("stringValue", jval)]))
+    elif isinstance(jval, float):
+        return JSONLikeDictIter(iter([("doubleValue", jval)]))
+    elif isinstance(jval, JSONLikeDictIter):
+        return JSONLikeDictIter(iter([("kvlistValue", to_kv_list(jval))]))
+    elif isinstance(jval, JSONLikeListIter):
+        return JSONLikeDictIter(
+            iter(
+                [
+                    (
+                        "arrayValue",
+                        JSONLikeListIter((to_otlp_any_value(x) for x in jval)),
+                    )
+                ]
+            )
+        )
+    else:
+        raise TypeError(f"Unexpected anytype {type(jval)}")
+
+
+def to_kv_list(jsdict: JSONLikeDictIter) -> JSONLikeListIter:
+    return JSONLikeListIter(
+        (
+            JSONLikeDictIter(iter([("key", k), ("value", to_otlp_any_value(v))]))
+            for k, v in iter(jsdict)
+        )
+    )
+
+
 def _expect_field_type(jobj, field, type_, optional=False, default=None):
     if field not in jobj:
         if optional:
@@ -134,9 +170,6 @@ def force_jsonlike_list_iter(jobj: JSONLikeListIter) -> JSONLikeList:
 
 def force_jsonlike_dict_iter(jobj: JSONLikeDictIter) -> JSONLikeDict:
     return {k: force_jsonlike_iter(v) for k, v in jobj}
-
-
-T = TypeVar("T")
 
 
 def peek_iterator(iter: Iterator[T]) -> Optional[Tuple[T, Iterator[T]]]:
