@@ -1,5 +1,6 @@
 from collections.abc import Iterator
 from typing import Optional, Dict, List
+from threading import Lock
 # import json
 
 from itertools import groupby
@@ -303,6 +304,8 @@ class SS4OScopeSpanCollection(base.ScopeSpanCollection):
     ):
         self.scope = scope
         self.search_results = search_results
+        self._lock = Lock()
+        self._invalidated = False
 
     @property
     def otlp_scope(self) -> SS4OInstrumentationScope:
@@ -310,6 +313,15 @@ class SS4OScopeSpanCollection(base.ScopeSpanCollection):
 
     @property
     def otlp_spans(self) -> Iterator[SS4OSpan]:
+        fail = False
+        with self._lock:
+            if self._invalidated:
+                fail = True
+            else:
+                self._invalidated = True
+        if fail:
+            raise RuntimeError("Invalidated ScopeSpanCollection")
+
         return (SS4OSpan(span) for span in self.search_results)
 
     @property
@@ -326,6 +338,8 @@ class SS4OResourceSpanCollection(base.ResourceSpanCollection):
     ):
         self.resource = resource
         self.search_results = search_results
+        self._lock = Lock()
+        self._invalidated = False
 
     @property
     def otlp_resource(self) -> SS4OResource:
@@ -333,12 +347,24 @@ class SS4OResourceSpanCollection(base.ResourceSpanCollection):
 
     @property
     def otlp_scope_spans(self) -> Iterator[SS4OScopeSpanCollection]:
-        return (
-            SS4OScopeSpanCollection(SS4OInstrumentationScope(scope), spans)
+        fail = False
+        with self._lock:
+            if self._invalidated:
+                fail = True
+            else:
+                self._invalidated = True
+        if fail:
+            raise RuntimeError("Invalidated ResourceSpanCollection")
+
+        def inner():
             for scope, spans in groupby(
                 self.search_results, key=lambda x: x["instrumentationScope"]
-            )
-        )
+            ):
+                new = SS4OScopeSpanCollection(SS4OInstrumentationScope(scope), spans)
+                yield new
+                new._invalidated = True
+
+        return inner()
 
     @property
     def otlp_schema_url(self) -> str:
@@ -353,9 +379,12 @@ class SS4OSpanCollection(base.SpanCollection):
 
     @property
     def otlp_resource_spans(self) -> Iterator[SS4OResourceSpanCollection]:
-        return (
-            SS4OResourceSpanCollection(SS4OResource(resource), spans)
+        def inner():
             for resource, spans in groupby(
                 self.search_results, key=lambda x: x["resource"]
-            )
-        )
+            ):
+                new = SS4OResourceSpanCollection(SS4OResource(resource), spans)
+                yield new
+                new._invalidated = True
+
+        return inner()
