@@ -1,5 +1,5 @@
 from collections.abc import Iterator, Generator
-from typing import Optional, Dict, TextIO
+from typing import Optional, TextIO
 from threading import Lock
 import json
 
@@ -18,30 +18,6 @@ def _parse_ns_isotime(t: str) -> int:
     return int(Timestamp(t).asm8.astype("datetime64[ns]"))
 
 
-def _iter_simple_jsonlike(jobj: util.JSONLike) -> util.JSONLikeIter:
-    if (
-        isinstance(jobj, int)
-        or isinstance(jobj, float)
-        or isinstance(jobj, str)
-        or isinstance(jobj, bool)
-    ):
-        return jobj
-    elif isinstance(jobj, dict):
-        return _iter_simple_jsonlike_dict(jobj)
-    elif isinstance(jobj, list):
-        return _iter_simple_jsonlike_list(jobj)
-
-
-def _iter_simple_jsonlike_list(jobj: util.JSONLikeList) -> util.JSONLikeListIter:
-    return util.JSONLikeListIter((_iter_simple_jsonlike(x) for x in jobj))
-
-
-def _iter_simple_jsonlike_dict(jobj: util.JSONLikeDict) -> util.JSONLikeDictIter:
-    return util.JSONLikeDictIter(
-        ((k, _iter_simple_jsonlike(v)) for k, v in jobj.items())
-    )
-
-
 class SS4OSpanEvent(base.SpanEvent):
     def __init__(self, jobj: util.JSONLikeDict):
         self.jobj = jobj
@@ -56,7 +32,7 @@ class SS4OSpanEvent(base.SpanEvent):
 
     @property
     def otlp_attributes_iter(self) -> util.JSONLikeDictIter:
-        return _iter_simple_jsonlike_dict(
+        return util.iter_jsonlike_dict(
             util._expect_field_type(
                 self.jobj, "attributes", dict, optional=True, default={}
             )
@@ -116,7 +92,7 @@ class SS4OSpanLink(base.SpanLink):
 
     @property
     def otlp_attributes_iter(self) -> util.JSONLikeDictIter:
-        return _iter_simple_jsonlike_dict(
+        return util.iter_jsonlike_dict(
             util._expect_field_type(
                 self.jobj, "attributes", dict, optional=True, default={}
             )
@@ -179,7 +155,7 @@ class SS4OSpan(base.Span):
 
     @property
     def otlp_attributes_iter(self) -> util.JSONLikeDictIter:
-        return _iter_simple_jsonlike_dict(
+        return util.iter_jsonlike_dict(
             util._expect_field_type(
                 self.jobj, "attributes", dict, optional=True, default={}
             )
@@ -245,7 +221,7 @@ class SS4OInstrumentationScope(base.InstrumentationScope):
 
     @property
     def otlp_attributes_iter(self) -> util.JSONLikeDictIter:
-        return _iter_simple_jsonlike_dict(
+        return util.iter_jsonlike_dict(
             util._expect_field_type(
                 self.jobj, "attributes", dict, optional=True, default={}
             )
@@ -257,39 +233,13 @@ class SS4OInstrumentationScope(base.InstrumentationScope):
         return 0
 
 
-def _from_flattened(jobj: Dict[str, util.JSONLikeLiteral]) -> util.JSONLikeDictIter:
-    def outer(kvs_outer):
-        for k_primary, kvs_inner in groupby(
-            map(lambda kv: (kv[0].split(".", 1), kv[1]), kvs_outer),
-            key=lambda kv: kv[0][0],
-        ):
-            yield (k_primary, inner(kvs_inner))
-
-    def inner(kvs):
-        kv, kvs = util.peek_iterator(kvs)
-        if len(kv[0]) == 1:
-            return kv[1]
-        else:
-            return util.JSONLikeDictIter(outer(((k[1], v) for k, v in kvs)))
-
-    return util.JSONLikeDictIter(outer(jobj.items()))
-
-
-# def _fff(jobj: Dict[str, util.JSONLikeLiteral]) -> util.JSONLikeDict:
-#     return util.force_jsonlike_dict_iter(_from_flattened(jobj))
-
-
 class SS4OResource(base.Resource):
     def __init__(self, jobj: util.JSONLikeDict):
         self.jobj = jobj
 
     @property
     def otlp_attributes_iter(self) -> util.JSONLikeDictIter:
-        return _from_flattened(
-            util._expect_field_type(
-                self.jobj, "attributes", dict, optional=True, default={}
-            )
-        )
+        return util.iter_jsonlike_dict(self.jobj)
 
     @property
     def otlp_dropped_attributes_count(self) -> int:

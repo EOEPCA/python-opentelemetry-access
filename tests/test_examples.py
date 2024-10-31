@@ -72,55 +72,76 @@ def test_example_trace(proto_rep_path: str, json_rep_path: str, ss4o_rep_path: s
 
     ## TODO: Currently (somehow) resource does not get set in OpenSearch
     ##       This is an issue with the setup, not with this library.
-    ss4o_scope_spans = [
-        util.force_jsonlike_dict_iter(sss.to_otlp_json_iter())
-        for rss in ss4o_search_results.otlp_resource_spans
-        for sss in rss.otlp_scope_spans
-    ]
+    # ss4o_resource_spans = [
+    #     util.force_jsonlike_dict_iter(sss.to_otlp_json_iter())
+    #     for rss in ss4o_search_results.otlp_resource_spans
+    #     for sss in rss.otlp_scope_spans
+    # ]
 
-    otlpjson_scope_spans = [
-        util.force_jsonlike_dict_iter(sss.to_otlp_json_iter())
-        for rss in expected_json.otlp_resource_spans
-        for sss in rss.otlp_scope_spans
-    ]
+    # otlpjson_resource_spans = [
+    #     util.force_jsonlike_dict_iter(sss.to_otlp_json_iter())
+    #     for rss in expected_json.otlp_resource_spans
+    #     for sss in rss.otlp_scope_spans
+    # ]
+
+    ss4o_search_results_ = util.force_jsonlike_dict_iter(
+        ss4o_search_results.to_otlp_json_iter()
+    )
+    expected_json_ = util.force_jsonlike_dict_iter(expected_json.to_otlp_json_iter())
 
     def sort_otlp_attributes(kvs):
         return sorted(kvs, key=lambda x: x["key"])
 
-    for sss in ss4o_scope_spans:
-        for scope in sss["spans"]:
-            scope["attributes"] = sort_otlp_attributes(
-                [
-                    attribute
-                    for attribute in scope["attributes"]
-                    if attribute["key"]
-                    != "data_stream"  ## Additional attribute set by OpenSearch
-                ]
+    for rss in ss4o_search_results_["resourceSpans"]:
+        rss["resource"]["attributes"] = sort_otlp_attributes(
+            util.to_kv_list(
+                util.normalise_attributes_shallow(
+                    util.from_kv_list(rss["resource"]["attributes"])
+                )
             )
+        )
+        for sss in rss["scopeSpans"]:
+            for scope in sss["spans"]:
+                scope["attributes"] = sort_otlp_attributes(
+                    [
+                        attribute
+                        for attribute in scope["attributes"]
+                        if attribute["key"]
+                        != "data_stream"  ## Additional attribute set by OpenSearch
+                    ]
+                )
 
-            if "events" in scope:
-                for event in scope["events"]:
-                    event["attributes"] = sort_otlp_attributes(event["attributes"])
+                if "events" in scope:
+                    for event in scope["events"]:
+                        event["attributes"] = sort_otlp_attributes(event["attributes"])
 
-    for sss in otlpjson_scope_spans:
-        for scope in sss["spans"]:
-            if "flags" in scope:
-                del scope["flags"]  ## OpenSearch does not store flags
+    for rss in expected_json_["resourceSpans"]:
+        rss["resource"]["attributes"] = sort_otlp_attributes(
+            util.to_kv_list(
+                util.normalise_attributes_shallow(
+                    util.from_kv_list(rss["resource"]["attributes"])
+                )
+            )
+        )
+        for sss in rss["scopeSpans"]:
+            for scope in sss["spans"]:
+                if "flags" in scope:
+                    del scope["flags"]  ## OpenSearch does not store flags
 
-            scope["attributes"] = sort_otlp_attributes(scope["attributes"])
+                scope["attributes"] = sort_otlp_attributes(scope["attributes"])
 
-            if "events" in scope:
-                for event in scope["events"]:
-                    event["attributes"] = sort_otlp_attributes(event["attributes"])
+                if "events" in scope:
+                    for event in scope["events"]:
+                        event["attributes"] = sort_otlp_attributes(event["attributes"])
 
     # with open(f"tmp_{json_rep_path}_ss4o.json".replace("/", "__"), "w") as f:
     #     json.dump(
-    #         ss4o_scope_spans,
+    #         ss4o_search_results_,
     #         f,
     #         sort_keys=True,
     #         indent=2,
     #     )
     # with open(f"tmp_{json_rep_path}_orig.json".replace("/", "__"), "w") as f:
-    #     json.dump(otlpjson_scope_spans, f, sort_keys=True, indent=2)
+    #     json.dump(expected_json_, f, sort_keys=True, indent=2)
 
-    assert ss4o_scope_spans == otlpjson_scope_spans
+    assert ss4o_search_results_ == expected_json_

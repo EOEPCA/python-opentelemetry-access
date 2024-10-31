@@ -96,7 +96,7 @@ class SpanEvent(OTLPData, Protocol):
 
             attributes = self.otlp_attributes_iter
             if not attributes.initially_empty():
-                yield ("attributes", util.to_kv_list(attributes))
+                yield ("attributes", util.to_kv_list_iter(attributes))
 
             dropped = self.otlp_dropped_attributes_count
             if dropped and dropped != 0:
@@ -216,7 +216,7 @@ class SpanLink(OTLPData, Protocol):
 
             attributes = self.otlp_attributes_iter
             if not attributes.initially_empty():
-                yield ("attributes", util.to_kv_list(attributes))
+                yield ("attributes", util.to_kv_list_iter(attributes))
 
             dropped = self.otlp_dropped_attributes_count
             if dropped != 0:
@@ -318,7 +318,7 @@ class Span(OTLPData, Protocol):
 
             attributes = self.otlp_attributes_iter
             if not attributes.initially_empty():
-                yield ("attributes", util.to_kv_list(attributes))
+                yield ("attributes", util.to_kv_list_iter(attributes))
 
             dropped = self.otlp_dropped_attributes_count
             if dropped != 0:
@@ -468,7 +468,7 @@ class InstrumentationScope(OTLPData, Protocol):
 
             attributes = self.otlp_attributes_iter
             if not attributes.initially_empty():
-                yield ("attributes", util.to_kv_list(attributes))
+                yield ("attributes", util.to_kv_list_iter(attributes))
 
             dropped = self.otlp_dropped_attributes_count
             if dropped != 0:
@@ -522,7 +522,7 @@ class Resource(OTLPData, Protocol):
         def inner():
             attributes = self.otlp_attributes_iter
             if not attributes.initially_empty():
-                yield ("attributes", util.to_kv_list(attributes))
+                yield ("attributes", util.to_kv_list_iter(attributes))
 
             dropped = self.otlp_dropped_attributes_count
             if dropped != 0:

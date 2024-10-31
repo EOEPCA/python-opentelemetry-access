@@ -84,7 +84,10 @@ def test_roundtrip_complete_json():
         Timestamp(ss4o_span.otlp_end_time_unix_nano).isoformat() + "Z"
         == field_timestamp_end
     )
-    assert util.force_jsonlike_dict_iter(ss4o_span.otlp_attributes_iter) == field_attributes
+    assert (
+        util.force_jsonlike_dict_iter(ss4o_span.otlp_attributes_iter)
+        == field_attributes
+    )
     assert ss4o_span.otlp_dropped_attributes_count == field_dropped_attributes_count
     assert next(ss4o_span.otlp_events).to_otlp_json() == ss4o_span_event.to_otlp_json()
     assert ss4o_span.otlp_status.to_otlp_json() == ss4o_status.to_otlp_json()
@@ -106,7 +109,7 @@ def test_roundtrip_complete_json():
         == field_attributes
     )
 
-    resource_fields_flat = {
+    resource = {
         "foo.i": 3,
         "foo.s": "hello",
         "foo.b": True,
@@ -116,31 +119,24 @@ def test_roundtrip_complete_json():
         "baz.foo.b": False,
         "baz.bar": 6,
     }
-    resource_fields = {
-        "foo": {
-            "i": 3,
-            "s": "hello",
-            "b": True,
-        },
-        "bar": 4,
-        "baz": {
-            "foo": {
-                "i": 5,
-                "s": "hej",
-                "b": False,
-            },
-            "bar": 6,
-        },
-    }
-    resource = {
-        "attributes": resource_fields_flat,
-        ## Not sure how to handle this in OpenSearch yet
-        # "droppedAttributesCount": field_dropped_attributes_count,
-    }
+    # resource_fields = {
+    #     "foo": {
+    #         "i": 3,
+    #         "s": "hello",
+    #         "b": True,
+    #     },
+    #     "bar": 4,
+    #     "baz": {
+    #         "foo": {
+    #             "i": 5,
+    #             "s": "hej",
+    #             "b": False,
+    #         },
+    #         "bar": 6,
+    #     },
+    # }
     ss4o_resource = opensearch_ss4o.SS4OResource(resource)
-    assert (
-        util.force_jsonlike_dict_iter(ss4o_resource.otlp_attributes_iter) == resource_fields
-    )
+    assert ss4o_resource.otlp_attributes == resource
 
     search_results = [
         dict(
