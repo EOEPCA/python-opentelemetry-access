@@ -35,7 +35,7 @@ def test_roundtrip_complete_json():
         ss4o_span_event.otlp_dropped_attributes_count == field_dropped_attributes_count
     )
     assert (
-        util.force_jsonlike_dict_iter(ss4o_span_event.otlp_attributes)
+        util.force_jsonlike_dict_iter(ss4o_span_event.otlp_attributes_iter)
         == field_attributes
     )
 
@@ -84,7 +84,7 @@ def test_roundtrip_complete_json():
         Timestamp(ss4o_span.otlp_end_time_unix_nano).isoformat() + "Z"
         == field_timestamp_end
     )
-    assert util.force_jsonlike_dict_iter(ss4o_span.otlp_attributes) == field_attributes
+    assert util.force_jsonlike_dict_iter(ss4o_span.otlp_attributes_iter) == field_attributes
     assert ss4o_span.otlp_dropped_attributes_count == field_dropped_attributes_count
     assert next(ss4o_span.otlp_events).to_otlp_json() == ss4o_span_event.to_otlp_json()
     assert ss4o_span.otlp_status.to_otlp_json() == ss4o_status.to_otlp_json()
@@ -102,7 +102,7 @@ def test_roundtrip_complete_json():
     assert ss4o_instrumentation_scope.otlp_name == field_name
     assert ss4o_instrumentation_scope.otlp_version == field_version
     assert (
-        util.force_jsonlike_dict_iter(ss4o_instrumentation_scope.otlp_attributes)
+        util.force_jsonlike_dict_iter(ss4o_instrumentation_scope.otlp_attributes_iter)
         == field_attributes
     )
 
@@ -139,7 +139,7 @@ def test_roundtrip_complete_json():
     }
     ss4o_resource = opensearch_ss4o.SS4OResource(resource)
     assert (
-        util.force_jsonlike_dict_iter(ss4o_resource.otlp_attributes) == resource_fields
+        util.force_jsonlike_dict_iter(ss4o_resource.otlp_attributes_iter) == resource_fields
     )
 
     search_results = [

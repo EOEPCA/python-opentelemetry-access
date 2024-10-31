@@ -55,7 +55,7 @@ class SS4OSpanEvent(base.SpanEvent):
         return util._expect_field_type(self.jobj, "name", str)
 
     @property
-    def otlp_attributes(self) -> util.JSONLikeDictIter:
+    def otlp_attributes_iter(self) -> util.JSONLikeDictIter:
         return _iter_simple_jsonlike_dict(
             util._expect_field_type(
                 self.jobj, "attributes", dict, optional=True, default={}
@@ -115,7 +115,7 @@ class SS4OSpanLink(base.SpanLink):
         return util._expect_field_type(self.jobj, "state", str)
 
     @property
-    def otlp_attributes(self) -> util.JSONLikeDictIter:
+    def otlp_attributes_iter(self) -> util.JSONLikeDictIter:
         return _iter_simple_jsonlike_dict(
             util._expect_field_type(
                 self.jobj, "attributes", dict, optional=True, default={}
@@ -178,7 +178,7 @@ class SS4OSpan(base.Span):
         return _parse_ns_isotime(util._expect_field_type(self.jobj, "endTime", str))
 
     @property
-    def otlp_attributes(self) -> util.JSONLikeDictIter:
+    def otlp_attributes_iter(self) -> util.JSONLikeDictIter:
         return _iter_simple_jsonlike_dict(
             util._expect_field_type(
                 self.jobj, "attributes", dict, optional=True, default={}
@@ -244,7 +244,7 @@ class SS4OInstrumentationScope(base.InstrumentationScope):
         return version if version != "" else None
 
     @property
-    def otlp_attributes(self) -> util.JSONLikeDictIter:
+    def otlp_attributes_iter(self) -> util.JSONLikeDictIter:
         return _iter_simple_jsonlike_dict(
             util._expect_field_type(
                 self.jobj, "attributes", dict, optional=True, default={}
@@ -284,7 +284,7 @@ class SS4OResource(base.Resource):
         self.jobj = jobj
 
     @property
-    def otlp_attributes(self) -> util.JSONLikeDictIter:
+    def otlp_attributes_iter(self) -> util.JSONLikeDictIter:
         return _from_flattened(
             util._expect_field_type(
                 self.jobj, "attributes", dict, optional=True, default={}

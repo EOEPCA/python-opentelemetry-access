@@ -45,7 +45,7 @@ class OTLPProtoSpanEvent(base.SpanEvent):
         return self._proto.name
 
     @property
-    def otlp_attributes(self) -> util.JSONLikeDictIter:
+    def otlp_attributes_iter(self) -> util.JSONLikeDictIter:
         return util.JSONLikeDictIter(
             ((x.key, _un_anyvalue(x.value)) for x in self._proto.attributes)
         )
@@ -100,7 +100,7 @@ class OTLPProtoSpanLink(base.SpanLink):
         return self._proto.trace_state
 
     @property
-    def otlp_attributes(self) -> util.JSONLikeDictIter:
+    def otlp_attributes_iter(self) -> util.JSONLikeDictIter:
         return util.JSONLikeDictIter(
             ((x.key, _un_anyvalue(x.value)) for x in self._proto.attributes)
         )
@@ -157,7 +157,7 @@ class OTLPProtoSpan(base.Span):
         return self._proto.end_time_unix_nano
 
     @property
-    def otlp_attributes(self) -> util.JSONLikeDictIter:
+    def otlp_attributes_iter(self) -> util.JSONLikeDictIter:
         return util.JSONLikeDictIter(
             ((x.key, _un_anyvalue(x.value)) for x in self._proto.attributes)
         )
@@ -202,7 +202,7 @@ class OTLPProtoInstrumentationScope(base.InstrumentationScope):
         return self._proto.version if self._proto.version != "" else None
 
     @property
-    def otlp_attributes(self) -> util.JSONLikeDictIter:
+    def otlp_attributes_iter(self) -> util.JSONLikeDictIter:
         return util.JSONLikeDictIter(
             ((x.key, _un_anyvalue(x.value)) for x in self._proto.attributes)
         )
@@ -219,7 +219,7 @@ class OTLPProtoResource(base.Resource):
         self._proto = proto
 
     @property
-    def otlp_attributes(self) -> util.JSONLikeDictIter:
+    def otlp_attributes_iter(self) -> util.JSONLikeDictIter:
         return util.JSONLikeDictIter(
             ((x.key, _un_anyvalue(x.value)) for x in self._proto.attributes)
         )

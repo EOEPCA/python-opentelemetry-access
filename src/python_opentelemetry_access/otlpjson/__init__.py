@@ -97,7 +97,7 @@ class OTLPJsonSpanEvent(base.SpanEvent):
         return util._expect_field_type(self.jobj, "name", str)
 
     @property
-    def otlp_attributes(self) -> util.JSONLikeDictIter:
+    def otlp_attributes_iter(self) -> util.JSONLikeDictIter:
         return iter_otlp_jsonlike_dict(
             util._expect_field_type(
                 self.jobj, "attributes", list, optional=True, default={}
@@ -151,7 +151,7 @@ class OTLPJsonSpanLink(base.SpanLink):
         return util._expect_field_type(self.jobj, "state", str)
 
     @property
-    def otlp_attributes(self) -> util.JSONLikeDictIter:
+    def otlp_attributes_iter(self) -> util.JSONLikeDictIter:
         return iter_otlp_jsonlike_dict(
             util._expect_field_type(
                 self.jobj, "attributes", list, optional=True, default={}
@@ -214,7 +214,7 @@ class OTLPJsonSpan(base.Span):
         return int(util._expect_field_type(self.jobj, "endTimeUnixNano", str))
 
     @property
-    def otlp_attributes(self) -> util.JSONLikeDictIter:
+    def otlp_attributes_iter(self) -> util.JSONLikeDictIter:
         return iter_otlp_jsonlike_dict(
             util._expect_field_type(
                 self.jobj, "attributes", list, optional=True, default={}
@@ -279,7 +279,7 @@ class OTLPJsonInstrumentationScope(base.InstrumentationScope):
         return util._expect_field_type(self.jobj, "version", str, optional=True)
 
     @property
-    def otlp_attributes(self) -> util.JSONLikeDictIter:
+    def otlp_attributes_iter(self) -> util.JSONLikeDictIter:
         return iter_otlp_jsonlike_dict(
             util._expect_field_type(
                 self.jobj, "attributes", list, optional=True, default={}
@@ -298,7 +298,7 @@ class OTLPJsonResource(base.Resource):
         self.jobj = jobj
 
     @property
-    def otlp_attributes(self) -> util.JSONLikeDictIter:
+    def otlp_attributes_iter(self) -> util.JSONLikeDictIter:
         return iter_otlp_jsonlike_dict(
             util._expect_field_type(
                 self.jobj, "attributes", list, optional=True, default={}

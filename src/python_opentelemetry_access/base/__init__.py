@@ -85,7 +85,7 @@ class SpanEvent(OTLPData, Protocol):
         return ReifiedSpanEvent(
             time_unix_nano=self.otlp_time_unix_nano,
             name=self.otlp_name,
-            attributes=util.force_jsonlike_dict_iter(self.otlp_attributes),
+            attributes=util.force_jsonlike_dict_iter(self.otlp_attributes_iter),
             dropped_attributes_count=self.otlp_dropped_attributes_count,
         )
 
@@ -94,7 +94,7 @@ class SpanEvent(OTLPData, Protocol):
             yield ("timeUnixNano", str(self.otlp_time_unix_nano))
             yield ("name", self.otlp_name)
 
-            attributes = self.otlp_attributes
+            attributes = self.otlp_attributes_iter
             if not attributes.initially_empty():
                 yield ("attributes", util.to_kv_list(attributes))
 
@@ -110,7 +110,7 @@ class SpanEvent(OTLPData, Protocol):
         return trace.SpanEvent(
             time_unix_nano=self.otlp_time_unix_nano,
             name=self.otlp_name,
-            attributes=util.jsonlike_dict_iter_to_kvlist(self.otlp_attributes),
+            attributes=util.jsonlike_dict_iter_to_kvlist(self.otlp_attributes_iter),
             dropped_attributes_count=self.otlp_dropped_attributes_count,
         )
 
@@ -126,8 +126,12 @@ class SpanEvent(OTLPData, Protocol):
 
     @property
     @abstractmethod
-    def otlp_attributes(self) -> util.JSONLikeDictIter:
+    def otlp_attributes_iter(self) -> util.JSONLikeDictIter:
         pass
+
+    @property
+    def otlp_attributes(self) -> util.JSONLikeDict:
+        return util.force_jsonlike_dict_iter(self.otlp_attributes_iter)
 
     @property
     @abstractmethod
@@ -199,7 +203,7 @@ class SpanLink(OTLPData, Protocol):
             trace_id=self.otlp_trace_id,
             span_id=self.otlp_span_id,
             state=self.otlp_state,
-            attributes=util.force_jsonlike_dict_iter(self.otlp_attributes),
+            attributes=util.force_jsonlike_dict_iter(self.otlp_attributes_iter),
             dropped_attributes_count=self.otlp_dropped_attributes_count,
             flags=self.otlp_flags,
         )
@@ -210,7 +214,7 @@ class SpanLink(OTLPData, Protocol):
             yield ("spanId", self.otlp_span_id)
             yield ("traceState", self.otlp_trace_state)
 
-            attributes = self.otlp_attributes
+            attributes = self.otlp_attributes_iter
             if not attributes.initially_empty():
                 yield ("attributes", util.to_kv_list(attributes))
 
@@ -231,7 +235,7 @@ class SpanLink(OTLPData, Protocol):
             trace_id=binascii.a2b_hex(self.otlp_trace_id),
             span_id=binascii.a2b_hex(self.otlp_span_id),
             trace_state=self.otlp_state,
-            attributes=util.jsonlike_dict_iter_to_kvlist(self.otlp_attributes),
+            attributes=util.jsonlike_dict_iter_to_kvlist(self.otlp_attributes_iter),
             dropped_attributes_count=self.otlp_dropped_attributes_count,
             flags=self.otlp_flags,
         )
@@ -253,8 +257,12 @@ class SpanLink(OTLPData, Protocol):
 
     @property
     @abstractmethod
-    def otlp_attributes(self) -> util.JSONLikeDictIter:
+    def otlp_attributes_iter(self) -> util.JSONLikeDictIter:
         pass
+
+    @property
+    def otlp_attributes(self) -> util.JSONLikeDict:
+        return util.force_jsonlike_dict_iter(self.otlp_attributes_iter)
 
     @property
     @abstractmethod
@@ -279,7 +287,7 @@ class Span(OTLPData, Protocol):
             kind=self.otlp_kind.to_otlp_protobuf(),
             start_time_unix_nano=self.otlp_start_time_unix_nano,
             end_time_unix_nano=self.otlp_end_time_unix_nano,
-            attributes=util.force_jsonlike_dict_iter(self.otlp_attributes),
+            attributes=util.force_jsonlike_dict_iter(self.otlp_attributes_iter),
             dropped_attributes_count=self.otlp_dropped_attributes_count,
             events=[x.to_reified() for x in self.otlp_events],
             dropped_events_count=self.otlp_dropped_events_count,
@@ -308,7 +316,7 @@ class Span(OTLPData, Protocol):
             yield ("startTimeUnixNano", str(self.otlp_start_time_unix_nano))
             yield ("endTimeUnixNano", str(self.otlp_end_time_unix_nano))
 
-            attributes = self.otlp_attributes
+            attributes = self.otlp_attributes_iter
             if not attributes.initially_empty():
                 yield ("attributes", util.to_kv_list(attributes))
 
@@ -347,7 +355,7 @@ class Span(OTLPData, Protocol):
             kind=self.otlp_kind.to_otlp_protobuf(),
             start_time_unix_nano=self.otlp_start_time_unix_nano,
             end_time_unix_nano=self.otlp_end_time_unix_nano,
-            attributes=util.jsonlike_dict_iter_to_kvlist(self.otlp_attributes),
+            attributes=util.jsonlike_dict_iter_to_kvlist(self.otlp_attributes_iter),
             dropped_attributes_count=self.otlp_dropped_attributes_count,
             events=[x.to_otlp_protobuf() for x in self.otlp_events],
             dropped_events_count=self.otlp_dropped_events_count,
@@ -403,8 +411,12 @@ class Span(OTLPData, Protocol):
 
     @property
     @abstractmethod
-    def otlp_attributes(self) -> util.JSONLikeDictIter:
+    def otlp_attributes_iter(self) -> util.JSONLikeDictIter:
         pass
+
+    @property
+    def otlp_attributes(self) -> util.JSONLikeDict:
+        return util.force_jsonlike_dict_iter(self.otlp_attributes_iter)
 
     @property
     @abstractmethod
@@ -442,7 +454,7 @@ class InstrumentationScope(OTLPData, Protocol):
         return ReifiedInstrumentationScope(
             name=self.otlp_name,
             version=self.otlp_version,
-            attributes=util.force_jsonlike_dict_iter(self.otlp_attributes),
+            attributes=util.force_jsonlike_dict_iter(self.otlp_attributes_iter),
             dropped_attributes_count=self.otlp_dropped_attributes_count,
         )
 
@@ -454,7 +466,7 @@ class InstrumentationScope(OTLPData, Protocol):
             if version is not None:
                 yield ("version", version)
 
-            attributes = self.otlp_attributes
+            attributes = self.otlp_attributes_iter
             if not attributes.initially_empty():
                 yield ("attributes", util.to_kv_list(attributes))
 
@@ -470,7 +482,7 @@ class InstrumentationScope(OTLPData, Protocol):
         return common.InstrumentationScope(
             name=self.otlp_name,
             version=self.otlp_version or "",
-            attributes=util.jsonlike_dict_iter_to_kvlist(self.otlp_attributes),
+            attributes=util.jsonlike_dict_iter_to_kvlist(self.otlp_attributes_iter),
             dropped_attributes_count=self.otlp_dropped_attributes_count,
         )
 
@@ -486,8 +498,12 @@ class InstrumentationScope(OTLPData, Protocol):
 
     @property
     @abstractmethod
-    def otlp_attributes(self) -> util.JSONLikeDictIter:
+    def otlp_attributes_iter(self) -> util.JSONLikeDictIter:
         pass
+
+    @property
+    def otlp_attributes(self) -> util.JSONLikeDict:
+        return util.force_jsonlike_dict_iter(self.otlp_attributes_iter)
 
     @property
     @abstractmethod
@@ -498,13 +514,13 @@ class InstrumentationScope(OTLPData, Protocol):
 class Resource(OTLPData, Protocol):
     def to_reified(self) -> "ReifiedResource":
         return ReifiedResource(
-            attributes=util.force_jsonlike_dict_iter(self.otlp_attributes),
+            attributes=util.force_jsonlike_dict_iter(self.otlp_attributes_iter),
             dropped_attributes_count=self.otlp_dropped_attributes_count,
         )
 
     def to_otlp_json_iter(self) -> util.JSONLikeDictIter:
         def inner():
-            attributes = self.otlp_attributes
+            attributes = self.otlp_attributes_iter
             if not attributes.initially_empty():
                 yield ("attributes", util.to_kv_list(attributes))
 
@@ -518,14 +534,18 @@ class Resource(OTLPData, Protocol):
 
     def to_otlp_protobuf(self) -> resource.Resource:
         return resource.Resource(
-            attributes=util.jsonlike_dict_iter_to_kvlist(self.otlp_attributes),
+            attributes=util.jsonlike_dict_iter_to_kvlist(self.otlp_attributes_iter),
             dropped_attributes_count=self.otlp_dropped_attributes_count,
         )
 
     @property
     @abstractmethod
-    def otlp_attributes(self) -> util.JSONLikeDictIter:
+    def otlp_attributes_iter(self) -> util.JSONLikeDictIter:
         pass
+
+    @property
+    def otlp_attributes(self) -> util.JSONLikeDict:
+        return util.force_jsonlike_dict_iter(self.otlp_attributes_iter)
 
     @property
     @abstractmethod
@@ -721,7 +741,7 @@ class ReifiedSpanEvent(SpanEvent):
     attributes: util.JSONLikeDict
 
     @property
-    def otlp_attributes(self) -> util.JSONLikeDictIter:
+    def otlp_attributes_iter(self) -> util.JSONLikeDictIter:
         return iter_jsonlike_dict(self.attributes)
 
     dropped_attributes_count: int
@@ -778,7 +798,7 @@ class ReifiedSpanLink(SpanLink):
     attributes: util.JSONLikeDict
 
     @property
-    def otlp_attributes(self) -> util.JSONLikeDictIter:
+    def otlp_attributes_iter(self) -> util.JSONLikeDictIter:
         return iter_jsonlike_dict(self.attributes)
 
     dropped_attributes_count: int
@@ -853,7 +873,7 @@ class ReifiedSpan(Span):
     attributes: util.JSONLikeDict
 
     @property
-    def otlp_attributes(self) -> util.JSONLikeDictIter:
+    def otlp_attributes_iter(self) -> util.JSONLikeDictIter:
         return iter_jsonlike_dict(self.attributes)
 
     dropped_attributes_count: int
@@ -910,7 +930,7 @@ class ReifiedInstrumentationScope(InstrumentationScope):
     attributes: util.JSONLikeDict
 
     @property
-    def otlp_attributes(self) -> util.JSONLikeDictIter:
+    def otlp_attributes_iter(self) -> util.JSONLikeDictIter:
         return iter_jsonlike_dict(self.attributes)
 
     dropped_attributes_count: int
@@ -925,7 +945,7 @@ class ReifiedResource(Resource):
     attributes: util.JSONLikeDict
 
     @property
-    def otlp_attributes(self) -> util.JSONLikeDictIter:
+    def otlp_attributes_iter(self) -> util.JSONLikeDictIter:
         return iter_jsonlike_dict(self.attributes)
 
     dropped_attributes_count: int
