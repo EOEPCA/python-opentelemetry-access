@@ -148,6 +148,13 @@ def expect_dict(x: JSONLike) -> JSONLikeDict:
         raise TypeError(f"Expected dict, got {type(x)}")
 
 
+def expect_list(x: JSONLike) -> JSONLikeList:
+    if isinstance(x, list):
+        return x
+    else:
+        raise TypeError(f"Expected list, got {type(x)}")
+
+
 def force_jsonlike_iter(jobj: JSONLikeIter) -> JSONLike:
     if (
         isinstance(jobj, int)

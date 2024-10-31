@@ -149,7 +149,7 @@ def test_roundtrip_complete_json():
         )
     ]
 
-    ss4o_span_collection = opensearch_ss4o.SS4OSpanCollection(search_results)
+    ss4o_span_collection = opensearch_ss4o.SS4OSpanCollectionBare(search_results)
 
     ss4o_resource_span_collection = next(ss4o_span_collection.otlp_resource_spans)
     assert (

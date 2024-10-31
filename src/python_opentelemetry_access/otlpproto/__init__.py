@@ -1,5 +1,5 @@
 from collections.abc import Iterator
-from typing import Optional
+from typing import Optional, BinaryIO
 import binascii
 
 from .. import base
@@ -278,3 +278,11 @@ class OTLPProtoSpanCollection(base.SpanCollection):
         return (
             OTLPProtoResourceSpanCollection(span) for span in self._proto.resource_spans
         )
+
+
+def load(fp: BinaryIO) -> OTLPProtoSpanCollection:
+    return OTLPProtoSpanCollection(trace_collector.ExportTraceServiceRequest().load(fp))
+
+
+def loads(s: bytes) -> OTLPProtoSpanCollection:
+    return OTLPProtoSpanCollection(trace_collector.ExportTraceServiceRequest().parse(s))

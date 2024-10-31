@@ -1,7 +1,8 @@
-from collections.abc import Iterator
-from typing import Optional, Dict, List
+from collections.abc import Iterator, Generator
+from typing import Optional, Dict, TextIO
 from threading import Lock
-# import json
+import json
+
 
 from itertools import groupby
 
@@ -373,18 +374,74 @@ class SS4OResourceSpanCollection(base.ResourceSpanCollection):
         ###raise NotImplementedError()
 
 
+def _iter_bare_results(
+    search_results: util.JSONLikeList,
+) -> Generator[SS4OResourceSpanCollection]:
+    for resource, spans in groupby(
+        search_results,
+        key=lambda x: util.expect_dict(util.expect_dict(x)["resource"]),
+    ):
+        new = SS4OResourceSpanCollection(
+            SS4OResource(resource), (util.expect_dict(span) for span in spans)
+        )
+        yield new
+        new._invalidated = True
+
+
+def _iter_full_results(
+    search_results: util.JSONLikeDict,
+) -> Generator[SS4OResourceSpanCollection]:
+    for resource, spans in groupby(
+        util.expect_list(
+            util.expect_dict(util.expect_dict(search_results)["hits"])["hits"]
+        ),
+        key=lambda x: util.expect_dict(util.expect_dict(x)["resource"]),
+    ):
+        new = SS4OResourceSpanCollection(
+            SS4OResource(resource),
+            (util.expect_dict(util.expect_dict(result)["_source"]) for result in spans),
+        )
+        yield new
+        new._invalidated = True
+
+
 class SS4OSpanCollection(base.SpanCollection):
-    def __init__(self, search_results: List[util.JSONLikeDict]):
-        self.search_results = search_results
+    def __init__(self, search_results: util.JSONLike):
+        self._search_results = search_results
 
     @property
     def otlp_resource_spans(self) -> Iterator[SS4OResourceSpanCollection]:
-        def inner():
-            for resource, spans in groupby(
-                self.search_results, key=lambda x: x["resource"]
-            ):
-                new = SS4OResourceSpanCollection(SS4OResource(resource), spans)
-                yield new
-                new._invalidated = True
+        return _iter_full_results(util.expect_dict(self._search_results))
 
-        return inner()
+
+class SS4OSpanCollectionBare(base.SpanCollection):
+    def __init__(self, search_results: util.JSONLike):
+        self._search_results = search_results
+
+    @property
+    def otlp_resource_spans(self) -> Iterator[SS4OResourceSpanCollection]:
+        return _iter_bare_results(util.expect_list(self._search_results))
+
+
+def loado(o: util.JSONLike):
+    return SS4OSpanCollection(o)
+
+
+def loado_bare(o: util.JSONLike):
+    return SS4OSpanCollectionBare(o)
+
+
+def load(fp: TextIO):
+    return loado(json.load(fp))
+
+
+def load_bare(fp: TextIO):
+    return loado_bare(json.load(fp))
+
+
+def loads(s: str):
+    return loado(json.loads(s))
+
+
+def loads_bare(s: str):
+    return loado_bare(json.loads(s))

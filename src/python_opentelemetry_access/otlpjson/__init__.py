@@ -1,5 +1,5 @@
 from collections.abc import Iterator
-from typing import Tuple, Optional
+from typing import Tuple, Optional, TextIO, BinaryIO
 import json
 
 from .. import base
@@ -364,3 +364,15 @@ class OTLPJsonSpanCollection(base.SpanCollection):
             OTLPJsonResourceSpanCollection(util.expect_dict(span))
             for span in util._expect_field_type(self.jobj, "resourceSpans", list)
         )
+
+
+def loado(o: util.JSONLike) -> OTLPJsonSpanCollection:
+    return OTLPJsonSpanCollection(util.expect_dict(o))
+
+
+def load(fp: TextIO | BinaryIO) -> OTLPJsonSpanCollection:
+    return loado(json.load(fp))
+
+
+def loads(s: str) -> OTLPJsonSpanCollection:
+    return loado(json.loads(s))
