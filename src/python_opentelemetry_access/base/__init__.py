@@ -284,7 +284,7 @@ class Span(OTLPData, Protocol):
             parent_span_id=self.otlp_parent_span_id,
             flags=self.otlp_flags,
             name=self.otlp_name,
-            kind=self.otlp_kind.to_otlp_protobuf(),
+            kind=ReifiedSpanKind(self.otlp_kind.to_otlp_protobuf()),
             start_time_unix_nano=self.otlp_start_time_unix_nano,
             end_time_unix_nano=self.otlp_end_time_unix_nano,
             attributes=util.force_jsonlike_dict_iter(self.otlp_attributes_iter),

@@ -130,7 +130,7 @@ class OTLPProtoSpan(base.Span):
 
     @property
     def otlp_trace_state(self) -> Optional[str]:
-        return self._proto.trace_state
+        return self._proto.trace_state if self._proto.trace_state != "" else None
 
     @property
     def otlp_parent_span_id(self) -> str:
@@ -245,7 +245,7 @@ class OTLPProtoScopeSpanCollection(base.ScopeSpanCollection):
 
     @property
     def otlp_schema_url(self) -> Optional[str]:
-        return self._proto.schema_url
+        return self._proto.schema_url if self._proto.schema_url != "" else None
 
 
 class OTLPProtoResourceSpanCollection(base.ResourceSpanCollection):
@@ -264,7 +264,7 @@ class OTLPProtoResourceSpanCollection(base.ResourceSpanCollection):
 
     @property
     def otlp_schema_url(self) -> Optional[str]:
-        return self._proto.schema_url
+        return self._proto.schema_url if self._proto.schema_url != "" else None
 
 
 class OTLPProtoSpanCollection(base.SpanCollection):

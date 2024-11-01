@@ -3,6 +3,11 @@ import python_opentelemetry_access.opensearch_ss4o as ss4o
 import python_opentelemetry_access.otlpjson as otlpjson
 import python_opentelemetry_access.otlpproto as otlpproto
 
+import python_opentelemetry_access.proxy as proxy
+import python_opentelemetry_access.proxy.api as api
+
+import uvicorn
+
 import logging
 from pathlib import Path
 from sys import stdin, stdout
@@ -105,3 +110,19 @@ def convert(infile: Path, outfile: Path, from_: str, to: str) -> None:
         else:
             with open(outfile, "w") as f:
                 writer(rep, f)
+
+
+@cli.command()
+@click.option("--host", default="0.0.0.0")
+@click.option("--port", default=12345)
+@click.option(
+    "--file",
+    required=True,
+    type=click.Path(exists=True, file_okay=True, dir_okay=False, path_type=Path),
+)
+def run_proxy(host, port, file) -> None:
+    with open(file, "r") as f:
+        api.settings.proxy = proxy.MockProxy(otlpjson.load(f))
+    uvicorn.run(
+        api.app, host=host, port=port, reload=False, log_level="debug", workers=1
+    )

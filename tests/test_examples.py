@@ -37,31 +37,14 @@ def test_example_trace(proto_rep_path: str, json_rep_path: str, ss4o_rep_path: s
     with open(ss4o_rep_path, "r") as f3:
         ss4o_search_results = opensearch_ss4o.load_bare(f3)
 
-    # To simplify debugging of tests
-    # with open(f"tmp_{json_rep_path}_bin.json".replace("/", "__"), "w") as f:
-    #     f.write(
-    #         json.dumps(
-    #             json.loads(
-    #                 otlpjson.OTLPJsonSpanCollection(expected_json).to_otlp_json()
-    #             ),
-    #             indent=2,
-    #         )
-    #     )
-    # with open(f"tmp_{json_rep_path}_orig.json".replace("/", "__"), "w") as f:
-    #     f.write(json.dumps(expected_json, indent=2))
+    assert expected_json.to_reified().to_otlp_json() == expected_json.to_otlp_json()
+    assert parsed_binary.to_reified().to_otlp_json() == parsed_binary.to_otlp_json()
+    assert (
+        ss4o_search_results.to_reified().to_otlp_json()
+        == ss4o_search_results.to_otlp_json()
+    )
 
-    # with open(f"tmp_{json_rep_path}_ss4o.json".replace("/", "__"), "w") as f:
-    #     json.dump(
-    #         util.force_jsonlike_iter(
-    #             opensearch_ss4o.SS4OSpanCollection(
-    #                 ss4o_search_results
-    #             ).to_otlp_json_iter()
-    #         ),
-    #         f,
-    #         indent=2,
-    #     )
-    # with open(f"tmp_{json_rep_path}_orig.json".replace("/", "__"), "w") as f:
-    #     json.dump(expected_json, f, indent=2)
+    assert expected_json.to_reified() == parsed_binary.to_reified()
 
     assert expected_json.to_otlp_json() == json.dumps(expected_json.jobj)
     assert parsed_binary.to_otlp_json() == expected_json.to_otlp_json()
@@ -69,20 +52,6 @@ def test_example_trace(proto_rep_path: str, json_rep_path: str, ss4o_rep_path: s
     assert expected_json.to_otlp_protobuf() == parsed_binary._proto
 
     assert parsed_binary.to_otlp_protobuf() == parsed_binary._proto
-
-    ## TODO: Currently (somehow) resource does not get set in OpenSearch
-    ##       This is an issue with the setup, not with this library.
-    # ss4o_resource_spans = [
-    #     util.force_jsonlike_dict_iter(sss.to_otlp_json_iter())
-    #     for rss in ss4o_search_results.otlp_resource_spans
-    #     for sss in rss.otlp_scope_spans
-    # ]
-
-    # otlpjson_resource_spans = [
-    #     util.force_jsonlike_dict_iter(sss.to_otlp_json_iter())
-    #     for rss in expected_json.otlp_resource_spans
-    #     for sss in rss.otlp_scope_spans
-    # ]
 
     ss4o_search_results_ = util.force_jsonlike_dict_iter(
         ss4o_search_results.to_otlp_json_iter()
@@ -133,15 +102,5 @@ def test_example_trace(proto_rep_path: str, json_rep_path: str, ss4o_rep_path: s
                 if "events" in scope:
                     for event in scope["events"]:
                         event["attributes"] = sort_otlp_attributes(event["attributes"])
-
-    # with open(f"tmp_{json_rep_path}_ss4o.json".replace("/", "__"), "w") as f:
-    #     json.dump(
-    #         ss4o_search_results_,
-    #         f,
-    #         sort_keys=True,
-    #         indent=2,
-    #     )
-    # with open(f"tmp_{json_rep_path}_orig.json".replace("/", "__"), "w") as f:
-    #     json.dump(expected_json_, f, sort_keys=True, indent=2)
 
     assert ss4o_search_results_ == expected_json_
