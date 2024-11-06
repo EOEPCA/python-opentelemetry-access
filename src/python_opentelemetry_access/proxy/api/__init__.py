@@ -6,6 +6,7 @@ import python_opentelemetry_access.proxy as proxy
 from dataclasses import dataclass
 
 from fastapi import FastAPI
+# from fastapi.responses import StreamingResponse
 
 
 @dataclass
@@ -22,25 +23,24 @@ async def read_root():
     yield "Hello"
 
 
-async def testme():
-    for i in range(0, 10):
-        yield i
-
-
 @app.get("/spans")
 async def get_spans():
-    spans = []
-    async for span_collection in settings.proxy.query_spans():
-        for resource_spans in span_collection.otlp_resource_spans:
-            for scope_spans in resource_spans.otlp_scope_spans:
-                for span in scope_spans.otlp_spans:
-                    spans.append(span.otlp_span_id)
-    return spans
+    # async def content():
+    #     async for spans in settings.proxy.query_spans():
+    #         for chunk in spans.to_otlp_json_iter():
+    #             yield chunk
+
+    # return StreamingResponse(
+    #     content=content(),
+    # )
+    return [x async for x in settings.proxy.query_spans()]
 
 
-@app.get("/debug")
-async def debug():
-    span_collections = []
-    async for span_collection in settings.proxy.query_spans():
-        span_collections.append(span_collection)
-    return span_collections[0]
+@app.get("/spans/{trace_id}")
+async def get_trace(trace_id):
+    return settings.proxy.query_spans(span_ids=[(trace_id, None)])
+
+
+@app.get("/spans/{trace_id}/{span_id}")
+async def get_span(trace_id, span_id):
+    return settings.proxy.query_spans(span_ids=[(trace_id, span_id)])

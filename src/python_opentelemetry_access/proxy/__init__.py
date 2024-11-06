@@ -3,41 +3,17 @@ import python_opentelemetry_access.util as util
 
 from abc import ABC, abstractmethod
 from collections.abc import AsyncIterable
-from typing import List, Optional
+from typing import List, Optional, Tuple
 from datetime import datetime
 
 
 class Proxy(ABC):
-    ## TODO: Should I really await here?
-    async def get_spans_async(
-        self, span_ids: List[str]
-    ) -> AsyncIterable[base.SpanCollection]:
-        async for sc in await self.query_spans(span_ids=span_ids):
-            yield sc
-
-    async def get_span_async(self, span_id, str) -> AsyncIterable[base.SpanCollection]:
-        async for sc in self.get_spans_async([span_id]):
-            yield sc
-
-    async def get_traces_async(
-        self, trace_ids: List[str]
-    ) -> AsyncIterable[base.SpanCollection]:
-        async for sc in await self.query_spans(trace_ids=trace_ids):
-            yield sc
-
-    async def get_trace_async(
-        self, trace_id, str
-    ) -> AsyncIterable[base.SpanCollection]:
-        async for sc in self.get_traces_async([trace_id]):
-            yield sc
-
     @abstractmethod
     async def query_spans(
         self,
         from_time: Optional[datetime] = None,
         to_time: Optional[datetime] = None,
-        trace_ids: Optional[List[str]] = None,
-        span_ids: Optional[List[str]] = None,
+        span_ids: Optional[List[Tuple[str, str]]] = None,
         resource_attributes: Optional[dict] = None,
         scope_attributes: Optional[dict] = None,
         span_attributes: Optional[dict] = None,
@@ -49,8 +25,7 @@ def _match_span(
     span: base.ReifiedSpan,
     from_time: Optional[datetime] = None,
     to_time: Optional[datetime] = None,
-    trace_ids: Optional[List[str]] = None,
-    span_ids: Optional[List[str]] = None,
+    span_ids: Optional[List[Tuple[str, str]]] = None,
     span_attributes: Optional[dict] = None,
 ) -> bool:
     if (
@@ -65,10 +40,11 @@ def _match_span(
     ):
         return False
 
-    if trace_ids is not None and span.trace_id not in trace_ids:
-        return False
-
-    if span_ids is not None and span.span_id not in span_ids:
+    if (
+        span_ids is not None
+        and (span.trace_id, None) not in span_ids
+        and (span.trace_id, span.span_id) not in span_ids
+    ):
         return False
 
     if span_attributes is not None:
@@ -88,14 +64,13 @@ def _filter_scope_span_collection(
     spans: base.ReifiedScopeSpanCollection,
     from_time: Optional[datetime] = None,
     to_time: Optional[datetime] = None,
-    trace_ids: Optional[List[str]] = None,
-    span_ids: Optional[List[str]] = None,
+    span_ids: Optional[List[Tuple[str, str]]] = None,
     span_attributes: Optional[dict] = None,
 ) -> base.ReifiedScopeSpanCollection:
     spans.spans = [
         span
         for span in spans.spans
-        if _match_span(span, from_time, to_time, trace_ids, span_ids, span_attributes)
+        if _match_span(span, from_time, to_time, span_ids, span_attributes)
     ]
 
     return spans
@@ -123,14 +98,13 @@ def _filter_resource_span_collection(
     spans: base.ReifiedResourceSpanCollection,
     from_time: Optional[datetime] = None,
     to_time: Optional[datetime] = None,
-    trace_ids: Optional[List[str]] = None,
-    span_ids: Optional[List[str]] = None,
+    span_ids: Optional[List[Tuple[str, str]]] = None,
     scope_attributes: Optional[dict] = None,
     span_attributes: Optional[dict] = None,
 ) -> base.ReifiedResourceSpanCollection:
     spans.scope_spans = [
         _filter_scope_span_collection(
-            inner_spans, from_time, to_time, trace_ids, span_ids, span_attributes
+            inner_spans, from_time, to_time, span_ids, span_attributes
         )
         for inner_spans in spans.scope_spans
         if _match_scope(inner_spans.scope, scope_attributes)
@@ -163,8 +137,7 @@ def _filter_span_collection(
     spans: base.ReifiedSpanCollection,
     from_time: Optional[datetime] = None,
     to_time: Optional[datetime] = None,
-    trace_ids: Optional[List[str]] = None,
-    span_ids: Optional[List[str]] = None,
+    span_ids: Optional[List[Tuple[str, str]]] = None,
     resource_attributes: Optional[dict] = None,
     scope_attributes: Optional[dict] = None,
     span_attributes: Optional[dict] = None,
@@ -174,7 +147,6 @@ def _filter_span_collection(
             inner_spans,
             from_time,
             to_time,
-            trace_ids,
             span_ids,
             scope_attributes,
             span_attributes,
@@ -194,8 +166,7 @@ class MockProxy:
         self,
         from_time: Optional[datetime] = None,
         to_time: Optional[datetime] = None,
-        trace_ids: Optional[List[str]] = None,
-        span_ids: Optional[List[str]] = None,
+        span_ids: Optional[List[Tuple[str, str]]] = None,
         resource_attributes: Optional[dict] = None,
         scope_attributes: Optional[dict] = None,
         span_attributes: Optional[dict] = None,
@@ -204,7 +175,6 @@ class MockProxy:
             self._all_spans.to_reified(),
             from_time,
             to_time,
-            trace_ids,
             span_ids,
             resource_attributes,
             scope_attributes,
