@@ -1,10 +1,10 @@
 # type: ignore
-import python_opentelemetry_access.opensearch_ss4o as ss4o
+import python_opentelemetry_access.opensearch.ss4o as ss4o
 import python_opentelemetry_access.otlpjson as otlpjson
 import python_opentelemetry_access.otlpproto as otlpproto
 
 import python_opentelemetry_access.proxy as proxy
-import python_opentelemetry_access.proxy.api as api
+import python_opentelemetry_access.api as api
 
 import uvicorn
 

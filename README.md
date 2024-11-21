@@ -13,7 +13,7 @@ aligned with the representation used in OTLP. The basic workflow is
 1. Load the submodule appropriate for your concrete representation, e.g.
 
    ```python
-   import python_opentelemetry_access.opensearch_ss4o as ss4o
+   import python_opentelemetry_access.opensearch.ss4o as ss4o
    ```
 
    for the representation used in search results from the OpenSearch REST API when
@@ -22,7 +22,7 @@ aligned with the representation used in OTLP. The basic workflow is
 
 2. Use one of the module's `load*` functions to load your data, the typical pattern is `load`
    for loading from a file-like object, `loads` for loading from string/bytes, `loado` for loading
-   from an appropriate Python object. In the case of `opensearch_ss4o` there are two variants, `load*`
+   from an appropriate Python object. In the case of `opensearch.ss4o` there are two variants, `load*`
    and `load*_bare`. The latter accepts a list of actual stored documents
    ```python
    with open('tests/examples/ex1_ss4o_bare.json', 'r') as f:

@@ -1,7 +1,7 @@
 # import json
 
 import python_opentelemetry_access.util as util
-import python_opentelemetry_access.opensearch_ss4o as opensearch_ss4o
+import python_opentelemetry_access.opensearch as opensearch
 from pandas import Timestamp
 
 
@@ -25,7 +25,7 @@ def test_roundtrip_complete_json():
         "droppedAttributesCount": field_dropped_attributes_count,
     }
 
-    ss4o_span_event = opensearch_ss4o.SS4OSpanEvent(span_event)
+    ss4o_span_event = opensearch.ss4o.SS4OSpanEvent(span_event)
     assert (
         Timestamp(ss4o_span_event.otlp_time_unix_nano).isoformat() + "Z"
         == field_timestamp_start
@@ -42,12 +42,12 @@ def test_roundtrip_complete_json():
     # ## TODO: Check that this is the correct format
     field_message = "some message"
     field_status = {"message": field_message, "code": "Unset"}
-    ss4o_status = opensearch_ss4o.SS4OStatus(field_status)
+    ss4o_status = opensearch.ss4o.SS4OStatus(field_status)
     assert ss4o_status.otlp_message == field_message
     assert ss4o_status.otlp_code == 0
 
     field_span_kind = "Internal"
-    ss4o_span_kind = opensearch_ss4o.SS4OSpanKind(field_span_kind)
+    ss4o_span_kind = opensearch.ss4o.SS4OSpanKind(field_span_kind)
     assert ss4o_span_kind.otlp_kind_name == "SPAN_KIND_INTERNAL"
 
     field_events = [span_event]
@@ -68,7 +68,7 @@ def test_roundtrip_complete_json():
         "status": field_status,
     }
 
-    ss4o_span = opensearch_ss4o.SS4OSpan(span)
+    ss4o_span = opensearch.ss4o.SS4OSpan(span)
     assert ss4o_span.otlp_trace_id == field_trace_id
     assert ss4o_span.otlp_span_id == field_span_id
     assert ss4o_span.otlp_trace_state == field_trace_state
@@ -99,7 +99,7 @@ def test_roundtrip_complete_json():
         ## Not sure how to handle this in OpenSearch
         # "droppedAttributesCount": field_dropped_attributes_count,
     }
-    ss4o_instrumentation_scope = opensearch_ss4o.SS4OInstrumentationScope(
+    ss4o_instrumentation_scope = opensearch.ss4o.SS4OInstrumentationScope(
         instrumentation_scope
     )
     assert ss4o_instrumentation_scope.otlp_name == field_name
@@ -135,7 +135,7 @@ def test_roundtrip_complete_json():
     #         "bar": 6,
     #     },
     # }
-    ss4o_resource = opensearch_ss4o.SS4OResource(resource)
+    ss4o_resource = opensearch.ss4o.SS4OResource(resource)
     assert ss4o_resource.otlp_attributes == resource
 
     search_results = [
@@ -145,7 +145,7 @@ def test_roundtrip_complete_json():
         )
     ]
 
-    ss4o_span_collection = opensearch_ss4o.SS4OSpanCollectionBare(search_results)
+    ss4o_span_collection = opensearch.ss4o.SS4OSpanCollectionBare(search_results)
 
     ss4o_resource_span_collection = next(ss4o_span_collection.otlp_resource_spans)
     assert (

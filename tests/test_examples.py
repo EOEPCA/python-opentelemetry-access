@@ -8,7 +8,7 @@ from typing import no_type_check
 import python_opentelemetry_access.util as util
 import python_opentelemetry_access.otlpjson as otlpjson
 import python_opentelemetry_access.otlpproto as otlpproto
-import python_opentelemetry_access.opensearch_ss4o as opensearch_ss4o
+import python_opentelemetry_access.opensearch as opensearch
 
 from pytest import mark
 
@@ -35,7 +35,7 @@ def test_example_trace(proto_rep_path: str, json_rep_path: str, ss4o_rep_path: s
     with open(json_rep_path, "r") as f2:
         expected_json = otlpjson.load(f2)
     with open(ss4o_rep_path, "r") as f3:
-        ss4o_search_results = opensearch_ss4o.load_bare(f3)
+        ss4o_search_results = opensearch.ss4o.load_bare(f3)
 
     assert expected_json.to_reified().to_otlp_json() == expected_json.to_otlp_json()
     assert parsed_binary.to_reified().to_otlp_json() == parsed_binary.to_otlp_json()
