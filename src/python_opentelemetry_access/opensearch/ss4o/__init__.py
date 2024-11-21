@@ -276,11 +276,8 @@ class SS4OScopeSpanCollection(base.ScopeSpanCollection):
         return (SS4OSpan(span) for span in self.search_results)
 
     @property
-    def otlp_schema_url(self) -> str:
-        ## TODO: Figure out
-        return ""
-        # raise NotImplementedError()
-        # return util._expect_field_type(self.jobj, "schemaUrl", str, optional=True)
+    def otlp_schema_url(self) -> Optional[str]:
+        return None
 
 
 class SS4OResourceSpanCollection(base.ResourceSpanCollection):
@@ -318,10 +315,8 @@ class SS4OResourceSpanCollection(base.ResourceSpanCollection):
         return inner()
 
     @property
-    def otlp_schema_url(self) -> str:
-        return ""
-        ## TODO: Figure out
-        ###raise NotImplementedError()
+    def otlp_schema_url(self) -> Optional[str]:
+        return None
 
 
 def _iter_bare_results(

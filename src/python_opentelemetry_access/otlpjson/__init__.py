@@ -1,12 +1,54 @@
 from collections.abc import Iterator
-from typing import Tuple, Optional, TextIO, BinaryIO
+from typing import Tuple, Optional, TextIO, BinaryIO, NewType, List, Union
+from typing_extensions import TypedDict
 import json
 
 from .. import base
 from .. import util
 
 
-def iter_otlp_jsonlike_anyvalue(jsonlike: util.JSONLike) -> util.JSONLikeIter:
+class OTLPJsonIntAnyValueRepresentation(TypedDict):
+    intValue: int
+
+
+class OTLPJsonStringAnyValueRepresentation(TypedDict):
+    stringValue: str
+
+
+class OTLPJsonDoubleAnyValueRepresentation(TypedDict):
+    doubleValue: float
+
+
+class OTLPJsonBoolAnyValueRepresentation(TypedDict):
+    boolValue: bool
+
+
+class OTLPJsonArrayAnyValueRepresentation(TypedDict):
+    arrayValue: List["OTLPJsonAnyValueRepresentation"]
+
+
+class OTLPJsonKVRepresentation(TypedDict):
+    key: str
+    value: "OTLPJsonAnyValueRepresentation"
+
+
+class OTLPJsonKVListAnyValueRepresentation(TypedDict):
+    kvlistValue: List[OTLPJsonKVRepresentation]
+
+
+OTLPJsonAnyValueRepresentation = Union[
+    OTLPJsonIntAnyValueRepresentation,
+    OTLPJsonStringAnyValueRepresentation,
+    OTLPJsonDoubleAnyValueRepresentation,
+    OTLPJsonBoolAnyValueRepresentation,
+    OTLPJsonArrayAnyValueRepresentation,
+    OTLPJsonKVListAnyValueRepresentation,
+]
+
+
+def iter_otlp_jsonlike_anyvalue(
+    jsonlike: OTLPJsonAnyValueRepresentation,
+) -> util.JSONLikeIter:
     if not isinstance(jsonlike, dict) or not len(jsonlike) == 1:
         raise TypeError(
             f"OTLP JSON AnyValue expected to be a length 1 object, got {jsonlike}"
@@ -61,7 +103,9 @@ def iter_otlp_jsonlike_anyvalue(jsonlike: util.JSONLike) -> util.JSONLikeIter:
             raise TypeError(f"Unexpected OTLP JSON AnyValue, {jsonlike}")
 
 
-def iter_otlp_jsonlike_kv(jsonlike: util.JSONLike) -> Tuple[str, util.JSONLikeIter]:
+def iter_otlp_jsonlike_kv(
+    jsonlike: OTLPJsonKVRepresentation,
+) -> Tuple[str, util.JSONLikeIter]:
     match jsonlike:
         case {"key": key, "value": jsonlike_value, **rest}:
             if rest:
@@ -80,53 +124,65 @@ def iter_otlp_jsonlike_kv(jsonlike: util.JSONLike) -> Tuple[str, util.JSONLikeIt
             )
 
 
-def iter_otlp_jsonlike_dict(jsonlike: util.JSONLikeList) -> util.JSONLikeDictIter:
+def iter_otlp_jsonlike_dict(
+    jsonlike: List[OTLPJsonKVRepresentation],
+) -> util.JSONLikeDictIter:
     return util.JSONLikeDictIter((iter_otlp_jsonlike_kv(x) for x in jsonlike))
 
 
 class OTLPJsonSpanEvent(base.SpanEvent):
-    def __init__(self, jobj: util.JSONLikeDict):
+    Representation = TypedDict(
+        "Representation",
+        {
+            "timeUnixNano": str,
+            "name": str,
+            "attributes": List[OTLPJsonKVRepresentation],
+            "droppedAttributesCount": Optional[int],
+        },
+    )
+
+    def __init__(self, jobj: Representation):
         self.jobj = jobj
 
     @property
     def otlp_time_unix_nano(self) -> int:
-        return int(util._expect_field_type(self.jobj, "timeUnixNano", str))
+        return int(self.jobj["timeUnixNano"])
 
     @property
     def otlp_name(self) -> str:
-        return util._expect_field_type(self.jobj, "name", str)
+        return self.jobj["name"]
 
     @property
     def otlp_attributes_iter(self) -> util.JSONLikeDictIter:
-        return iter_otlp_jsonlike_dict(
-            util._expect_field_type(
-                self.jobj, "attributes", list, optional=True, default={}
-            )
-        )
+        return iter_otlp_jsonlike_dict(self.jobj.get("attributes") or [])
 
     @property
     def otlp_dropped_attributes_count(self) -> int:
-        return util._expect_field_type(
-            self.jobj, "droppedAttributesCount", int, optional=True, default=0
-        )
+        return self.jobj.get("droppedAttributesCount") or 0
 
 
 class OTLPJsonStatus(base.Status):
-    def __init__(self, jobj: util.JSONLikeDict):
+    Representation = TypedDict(
+        "Representation", {"message": Optional[str], "code": Optional[int]}
+    )
+
+    def __init__(self, jobj: Representation):
         self.jobj = jobj
 
     @property
     def otlp_message(self) -> Optional[str]:
-        return util._expect_field_type(self.jobj, "message", str, optional=True)
+        return self.jobj.get("message")
 
     ## TODO: Make sure this is the correct defaulting behaviour
     @property
     def otlp_code(self) -> int:
-        return util._expect_field_type(self.jobj, "code", int, optional=True, default=0)
+        return self.jobj.get("code") or 0
 
 
 class OTLPJsonSpanKind(base.SpanKind):
-    def __init__(self, code: int):
+    Representation = NewType("Representation", int)
+
+    def __init__(self, code: Representation):
         self.code = code
 
     @property
@@ -135,239 +191,265 @@ class OTLPJsonSpanKind(base.SpanKind):
 
 
 class OTLPJsonSpanLink(base.SpanLink):
-    def __init__(self, jobj: util.JSONLikeDict):
+    Representation = TypedDict(
+        "Representation",
+        {
+            "traceId": str,
+            "spanId": str,
+            "state": str,
+            "attributes": List[OTLPJsonKVRepresentation],
+            "droppedAttributesCount": Optional[int],
+            "flags": Optional[int],
+        },
+    )
+
+    def __init__(self, jobj: Representation):
         self.jobj = jobj
 
     @property
     def otlp_trace_id(self) -> str:
-        return util._expect_field_type(self.jobj, "traceId", str)
+        return self.jobj["traceId"]
 
     @property
     def otlp_span_id(self) -> str:
-        return util._expect_field_type(self.jobj, "spanId", str)
+        return self.jobj["spanId"]
 
     @property
     def otlp_state(self) -> str:
-        return util._expect_field_type(self.jobj, "state", str)
+        return self.jobj["state"]
 
     @property
     def otlp_attributes_iter(self) -> util.JSONLikeDictIter:
-        return iter_otlp_jsonlike_dict(
-            util._expect_field_type(
-                self.jobj, "attributes", list, optional=True, default={}
-            )
-        )
+        return iter_otlp_jsonlike_dict(self.jobj.get("attributes") or [])
 
     @property
     def otlp_dropped_attributes_count(self) -> int:
-        return util._expect_field_type(
-            self.jobj, "droppedAttributesCount", int, optional=True, default=0
-        )
+        return self.jobj.get("droppedAttributesCount") or 0
 
     @property
     def otlp_flags(self) -> int:
-        return util._expect_field_type(
-            self.jobj, "flags", int, optional=True, default=0
-        )
+        return self.jobj.get("flags") or 0
 
 
 class OTLPJsonSpan(base.Span):
-    def __init__(self, jobj: util.JSONLikeDict):
+    Representation = TypedDict(
+        "Representation",
+        {
+            "traceId": str,
+            "spanId": str,
+            "traceState": Optional[str],
+            "parentSpanId": str,
+            "flags": Optional[int],
+            "name": str,
+            "kind": OTLPJsonSpanKind.Representation,
+            "startTimeUnixNano": str,
+            "endTimeUnixNano": str,
+            "attributes": List[OTLPJsonKVRepresentation],
+            "droppedAttributesCount": Optional[int],
+            "events": Optional[List[OTLPJsonSpanEvent.Representation]],
+            "droppedEventsCount": Optional[int],
+            "links": Optional[List[OTLPJsonSpanLink.Representation]],
+            "droppedLinksCount": Optional[int],
+            "status": OTLPJsonStatus.Representation,
+        },
+    )
+
+    def __init__(self, jobj: Representation):
         self.jobj = jobj
 
     @property
     def otlp_trace_id(self) -> str:
-        return util._expect_field_type(self.jobj, "traceId", str)
+        return self.jobj["traceId"]
 
     @property
     def otlp_span_id(self) -> str:
-        return util._expect_field_type(self.jobj, "spanId", str)
+        return self.jobj["spanId"]
 
     @property
     def otlp_trace_state(self) -> Optional[str]:
-        return util._expect_field_type(self.jobj, "traceState", str, optional=True)
+        return self.jobj.get("traceState")
 
     @property
     def otlp_parent_span_id(self) -> str:
-        return util._expect_field_type(self.jobj, "parentSpanId", str)
+        return self.jobj["parentSpanId"]
 
     @property
     def otlp_flags(self) -> int:
-        return util._expect_field_type(
-            self.jobj, "flags", int, optional=True, default=0
-        )
+        return self.jobj.get("flags") or 0
 
     @property
     def otlp_name(self) -> str:
-        return util._expect_field_type(self.jobj, "name", str)
+        return self.jobj["name"]
 
     @property
     def otlp_kind(self) -> OTLPJsonSpanKind:
-        return OTLPJsonSpanKind(util._expect_field_type(self.jobj, "kind", int))
+        return OTLPJsonSpanKind(self.jobj["kind"])
 
     @property
     def otlp_start_time_unix_nano(self) -> int:
-        return int(util._expect_field_type(self.jobj, "startTimeUnixNano", str))
+        return int(self.jobj["startTimeUnixNano"])
 
     @property
     def otlp_end_time_unix_nano(self) -> int:
-        return int(util._expect_field_type(self.jobj, "endTimeUnixNano", str))
+        return int(self.jobj["endTimeUnixNano"])
 
     @property
     def otlp_attributes_iter(self) -> util.JSONLikeDictIter:
-        return iter_otlp_jsonlike_dict(
-            util._expect_field_type(
-                self.jobj, "attributes", list, optional=True, default={}
-            )
-        )
+        return iter_otlp_jsonlike_dict(self.jobj.get("attributes") or [])
 
     @property
     def otlp_dropped_attributes_count(self) -> int:
-        return util._expect_field_type(
-            self.jobj, "droppedAttributesCount", int, optional=True, default=0
-        )
+        return self.jobj.get("droppedAttributesCount") or 0
 
     @property
     def otlp_events(self) -> Iterator[OTLPJsonSpanEvent]:
         return util.ListLikeDumpIterator(
-            (
-                OTLPJsonSpanEvent(util.expect_dict(event))
-                for event in util._expect_field_type(
-                    self.jobj, "events", list, optional=True, default=[]
-                )
-            )
+            (OTLPJsonSpanEvent(event) for event in self.jobj.get("events") or [])
         )
 
     @property
     def otlp_dropped_events_count(self) -> int:
-        return util._expect_field_type(
-            self.jobj, "droppedEventsCount", int, optional=True, default=0
-        )
+        return self.jobj.get("droppedEventsCount") or 0
 
     @property
     def otlp_links(self) -> Iterator[OTLPJsonSpanLink]:
         return util.ListLikeDumpIterator(
-            (
-                OTLPJsonSpanLink(util.expect_dict(link))
-                for link in util._expect_field_type(
-                    self.jobj, "links", list, optional=True, default=[]
-                )
-            )
+            (OTLPJsonSpanLink(link) for link in self.jobj.get("links") or [])
         )
 
     @property
     def otlp_dropped_links_count(self) -> int:
-        return util._expect_field_type(
-            self.jobj, "droppedLinksCount", int, optional=True, default=0
-        )
+        return self.jobj.get("droppedLinksCount") or 0
 
     @property
     def otlp_status(self) -> OTLPJsonStatus:
-        return OTLPJsonStatus(util._expect_field_type(self.jobj, "status", dict))
+        return OTLPJsonStatus(self.jobj["status"])
 
 
 class OTLPJsonInstrumentationScope(base.InstrumentationScope):
-    def __init__(self, jobj: util.JSONLikeDict):
+    Representation = TypedDict(
+        "Representation",
+        {
+            "name": str,
+            "version": Optional[str],
+            "attributes": List[OTLPJsonKVRepresentation],
+            "droppedAttributesCount": Optional[int],
+        },
+    )
+
+    def __init__(self, jobj: Representation):
         self.jobj = jobj
 
     @property
     def otlp_name(self) -> str:
-        return util._expect_field_type(self.jobj, "name", str)
+        return self.jobj["name"]
 
     @property
     def otlp_version(self) -> Optional[str]:
-        return util._expect_field_type(self.jobj, "version", str, optional=True)
+        return self.jobj.get("version")
 
     @property
     def otlp_attributes_iter(self) -> util.JSONLikeDictIter:
-        return iter_otlp_jsonlike_dict(
-            util._expect_field_type(
-                self.jobj, "attributes", list, optional=True, default={}
-            )
-        )
+        return iter_otlp_jsonlike_dict(self.jobj.get("attributes") or [])
 
     @property
     def otlp_dropped_attributes_count(self) -> int:
-        return util._expect_field_type(
-            self.jobj, "droppedAttributesCount", int, optional=True, default=0
-        )
+        return self.jobj.get("droppedAttributesCount") or 0
 
 
 class OTLPJsonResource(base.Resource):
-    def __init__(self, jobj: util.JSONLikeDict):
+    Representation = TypedDict(
+        "Representation",
+        {
+            "attributes": List[OTLPJsonKVRepresentation],
+            "droppedAttributesCount": Optional[int],
+        },
+    )
+
+    def __init__(self, jobj: Representation):
         self.jobj = jobj
 
     @property
     def otlp_attributes_iter(self) -> util.JSONLikeDictIter:
-        return iter_otlp_jsonlike_dict(
-            util._expect_field_type(
-                self.jobj, "attributes", list, optional=True, default={}
-            )
-        )
+        return iter_otlp_jsonlike_dict(self.jobj.get("attributes") or [])
 
     @property
     def otlp_dropped_attributes_count(self) -> int:
-        return util._expect_field_type(
-            self.jobj, "droppedAttributesCount", int, optional=True, default=0
-        )
+        return self.jobj.get("droppedAttributesCount") or 0
 
 
 class OTLPJsonScopeSpanCollection(base.ScopeSpanCollection):
-    def __init__(self, jobj: util.JSONLikeDict):
+    Representation = TypedDict(
+        "Representation",
+        {
+            "scope": OTLPJsonInstrumentationScope.Representation,
+            "spans": List[OTLPJsonSpan.Representation],
+            "schemaUrl": Optional[str],
+        },
+    )
+
+    def __init__(self, jobj: Representation):
         self.jobj = jobj
 
     @property
     def otlp_scope(self) -> OTLPJsonInstrumentationScope:
-        return OTLPJsonInstrumentationScope(
-            util._expect_field_type(self.jobj, "scope", dict)
-        )
+        return OTLPJsonInstrumentationScope(self.jobj["scope"])
 
     @property
     def otlp_spans(self) -> Iterator[OTLPJsonSpan]:
-        return (
-            OTLPJsonSpan(util.expect_dict(span))
-            for span in util._expect_field_type(self.jobj, "spans", list)
-        )
+        return (OTLPJsonSpan(span) for span in self.jobj["spans"])
 
     @property
-    def otlp_schema_url(self) -> str:
-        return util._expect_field_type(self.jobj, "schemaUrl", str, optional=True)
+    def otlp_schema_url(self) -> Optional[str]:
+        return self.jobj.get("schemaUrl")
 
 
 class OTLPJsonResourceSpanCollection(base.ResourceSpanCollection):
-    def __init__(self, jobj: util.JSONLikeDict):
+    Representation = TypedDict(
+        "Representation",
+        {
+            "resource": OTLPJsonResource.Representation,
+            "scopeSpans": List[OTLPJsonScopeSpanCollection.Representation],
+            "schemaUrl": Optional[str],
+        },
+    )
+
+    def __init__(self, jobj: Representation):
         self.jobj = jobj
 
     @property
     def otlp_resource(self) -> OTLPJsonResource:
-        return OTLPJsonResource(util._expect_field_type(self.jobj, "resource", dict))
+        return OTLPJsonResource(self.jobj["resource"])
 
     @property
     def otlp_scope_spans(self) -> Iterator[OTLPJsonScopeSpanCollection]:
-        return (
-            OTLPJsonScopeSpanCollection(util.expect_dict(span))
-            for span in util._expect_field_type(self.jobj, "scopeSpans", list)
-        )
+        return (OTLPJsonScopeSpanCollection(span) for span in self.jobj["scopeSpans"])
 
     @property
-    def otlp_schema_url(self) -> str:
-        return util._expect_field_type(self.jobj, "schemaUrl", str, optional=True)
+    def otlp_schema_url(self) -> Optional[str]:
+        return self.jobj.get("schemaUrl")
 
 
 class OTLPJsonSpanCollection(base.SpanCollection):
-    def __init__(self, jobj: util.JSONLikeDict):
+    Representation = TypedDict(
+        "Representation",
+        {
+            "resourceSpans": List[OTLPJsonResourceSpanCollection.Representation],
+        },
+    )
+
+    def __init__(self, jobj: Representation):
         self.jobj = jobj
 
     @property
     def otlp_resource_spans(self) -> Iterator[OTLPJsonResourceSpanCollection]:
         return (
-            OTLPJsonResourceSpanCollection(util.expect_dict(span))
-            for span in util._expect_field_type(self.jobj, "resourceSpans", list)
+            OTLPJsonResourceSpanCollection(span) for span in self.jobj["resourceSpans"]
         )
 
 
 def loado(o: util.JSONLike) -> OTLPJsonSpanCollection:
-    return OTLPJsonSpanCollection(util.expect_dict(o))
+    return OTLPJsonSpanCollection(o)  # type: ignore
 
 
 def load(fp: TextIO | BinaryIO) -> OTLPJsonSpanCollection:
