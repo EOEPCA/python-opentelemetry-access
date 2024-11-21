@@ -48,3 +48,43 @@ aligned with the representation used in OTLP. The basic workflow is
     
    print(bytes(all_spans.to_otlp_protobuf()))
    ```
+
+To fetch data, use the `python_opentelemetry_access.proxy` module (and its submodules).
+
+TODO: add example
+
+## CLI usage
+
+The CLI can be used to convert between different formats. To list available formats use
+```
+$ python -m python_opentelemetry_access list-formats
+- otlp-json (in and out)
+- otlp-proto (in and out)
+- ss4o (only in)
+- ss4o_bare (only in)
+```
+
+To convert data use `convert`
+```
+$ uv run -m python_opentelemetry_access convert -f ss4o_bare -t otlp-json tests/examples/ex1_ss4o_bare.json out.json
+$ cat out.json
+{"resourceSpans": [...] }
+```
+Both the in-file and the out-file can be `-` in order to read from stdin/write to stdout.
+
+## Running a server
+
+The library includes a FastAPI endpoint that (effectively) exposes the `python_opentelemetry_access.proxy` module (and its submodules) as a REST-style API.
+
+TODO: Describe for general backend
+
+Currently it only supports the `MockProxy` to expose a single otlp-json file.
+```
+$ python -m python_opentelemetry_access run-proxy --host 0.0.0.0 --port 12345 --file tests/examples/ex2.json
+```
+
+For example:
+```
+$ curl localhost:12345/v1/spans/697777f078628bc35093f4f376dfa62d/7f2aedeb88337ec1
+[{"resource_spans": [...]}]
+```

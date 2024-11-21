@@ -1,34 +1,53 @@
 import python_opentelemetry_access.proxy as proxy
-# import python_opentelemetry_access.otlpjson as otlpjson
+import python_opentelemetry_access.otlpjson as otlpjson
 
-# from typing import Union
+from typing import Optional, Annotated, List
+
 # from functools import lru_cache
 from dataclasses import dataclass
 
-from fastapi import FastAPI
+from fastapi import FastAPI, Query
+
 # from fastapi.responses import StreamingResponse
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field  # , Base64Bytes
+
+import base64
+
+from datetime import datetime
+
 
 @dataclass
 class Settings:
-    proxy: proxy.Proxy
+    proxy: Optional[proxy.Proxy]
 
 
 app = FastAPI()
 settings = Settings(proxy=None)  # type: ignore
 
-class FilterParams(BaseModel):
-    limit: int = Field(100, gt=0, le=100)
-    offset: int = Field(0, ge=0)
-    tags: list[str] = []
 
-@app.get("v1/")
-async def read_root():
-    yield "Hello"
+class QueryParams(BaseModel):
+    ## Filter parameters
+    ## TODO: Expand this with the remaining filter params
+    from_time: Optional[datetime] = Field(None)
+    to_time: Optional[datetime] = Field(None)
+
+    ## TODO: Projection/verbosity parameters??
+
+    ## Pagination parameters
+    ## TODO: (Maybe?) expand this with max_results hint
+
+    ## NOTE: Should be Optional[Base64Bytes], but this makes /docs
+    ##       add a file upload field...
+    page_token: Optional[str] = Field(None)
 
 
-@app.get("v1/spans")
-async def get_spans():
+class APIResponse(BaseModel):
+    results: List[otlpjson.OTLPJsonSpanCollection.Representation]
+    next_page_token: Optional[str]
+
+
+@app.get("/v1/spans")
+async def get_spans(query_params: Annotated[QueryParams, Query()]):
     # async def content():
     #     async for spans in settings.proxy.query_spans():
     #         for chunk in spans.to_otlp_json_iter():
@@ -37,14 +56,52 @@ async def get_spans():
     # return StreamingResponse(
     #     content=content(),
     # )
-    return [x async for x in settings.proxy.query_spans()]
+    if settings.proxy is not None:
+        return [
+            x
+            async for x in settings.proxy.query_spans_async(
+                from_time=query_params.from_time,
+                to_time=query_params.to_time,
+                starting_page_token=proxy.PageToken(
+                    base64.b64decode(query_params.page_token)
+                )
+                if query_params.page_token is not None
+                else None,
+            )
+        ]
 
 
-@app.get("v1/spans/{trace_id}")
-async def get_trace(trace_id):
-    return settings.proxy.query_spans(span_ids=[(trace_id, None)])
+@app.get("/v1/spans/{trace_id}")
+async def get_trace(trace_id: str, query_params: Annotated[QueryParams, Query()]):
+    if settings.proxy is not None:
+        return [
+            x
+            async for x in settings.proxy.query_spans_async(
+                span_ids=[(trace_id, None)],
+                from_time=query_params.from_time,
+                to_time=query_params.to_time,
+                starting_page_token=proxy.PageToken(
+                    base64.b64decode(query_params.page_token)
+                )
+                if query_params.page_token is not None
+                else None,
+            )
+        ]
 
 
-@app.get("v1/spans/{trace_id}/{span_id}")
-async def get_span(trace_id, span_id):
-    return settings.proxy.query_spans(span_ids=[(trace_id, span_id)])
+@app.get("/v1/spans/{trace_id}/{span_id}")
+async def get_span(trace_id, span_id, query_params: Annotated[QueryParams, Query()]):
+    if settings.proxy is not None:
+        return [
+            x
+            async for x in settings.proxy.query_spans_async(
+                span_ids=[(trace_id, span_id)],
+                from_time=query_params.from_time,
+                to_time=query_params.to_time,
+                starting_page_token=proxy.PageToken(
+                    base64.b64decode(query_params.page_token)
+                )
+                if query_params.page_token is not None
+                else None,
+            )
+        ]
