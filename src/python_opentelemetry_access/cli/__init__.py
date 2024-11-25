@@ -4,10 +4,13 @@ import python_opentelemetry_access.otlpjson as otlpjson
 import python_opentelemetry_access.otlpproto as otlpproto
 
 import python_opentelemetry_access.proxy as proxy
+import python_opentelemetry_access.proxy.opensearch.ss4o as ss4o_proxy
 import python_opentelemetry_access.api as api
 
 import uvicorn
+from opensearchpy import AsyncOpenSearch
 
+import asyncio
 import logging
 from pathlib import Path
 from sys import stdin, stdout
@@ -23,10 +26,12 @@ CONTEXT_SETTINGS = {"help_option_names": ["-h", "--help"]}
 @click.group(context_settings=CONTEXT_SETTINGS)
 @click.option("--verbose/--no-verbose", "-v", default=False)
 # @click.version_option(version=0.1.0, prog_name="python-opentelemetry-access")
-def cli(verbose: bool) -> None:
+@click.pass_context
+def cli(ctx, verbose: bool) -> None:
     """
     python-opentelemetry-access command line interface
     """
+    ctx.obj = {"verbose": verbose}
     logger.setLevel(logging.INFO if verbose else logging.WARNING)
 
 
@@ -112,17 +117,59 @@ def convert(infile: Path, outfile: Path, from_: str, to: str) -> None:
                 writer(rep, f)
 
 
-@cli.command()
-@click.option("--host", default="0.0.0.0")
+def run_proxy(ctx, proxy):
+    api.settings.proxy = proxy
+
+    uvicorn.run(
+        api.app,
+        host=ctx.obj.get("host") or "127.0.0.1",
+        port=ctx.obj.get("port") or 12345,
+        reload=False,
+        log_level="debug",
+        workers=1,
+    )
+
+
+@cli.group(context_settings=CONTEXT_SETTINGS)
+@click.option("--host", default="127.0.0.1")
 @click.option("--port", default=12345)
+@click.pass_context
+def proxy(ctx, host, port) -> None:
+    ctx.obj["host"] = host
+    ctx.obj["port"] = port
+
+
+@proxy.command()
 @click.option(
     "--file",
     required=True,
     type=click.Path(exists=True, file_okay=True, dir_okay=False, path_type=Path),
 )
-def run_proxy(host, port, file) -> None:
+@click.pass_context
+def mock(ctx, file) -> None:
     with open(file, "r") as f:
-        api.settings.proxy = proxy.MockProxy(otlpjson.load(f))
-    uvicorn.run(
-        api.app, host=host, port=port, reload=False, log_level="debug", workers=1
+        proxy = proxy.MockProxy(otlpjson.load(f))
+
+    run_proxy(ctx, proxy)
+
+
+@proxy.command()
+@click.option("--oshost", default="127.0.0.1")
+@click.option("--osport", default=9200)
+@click.pass_context
+def opensearch_ss4o(ctx, oshost, osport) -> None:
+    auth = ("sensmetry", "<revoked>")
+
+    client = AsyncOpenSearch(
+        hosts=[{"host": oshost, "port": osport}],
+        http_auth=auth,
+        use_ssl=True,
+        verify_certs=False,
+        ssl_show_warn=False,
     )
+
+    try:
+        proxy = ss4o_proxy.OpenSearchSS40Proxy(client)
+        run_proxy(ctx, proxy)
+    finally:
+        asyncio.run(client.close())

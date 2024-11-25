@@ -337,14 +337,17 @@ def _iter_full_results(
     search_results: util.JSONLikeDict,
 ) -> Generator[SS4OResourceSpanCollection]:
     for resource, spans in groupby(
-        util.expect_list(
-            util.expect_dict(util.expect_dict(search_results)["hits"])["hits"]
+        (
+            util.expect_dict(x)["_source"]
+            for x in util.expect_list(
+                util.expect_dict(util.expect_dict(search_results)["hits"])["hits"]
+            )
         ),
         key=lambda x: util.expect_dict(util.expect_dict(x)["resource"]),
     ):
         new = SS4OResourceSpanCollection(
             SS4OResource(resource),
-            (util.expect_dict(util.expect_dict(result)["_source"]) for result in spans),
+            (util.expect_dict(util.expect_dict(result)) for result in spans),
         )
         yield new
         new._invalidated = True

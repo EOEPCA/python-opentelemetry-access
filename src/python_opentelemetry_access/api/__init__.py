@@ -1,7 +1,8 @@
 import python_opentelemetry_access.proxy as proxy
 import python_opentelemetry_access.otlpjson as otlpjson
+import python_opentelemetry_access.util as util
 
-from typing import Optional, Annotated, List
+from typing import Optional, Annotated, List, Tuple
 
 # from functools import lru_cache
 from dataclasses import dataclass
@@ -46,62 +47,64 @@ class APIResponse(BaseModel):
     next_page_token: Optional[str]
 
 
-@app.get("/v1/spans")
-async def get_spans(query_params: Annotated[QueryParams, Query()]):
-    # async def content():
-    #     async for spans in settings.proxy.query_spans():
-    #         for chunk in spans.to_otlp_json_iter():
-    #             yield chunk
+async def run_query(
+    span_ids: Optional[List[Tuple[Optional[str], Optional[str]]]],
+    query_params: QueryParams,
+) -> APIResponse:
+    if settings.proxy is None:
+        raise RuntimeError("No proxy initialised")
 
-    # return StreamingResponse(
-    #     content=content(),
-    # )
-    if settings.proxy is not None:
-        return [
-            x
-            async for x in settings.proxy.query_spans_async(
-                from_time=query_params.from_time,
-                to_time=query_params.to_time,
-                starting_page_token=proxy.PageToken(
-                    base64.b64decode(query_params.page_token)
-                )
-                if query_params.page_token is not None
-                else None,
-            )
+    new_page_tokens = []
+    span_sets = []
+
+    if query_params.page_token is not None:
+        page_tokens: List[Optional[proxy.PageToken]] = [
+            proxy.PageToken(base64.b64decode(token))
+            for token in query_params.page_token.split(".")
         ]
+    else:
+        page_tokens = [None]
+
+    for page_token in page_tokens:
+        async for res in settings.proxy.query_spans_page(
+            span_ids=span_ids,
+            from_time=query_params.from_time,
+            to_time=query_params.to_time,
+            page_token=page_token,
+        ):  # type: ignore
+            if isinstance(res, proxy.PageToken):
+                new_page_tokens.append(res)
+            else:
+                span_sets.append(
+                    otlpjson.OTLPJsonSpanCollection.Representation(
+                        util.force_jsonlike_dict_iter(res.to_otlp_json_iter())
+                    )  # type: ignore
+                )
+
+    next_page_token: Optional[str] = (
+        None
+        if not new_page_tokens
+        else ".".join(
+            base64.b64encode(token.token).decode("ascii") for token in new_page_tokens
+        )
+    )
+
+    # Disable validation for now
+    return APIResponse.construct(
+        None, results=span_sets, next_page_token=next_page_token
+    )
+
+
+@app.get("/v1/spans")
+async def get_spans(query_params: Annotated[QueryParams, Query()]) -> APIResponse:
+    return await run_query(span_ids=None, query_params=query_params)
 
 
 @app.get("/v1/spans/{trace_id}")
 async def get_trace(trace_id: str, query_params: Annotated[QueryParams, Query()]):
-    if settings.proxy is not None:
-        return [
-            x
-            async for x in settings.proxy.query_spans_async(
-                span_ids=[(trace_id, None)],
-                from_time=query_params.from_time,
-                to_time=query_params.to_time,
-                starting_page_token=proxy.PageToken(
-                    base64.b64decode(query_params.page_token)
-                )
-                if query_params.page_token is not None
-                else None,
-            )
-        ]
+    return await run_query(span_ids=[(trace_id, None)], query_params=query_params)
 
 
 @app.get("/v1/spans/{trace_id}/{span_id}")
 async def get_span(trace_id, span_id, query_params: Annotated[QueryParams, Query()]):
-    if settings.proxy is not None:
-        return [
-            x
-            async for x in settings.proxy.query_spans_async(
-                span_ids=[(trace_id, span_id)],
-                from_time=query_params.from_time,
-                to_time=query_params.to_time,
-                starting_page_token=proxy.PageToken(
-                    base64.b64decode(query_params.page_token)
-                )
-                if query_params.page_token is not None
-                else None,
-            )
-        ]
+    return await run_query(span_ids=[(trace_id, span_id)], query_params=query_params)
