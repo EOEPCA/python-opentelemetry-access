@@ -78,9 +78,13 @@ The library includes a FastAPI endpoint that (effectively) exposes the `python_o
 
 TODO: Describe for general backend
 
-Currently it only supports the `MockProxy` to expose a single otlp-json file.
+Currently it supports the `MockProxy` to expose a single otlp-json file
 ```
-$ python -m python_opentelemetry_access run-proxy --host 0.0.0.0 --port 12345 --file tests/examples/ex2.json
+$ python -m python_opentelemetry_access proxy --host 0.0.0.0 --port 12345 mock --file tests/examples/ex2.json
+```
+or telemetry stored in OpenSearch using the ss4o schema
+```
+$ python -m python_opentelemetry_access proxy --host 0.0.0.0 --port 12345 opensearch-ss4o --oshost=... --osport=... --osuser=... --ospass=...
 ```
 
 For example:

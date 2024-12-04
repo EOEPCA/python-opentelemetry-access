@@ -156,9 +156,11 @@ def mock(ctx, file) -> None:
 @proxy.command()
 @click.option("--oshost", default="127.0.0.1")
 @click.option("--osport", default=9200)
+@click.option("--osuser")
+@click.option("--ospass")
 @click.pass_context
-def opensearch_ss4o(ctx, oshost, osport) -> None:
-    auth = ("sensmetry", "<revoked>")
+def opensearch_ss4o(ctx, oshost, osport, osuser, ospass) -> None:
+    auth = (osuser, ospass)
 
     client = AsyncOpenSearch(
         hosts=[{"host": oshost, "port": osport}],

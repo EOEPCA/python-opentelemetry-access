@@ -2,7 +2,7 @@ import python_opentelemetry_access.proxy as proxy
 import python_opentelemetry_access.otlpjson as otlpjson
 import python_opentelemetry_access.util as util
 
-from typing import Optional, Annotated, List, Tuple
+from typing import Optional, Annotated, List, Tuple, Dict
 
 # from functools import lru_cache
 from dataclasses import dataclass
@@ -31,6 +31,10 @@ class QueryParams(BaseModel):
     ## TODO: Expand this with the remaining filter params
     from_time: Optional[datetime] = Field(None)
     to_time: Optional[datetime] = Field(None)
+
+    span_attributes: Dict[str, str|int|bool] = {}
+    resource_attributes: Dict[str, str|int|bool] = {}
+    instrumentation_attributes: Dict[str, str|int|bool] = {}
 
     ## TODO: Projection/verbosity parameters??
 
