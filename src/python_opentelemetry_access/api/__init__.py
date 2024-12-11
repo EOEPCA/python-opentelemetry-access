@@ -32,9 +32,9 @@ class QueryParams(BaseModel):
     from_time: Optional[datetime] = Field(None)
     to_time: Optional[datetime] = Field(None)
 
-    span_attributes: Dict[str, str|int|bool] = {}
-    resource_attributes: Dict[str, str|int|bool] = {}
-    instrumentation_attributes: Dict[str, str|int|bool] = {}
+    span_attributes: Dict[str, str | int | bool] = {}
+    resource_attributes: Dict[str, str | int | bool] = {}
+    instrumentation_attributes: Dict[str, str | int | bool] = {}
 
     ## TODO: Projection/verbosity parameters??
 

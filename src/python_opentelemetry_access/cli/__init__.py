@@ -3,13 +3,14 @@ import python_opentelemetry_access.opensearch.ss4o as ss4o
 import python_opentelemetry_access.otlpjson as otlpjson
 import python_opentelemetry_access.otlpproto as otlpproto
 
-import python_opentelemetry_access.proxy as proxy
+import python_opentelemetry_access.proxy as proxy_mod
 import python_opentelemetry_access.proxy.opensearch.ss4o as ss4o_proxy
 import python_opentelemetry_access.api as api
 
 import uvicorn
 from opensearchpy import AsyncOpenSearch
 
+from typing import Optional
 import asyncio
 import logging
 from pathlib import Path
@@ -148,26 +149,46 @@ def proxy(ctx, host, port) -> None:
 @click.pass_context
 def mock(ctx, file) -> None:
     with open(file, "r") as f:
-        proxy = proxy.MockProxy(otlpjson.load(f))
+        this_proxy = proxy_mod.MockProxy(otlpjson.load(f))
 
-    run_proxy(ctx, proxy)
+    run_proxy(ctx, this_proxy)
 
 
 @proxy.command()
 @click.option("--oshost", default="127.0.0.1")
 @click.option("--osport", default=9200)
-@click.option("--osuser")
-@click.option("--ospass")
+@click.option("--osuser", default=None)
+@click.option("--ospass", default=None)
+@click.option("--ca_certs", default=None)
+@click.option("--client_cert", default=None)
+@click.option("--client_key", default=None)
 @click.pass_context
-def opensearch_ss4o(ctx, oshost, osport, osuser, ospass) -> None:
-    auth = (osuser, ospass)
+def opensearch_ss4o(
+    ctx,
+    oshost: str,
+    osport: str,
+    osuser: Optional[str],
+    ospass: Optional[str],
+    ca_certs: click.Path(exists=True, path_type=Path, allow_dash=False),
+    client_cert: click.Path(exists=True, path_type=Path, allow_dash=False),
+    client_key: click.Path(exists=True, path_type=Path, allow_dash=False),
+) -> None:
+    opensearch_params = {"verify_certs": False, "ssl_show_warn": False}
+
+    if osuser is not None and ospass is not None:
+        opensearch_params["http_auth"] = (osuser, ospass)
+    if ca_certs is not None:
+        opensearch_params["ca_certs"] = str(ca_certs)
+        opensearch_params.update({"verify_certs": True, "ssl_show_warn": True})
+    if client_cert is not None:
+        opensearch_params["client_cert"] = str(client_cert)
+        opensearch_params.update({"verify_certs": True, "ssl_show_warn": True})
+    if client_key is not None:
+        opensearch_params["client_key"] = str(client_key)
+        opensearch_params.update({"verify_certs": True, "ssl_show_warn": True})
 
     client = AsyncOpenSearch(
-        hosts=[{"host": oshost, "port": osport}],
-        http_auth=auth,
-        use_ssl=True,
-        verify_certs=False,
-        ssl_show_warn=False,
+        hosts=[{"host": oshost, "port": osport}], use_ssl=True, **opensearch_params
     )
 
     try:

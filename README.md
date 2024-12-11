@@ -82,9 +82,13 @@ Currently it supports the `MockProxy` to expose a single otlp-json file
 ```
 $ python -m python_opentelemetry_access proxy --host 0.0.0.0 --port 12345 mock --file tests/examples/ex2.json
 ```
-or telemetry stored in OpenSearch using the ss4o schema
+or telemetry stored in OpenSearch using the ss4o schema, using username/password
 ```
 $ python -m python_opentelemetry_access proxy --host 0.0.0.0 --port 12345 opensearch-ss4o --oshost=... --osport=... --osuser=... --ospass=...
+```
+and/or mTLS
+```
+$ python -m python_opentelemetry_access proxy --host 0.0.0.0 --port 12345 opensearch-ss4o --oshost=... --osport=... --ca_certs=... --client_cert=... --client_key=...
 ```
 
 For example:
