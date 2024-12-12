@@ -18,8 +18,7 @@ class OpenSearchSS40Proxy(proxy.Proxy):
         self.index_name = "ss4o_traces-default-namespace"
         self.page_size = page_size
 
-    ## NOTE: Something is wrong with mypy and the new async stuff
-    async def query_spans_page(  # type: ignore
+    async def query_spans_page(
         self,
         from_time: Optional[datetime] = None,
         to_time: Optional[datetime] = None,

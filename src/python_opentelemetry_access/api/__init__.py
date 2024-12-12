@@ -75,7 +75,7 @@ async def run_query(
             from_time=query_params.from_time,
             to_time=query_params.to_time,
             page_token=page_token,
-        ):  # type: ignore
+        ):
             if isinstance(res, proxy.PageToken):
                 new_page_tokens.append(res)
             else:

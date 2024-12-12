@@ -25,7 +25,11 @@ class Proxy(ABC):
         span_attributes: Optional[dict] = None,
         page_token: Optional[PageToken] = None,
     ) -> AsyncIterable[base.SpanCollection | PageToken]:
-        pass
+        # A trick to make the type of the function what I want
+        # Why yield inside function body effects the type of the function is explained in
+        # https://mypy.readthedocs.io/en/stable/more_types.html#asynchronous-iterators
+        if False:
+            yield
 
     async def query_spans_async(
         self,
@@ -37,7 +41,6 @@ class Proxy(ABC):
         span_attributes: Optional[dict] = None,
         starting_page_token: Optional[PageToken] = None,
     ) -> AsyncIterable[base.SpanCollection]:
-        ## NOTE: Something is wrong with mypy and the new async stuff
         async for spans_or_page_token in self.query_spans_page(
             from_time,
             to_time,
@@ -46,7 +49,7 @@ class Proxy(ABC):
             scope_attributes,
             span_attributes,
             page_token=starting_page_token,
-        ):  # type: ignore
+        ):
             if isinstance(spans_or_page_token, PageToken):
                 async for spans in self.query_spans_async(
                     from_time,
@@ -211,8 +214,7 @@ class MockProxy(Proxy):
     def __init__(self, all_spans: base.SpanCollection):
         self._all_spans = all_spans.to_reified()
 
-    ## NOTE: Something is wrong with mypy and the new async stuff
-    async def query_spans_page(  # type: ignore
+    async def query_spans_page(
         self,
         from_time: Optional[datetime] = None,
         to_time: Optional[datetime] = None,
