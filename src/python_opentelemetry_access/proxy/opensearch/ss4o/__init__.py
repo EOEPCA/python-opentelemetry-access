@@ -28,23 +28,14 @@ class OpenSearchSS40Proxy(proxy.Proxy):
         span_attributes: Optional[dict] = None,
         page_token: Optional[proxy.PageToken] = None,
     ) -> AsyncIterable[base.SpanCollection | proxy.PageToken]:
-        q = {
-            "size": self.page_size,
-            "query": {"bool": {"filter": []}},
-            "sort": [
-                {"startTime": {"order": "asc"}}
-                # {"traceId": {"order": "asc"}},
-                # {"spanId": {"order": "asc"}}
-            ],
-        }
-
+        filter: list[object] = []
         if from_time is not None:
-            q["query"]["bool"]["filter"].append(
+            filter.append(
                 {"range": {"startTime": {"lte": from_time.isoformat()}}}
             )
 
         if to_time is not None:
-            q["query"]["bool"]["filter"].append(
+            filter.append(
                 {"range": {"endTime": {"gte": to_time.isoformat()}}}
             )
 
@@ -56,11 +47,19 @@ class OpenSearchSS40Proxy(proxy.Proxy):
             (trace_id, span_id) = span_ids[0]
 
             if trace_id is not None:
-                q["query"]["bool"]["filter"].append({"match": {"traceId": trace_id}})
+                filter.append({"match": {"traceId": trace_id}})
 
             if span_id is not None:
-                q["query"]["bool"]["filter"].append({"match": {"spanId": span_id}})
-
+                filter.append({"match": {"spanId": span_id}})
+        q = {
+            "size": self.page_size,
+            "query": {"bool": {"filter": filter}},
+            "sort": [
+                {"startTime": {"order": "asc"}}
+                # {"traceId": {"order": "asc"}},
+                # {"spanId": {"order": "asc"}}
+            ],
+        }
         if page_token is not None:
             # q['search_after'] = page_token.token.decode('ascii').split("__")
             ## Validate
