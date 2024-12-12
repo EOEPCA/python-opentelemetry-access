@@ -4,7 +4,7 @@ import python_opentelemetry_access.util as util
 from dataclasses import dataclass
 from abc import ABC, abstractmethod
 from collections.abc import AsyncIterable
-from typing import List, Optional, Tuple
+from typing import List, Optional, Tuple, override
 from datetime import datetime
 
 
@@ -214,6 +214,7 @@ class MockProxy(Proxy):
     def __init__(self, all_spans: base.SpanCollection):
         self._all_spans = all_spans.to_reified()
 
+    @override
     async def query_spans_page(
         self,
         from_time: Optional[datetime] = None,

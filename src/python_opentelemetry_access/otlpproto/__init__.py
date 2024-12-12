@@ -1,5 +1,5 @@
 from collections.abc import Iterator
-from typing import Optional, BinaryIO
+from typing import Optional, BinaryIO, override
 import binascii
 
 from .. import base
@@ -37,20 +37,24 @@ class OTLPProtoSpanEvent(base.SpanEvent):
         self._proto = proto
 
     @property
+    @override
     def otlp_time_unix_nano(self) -> int:
         return self._proto.time_unix_nano
 
     @property
+    @override
     def otlp_name(self) -> str:
         return self._proto.name
 
     @property
+    @override
     def otlp_attributes_iter(self) -> util.JSONLikeDictIter:
         return util.JSONLikeDictIter(
             ((x.key, _un_anyvalue(x.value)) for x in self._proto.attributes)
         )
 
     @property
+    @override
     def otlp_dropped_attributes_count(self) -> int:
         return self._proto.dropped_attributes_count
 
@@ -62,10 +66,12 @@ class OTLPProtoStatus(base.Status):
         self._proto = proto
 
     @property
+    @override
     def otlp_message(self) -> Optional[str]:
         return self._proto.message if self._proto.message != "" else None
 
     @property
+    @override
     def otlp_code(self) -> int:
         return self._proto.code
 
@@ -77,6 +83,7 @@ class OTLPProtoSpanKind(base.SpanKind):
         self._proto = proto
 
     @property
+    @override
     def otlp_kind_code(self) -> int:
         return int(self._proto)
 
@@ -88,28 +95,34 @@ class OTLPProtoSpanLink(base.SpanLink):
         self._proto = proto
 
     @property
+    @override
     def otlp_trace_id(self) -> str:
         return binascii.b2a_hex(self._proto.trace_id).decode("ascii")
 
     @property
+    @override
     def otlp_span_id(self) -> str:
         return binascii.b2a_hex(self._proto.span_id).decode("ascii")
 
     @property
+    @override
     def otlp_state(self) -> str:
         return self._proto.trace_state
 
     @property
+    @override
     def otlp_attributes_iter(self) -> util.JSONLikeDictIter:
         return util.JSONLikeDictIter(
             ((x.key, _un_anyvalue(x.value)) for x in self._proto.attributes)
         )
 
     @property
+    @override
     def otlp_dropped_attributes_count(self) -> int:
         return self._proto.dropped_attributes_count
 
     @property
+    @override
     def otlp_flags(self) -> int:
         return self._proto.flags
 
@@ -121,68 +134,84 @@ class OTLPProtoSpan(base.Span):
         self._proto = proto
 
     @property
+    @override
     def otlp_trace_id(self) -> str:
         return binascii.b2a_hex(self._proto.trace_id).decode("ascii")
 
     @property
+    @override
     def otlp_span_id(self) -> str:
         return binascii.b2a_hex(self._proto.span_id).decode("ascii")
 
     @property
+    @override
     def otlp_trace_state(self) -> Optional[str]:
         return self._proto.trace_state if self._proto.trace_state != "" else None
 
     @property
+    @override
     def otlp_parent_span_id(self) -> str:
         return binascii.b2a_hex(self._proto.parent_span_id).decode("ascii")
 
     @property
+    @override
     def otlp_flags(self) -> int:
         return self._proto.flags
 
     @property
+    @override
     def otlp_name(self) -> str:
         return self._proto.name
 
     @property
+    @override
     def otlp_kind(self) -> OTLPProtoSpanKind:
         return OTLPProtoSpanKind(self._proto.kind)
 
     @property
+    @override
     def otlp_start_time_unix_nano(self) -> int:
         return self._proto.start_time_unix_nano
 
     @property
+    @override
     def otlp_end_time_unix_nano(self) -> int:
         return self._proto.end_time_unix_nano
 
     @property
+    @override
     def otlp_attributes_iter(self) -> util.JSONLikeDictIter:
         return util.JSONLikeDictIter(
             ((x.key, _un_anyvalue(x.value)) for x in self._proto.attributes)
         )
 
     @property
+    @override
     def otlp_dropped_attributes_count(self) -> int:
         return self._proto.dropped_attributes_count
 
     @property
+    @override
     def otlp_events(self) -> Iterator[OTLPProtoSpanEvent]:
         return (OTLPProtoSpanEvent(event) for event in self._proto.events)
 
     @property
+    @override
     def otlp_dropped_events_count(self) -> int:
         return self._proto.dropped_events_count
 
     @property
+    @override
     def otlp_links(self) -> Iterator[OTLPProtoSpanLink]:
         return (OTLPProtoSpanLink(link) for link in self._proto.links)
 
     @property
+    @override
     def otlp_dropped_links_count(self) -> int:
         return self._proto.dropped_links_count
 
     @property
+    @override
     def otlp_status(self) -> OTLPProtoStatus:
         return OTLPProtoStatus(self._proto.status)
 
@@ -194,20 +223,24 @@ class OTLPProtoInstrumentationScope(base.InstrumentationScope):
         self._proto = proto
 
     @property
+    @override
     def otlp_name(self) -> str:
         return self._proto.name
 
     @property
+    @override
     def otlp_version(self) -> Optional[str]:
         return self._proto.version if self._proto.version != "" else None
 
     @property
+    @override
     def otlp_attributes_iter(self) -> util.JSONLikeDictIter:
         return util.JSONLikeDictIter(
             ((x.key, _un_anyvalue(x.value)) for x in self._proto.attributes)
         )
 
     @property
+    @override
     def otlp_dropped_attributes_count(self) -> int:
         return self._proto.dropped_attributes_count
 
@@ -219,12 +252,14 @@ class OTLPProtoResource(base.Resource):
         self._proto = proto
 
     @property
+    @override
     def otlp_attributes_iter(self) -> util.JSONLikeDictIter:
         return util.JSONLikeDictIter(
             ((x.key, _un_anyvalue(x.value)) for x in self._proto.attributes)
         )
 
     @property
+    @override
     def otlp_dropped_attributes_count(self) -> int:
         return self._proto.dropped_attributes_count
 
@@ -236,14 +271,17 @@ class OTLPProtoScopeSpanCollection(base.ScopeSpanCollection):
         self._proto = proto
 
     @property
+    @override
     def otlp_scope(self) -> OTLPProtoInstrumentationScope:
         return OTLPProtoInstrumentationScope(self._proto.scope)
 
     @property
+    @override
     def otlp_spans(self) -> Iterator[OTLPProtoSpan]:
         return (OTLPProtoSpan(span) for span in self._proto.spans)
 
     @property
+    @override
     def otlp_schema_url(self) -> Optional[str]:
         return self._proto.schema_url if self._proto.schema_url != "" else None
 
@@ -255,14 +293,17 @@ class OTLPProtoResourceSpanCollection(base.ResourceSpanCollection):
         self._proto = proto
 
     @property
+    @override
     def otlp_resource(self) -> OTLPProtoResource:
         return OTLPProtoResource(self._proto.resource)
 
     @property
+    @override
     def otlp_scope_spans(self) -> Iterator[OTLPProtoScopeSpanCollection]:
         return (OTLPProtoScopeSpanCollection(span) for span in self._proto.scope_spans)
 
     @property
+    @override
     def otlp_schema_url(self) -> Optional[str]:
         return self._proto.schema_url if self._proto.schema_url != "" else None
 
@@ -274,6 +315,7 @@ class OTLPProtoSpanCollection(base.SpanCollection):
         self._proto = proto
 
     @property
+    @override
     def otlp_resource_spans(self) -> Iterator[OTLPProtoResourceSpanCollection]:
         return (
             OTLPProtoResourceSpanCollection(span) for span in self._proto.resource_spans

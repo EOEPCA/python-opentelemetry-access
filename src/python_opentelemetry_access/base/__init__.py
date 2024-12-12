@@ -1,5 +1,5 @@
 from collections.abc import Iterator
-from typing import Union, Protocol, Optional, Tuple, List
+from typing import Union, Protocol, Optional, Tuple, List, override
 from abc import abstractmethod
 import json
 from dataclasses import dataclass
@@ -42,6 +42,7 @@ ReifiedType = Union[
 
 class OTLPJSONEncoder(json.JSONEncoder):
     ## TODO: Is there a better way to do this (without forcing the dict)?
+    @override
     def default(self, o):
         if isinstance(o, util.JSONLikeDictIter):
             return {k: v for k, v in iter(o)}
@@ -61,7 +62,7 @@ class OTLPData(Protocol):
     @abstractmethod
     def to_otlp_json_iter(self) -> util.JSONLikeIter:
         pass
-
+    
     def to_otlp_json_str_iter(self) -> Iterator[str]:
         return OTLPJSONEncoder().iterencode(self.to_otlp_json_iter())
 
@@ -81,6 +82,7 @@ class OTLPData(Protocol):
 
 
 class SpanEvent(OTLPData, Protocol):
+    @override
     def to_reified(self) -> "ReifiedSpanEvent":
         return ReifiedSpanEvent(
             time_unix_nano=self.otlp_time_unix_nano,
@@ -89,6 +91,7 @@ class SpanEvent(OTLPData, Protocol):
             dropped_attributes_count=self.otlp_dropped_attributes_count,
         )
 
+    @override
     def to_otlp_json_iter(self) -> util.JSONLikeDictIter:
         def inner():
             yield ("timeUnixNano", str(self.otlp_time_unix_nano))
@@ -106,6 +109,7 @@ class SpanEvent(OTLPData, Protocol):
 
         return util.JSONLikeDictIter(inner())
 
+    @override
     def to_otlp_protobuf(self) -> trace.SpanEvent:
         return trace.SpanEvent(
             time_unix_nano=self.otlp_time_unix_nano,
@@ -140,9 +144,11 @@ class SpanEvent(OTLPData, Protocol):
 
 
 class Status(OTLPData, Protocol):
+    @override
     def to_reified(self) -> "ReifiedStatus":
         return ReifiedStatus(message=self.otlp_message, code=self.otlp_code)
 
+    @override
     def to_otlp_json_iter(self) -> util.JSONLikeDictIter:
         def inner():
             message = self.otlp_message
@@ -157,6 +163,7 @@ class Status(OTLPData, Protocol):
 
         return util.JSONLikeDictIter(inner())
 
+    @override
     def to_otlp_protobuf(self) -> trace.Status:
         return trace.Status(
             message=self.otlp_message or "", code=trace.StatusStatusCode(self.otlp_code)
@@ -178,12 +185,15 @@ class Status(OTLPData, Protocol):
 
 
 class SpanKind(OTLPData, Protocol):
+    @override
     def to_reified(self) -> "ReifiedSpanKind":
         return ReifiedSpanKind(kind_code=self.otlp_kind_code)
 
+    @override
     def to_otlp_json_iter(self) -> int:
         return self.otlp_kind_code
 
+    @override
     def to_otlp_protobuf(self) -> trace.SpanSpanKind:
         return trace.SpanSpanKind(self.otlp_kind_code)
 
@@ -198,6 +208,7 @@ class SpanKind(OTLPData, Protocol):
 
 
 class SpanLink(OTLPData, Protocol):
+    @override
     def to_reified(self) -> "ReifiedSpanLink":
         return ReifiedSpanLink(
             trace_id=self.otlp_trace_id,
@@ -208,6 +219,7 @@ class SpanLink(OTLPData, Protocol):
             flags=self.otlp_flags,
         )
 
+    @override
     def to_otlp_json_iter(self) -> util.JSONLikeIter:
         def inner():
             yield ("traceId", self.otlp_trace_id)
@@ -230,6 +242,7 @@ class SpanLink(OTLPData, Protocol):
 
         return util.JSONLikeDictIter(inner())
 
+    @override
     def to_otlp_protobuf(self) -> trace.SpanLink:
         return trace.SpanLink(
             trace_id=binascii.a2b_hex(self.otlp_trace_id),
@@ -276,6 +289,7 @@ class SpanLink(OTLPData, Protocol):
 
 
 class Span(OTLPData, Protocol):
+    @override
     def to_reified(self) -> "ReifiedSpan":
         return ReifiedSpan(
             trace_id=self.otlp_trace_id,
@@ -296,6 +310,7 @@ class Span(OTLPData, Protocol):
             status=self.otlp_status.to_reified(),
         )
 
+    @override
     def to_otlp_json_iter(self) -> util.JSONLikeDictIter:
         def inner():
             yield ("traceId", self.otlp_trace_id)
@@ -344,6 +359,7 @@ class Span(OTLPData, Protocol):
 
         return util.JSONLikeDictIter(inner())
 
+    @override
     def to_otlp_protobuf(self) -> trace.Span:
         return trace.Span(
             trace_id=binascii.a2b_hex(self.otlp_trace_id),
@@ -450,6 +466,7 @@ class Span(OTLPData, Protocol):
 
 
 class InstrumentationScope(OTLPData, Protocol):
+    @override
     def to_reified(self) -> "ReifiedInstrumentationScope":
         return ReifiedInstrumentationScope(
             name=self.otlp_name,
@@ -458,6 +475,7 @@ class InstrumentationScope(OTLPData, Protocol):
             dropped_attributes_count=self.otlp_dropped_attributes_count,
         )
 
+    @override
     def to_otlp_json_iter(self) -> util.JSONLikeIter:
         def inner():
             yield ("name", self.otlp_name)
@@ -478,6 +496,7 @@ class InstrumentationScope(OTLPData, Protocol):
 
         return util.JSONLikeDictIter(inner())
 
+    @override
     def to_otlp_protobuf(self) -> common.InstrumentationScope:
         return common.InstrumentationScope(
             name=self.otlp_name,
@@ -512,12 +531,14 @@ class InstrumentationScope(OTLPData, Protocol):
 
 
 class Resource(OTLPData, Protocol):
+    @override
     def to_reified(self) -> "ReifiedResource":
         return ReifiedResource(
             attributes=util.force_jsonlike_dict_iter(self.otlp_attributes_iter),
             dropped_attributes_count=self.otlp_dropped_attributes_count,
         )
 
+    @override
     def to_otlp_json_iter(self) -> util.JSONLikeDictIter:
         def inner():
             attributes = self.otlp_attributes_iter
@@ -532,6 +553,7 @@ class Resource(OTLPData, Protocol):
 
         return util.JSONLikeDictIter(inner())
 
+    @override
     def to_otlp_protobuf(self) -> resource.Resource:
         return resource.Resource(
             attributes=util.jsonlike_dict_iter_to_kvlist(self.otlp_attributes_iter),
@@ -558,6 +580,7 @@ class Resource(OTLPData, Protocol):
 
 
 class ScopeSpanCollection(OTLPData, Protocol):
+    @override
     def to_reified(self) -> "ReifiedScopeSpanCollection":
         return ReifiedScopeSpanCollection(
             scope=self.otlp_scope.to_reified(),
@@ -565,6 +588,7 @@ class ScopeSpanCollection(OTLPData, Protocol):
             schema_url=self.otlp_schema_url,
         )
 
+    @override
     def to_otlp_json_iter(self) -> util.JSONLikeDictIter:
         def inner():
             yield ("scope", self.otlp_scope.to_otlp_json_iter())
@@ -579,6 +603,7 @@ class ScopeSpanCollection(OTLPData, Protocol):
 
         return util.JSONLikeDictIter(inner())
 
+    @override
     def to_otlp_protobuf(self) -> trace.ScopeSpans:
         return trace.ScopeSpans(
             scope=self.otlp_scope.to_otlp_protobuf(),
@@ -606,6 +631,7 @@ class ScopeSpanCollection(OTLPData, Protocol):
 
 
 class ResourceSpanCollection(OTLPData, Protocol):
+    @override
     def to_reified(self) -> "ReifiedResourceSpanCollection":
         return ReifiedResourceSpanCollection(
             resource=self.otlp_resource.to_reified(),
@@ -615,6 +641,7 @@ class ResourceSpanCollection(OTLPData, Protocol):
             schema_url=self.otlp_schema_url,
         )
 
+    @override
     def to_otlp_json_iter(self) -> util.JSONLikeDictIter:
         def inner():
             yield ("resource", self.otlp_resource.to_otlp_json_iter())
@@ -632,6 +659,7 @@ class ResourceSpanCollection(OTLPData, Protocol):
 
         return util.JSONLikeDictIter(inner())
 
+    @override
     def to_otlp_protobuf(self) -> trace.ResourceSpans:
         return trace.ResourceSpans(
             resource=self.otlp_resource.to_otlp_protobuf(),
@@ -664,6 +692,7 @@ class ResourceSpanCollection(OTLPData, Protocol):
 
 
 class SpanCollection(OTLPData, Protocol):
+    @override
     def to_reified(self) -> "ReifiedSpanCollection":
         return ReifiedSpanCollection(
             resource_spans=[
@@ -672,6 +701,7 @@ class SpanCollection(OTLPData, Protocol):
             ]
         )
 
+    @override
     def to_otlp_json_iter(self) -> util.JSONLikeDictIter:
         def inner():
             yield (
@@ -685,6 +715,7 @@ class SpanCollection(OTLPData, Protocol):
 
         return util.JSONLikeDictIter(inner())
 
+    @override
     def to_otlp_protobuf(self) -> trace_collector.ExportTraceServiceRequest:
         return trace_collector.ExportTraceServiceRequest(
             resource_spans=[
@@ -729,24 +760,28 @@ class ReifiedSpanEvent(SpanEvent):
     time_unix_nano: int
 
     @property
+    @override
     def otlp_time_unix_nano(self) -> int:
         return self.time_unix_nano
 
     name: str
 
     @property
+    @override
     def otlp_name(self) -> str:
         return self.name
 
     attributes: util.JSONLikeDict
 
     @property
+    @override
     def otlp_attributes_iter(self) -> util.JSONLikeDictIter:
         return iter_jsonlike_dict(self.attributes)
 
     dropped_attributes_count: int
 
     @property
+    @override
     def otlp_dropped_attributes_count(self) -> int:
         return self.dropped_attributes_count
 
@@ -756,12 +791,14 @@ class ReifiedStatus(Status):
     message: Optional[str]
 
     @property
+    @override
     def otlp_message(self) -> Optional[str]:
         return self.message
 
     code: int
 
     @property
+    @override
     def otlp_code(self) -> int:
         return self.code
 
@@ -771,6 +808,7 @@ class ReifiedSpanKind(SpanKind):
     kind_code: int
 
     @property
+    @override
     def otlp_kind_code(self):
         return self.kind_code
 
@@ -780,36 +818,42 @@ class ReifiedSpanLink(SpanLink):
     trace_id: str
 
     @property
+    @override
     def otlp_trace_id(self) -> str:
         return self.trace_id
 
     span_id: str
 
     @property
+    @override
     def otlp_span_id(self) -> str:
         return self.span_id
 
     state: str
 
     @property
+    @override
     def otlp_state(self) -> str:
         return self.state
 
     attributes: util.JSONLikeDict
 
     @property
+    @override
     def otlp_attributes_iter(self) -> util.JSONLikeDictIter:
         return iter_jsonlike_dict(self.attributes)
 
     dropped_attributes_count: int
 
     @property
+    @override
     def otlp_dropped_attributes_count(self) -> int:
         return self.dropped_attributes_count
 
     flags: int
 
     @property
+    @override
     def otlp_flags(self) -> int:
         return self.flags
 
@@ -819,96 +863,112 @@ class ReifiedSpan(Span):
     trace_id: str
 
     @property
+    @override
     def otlp_trace_id(self) -> str:
         return self.trace_id
 
     span_id: str
 
     @property
+    @override
     def otlp_span_id(self) -> str:
         return self.span_id
 
     trace_state: Optional[str]
 
     @property
+    @override
     def otlp_trace_state(self) -> Optional[str]:
         return self.trace_state
 
     parent_span_id: str
 
     @property
+    @override
     def otlp_parent_span_id(self) -> str:
         return self.parent_span_id
 
     flags: int
 
     @property
+    @override
     def otlp_flags(self) -> int:
         return self.flags
 
     name: str
 
     @property
+    @override
     def otlp_name(self) -> str:
         return self.name
 
     kind: ReifiedSpanKind
 
     @property
+    @override
     def otlp_kind(self) -> ReifiedSpanKind:
         return self.kind
 
     start_time_unix_nano: int
 
     @property
+    @override
     def otlp_start_time_unix_nano(self) -> int:
         return self.start_time_unix_nano
 
     end_time_unix_nano: int
 
     @property
+    @override
     def otlp_end_time_unix_nano(self) -> int:
         return self.end_time_unix_nano
 
     attributes: util.JSONLikeDict
 
     @property
+    @override
     def otlp_attributes_iter(self) -> util.JSONLikeDictIter:
         return iter_jsonlike_dict(self.attributes)
 
     dropped_attributes_count: int
 
     @property
+    @override
     def otlp_dropped_attributes_count(self) -> int:
         return self.dropped_attributes_count
 
     events: List[ReifiedSpanEvent]
 
     @property
+    @override
     def otlp_events(self) -> Iterator[ReifiedSpanEvent]:
         return iter(self.events)
 
     dropped_events_count: int
 
     @property
+    @override
     def otlp_dropped_events_count(self) -> int:
         return self.dropped_events_count
 
     links: List[ReifiedSpanLink]
 
     @property
+    @override
     def otlp_links(self) -> Iterator[ReifiedSpanLink]:
         return iter(self.links)
 
     dropped_links_count: int
 
     @property
+    @override
     def otlp_dropped_links_count(self) -> int:
         return self.dropped_links_count
 
     status: ReifiedStatus
 
     @property
+    @override
     def otlp_status(self) -> ReifiedStatus:
         return self.status
 
@@ -918,24 +978,28 @@ class ReifiedInstrumentationScope(InstrumentationScope):
     name: str
 
     @property
+    @override
     def otlp_name(self) -> str:
         return self.name
 
     version: Optional[str]
 
     @property
+    @override
     def otlp_version(self) -> Optional[str]:
         return self.version
 
     attributes: util.JSONLikeDict
 
     @property
+    @override
     def otlp_attributes_iter(self) -> util.JSONLikeDictIter:
         return iter_jsonlike_dict(self.attributes)
 
     dropped_attributes_count: int
 
     @property
+    @override
     def otlp_dropped_attributes_count(self) -> int:
         return self.dropped_attributes_count
 
@@ -945,12 +1009,14 @@ class ReifiedResource(Resource):
     attributes: util.JSONLikeDict
 
     @property
+    @override
     def otlp_attributes_iter(self) -> util.JSONLikeDictIter:
         return iter_jsonlike_dict(self.attributes)
 
     dropped_attributes_count: int
 
     @property
+    @override
     def otlp_dropped_attributes_count(self) -> int:
         return self.dropped_attributes_count
 
@@ -964,18 +1030,21 @@ class ReifiedScopeSpanCollection(ScopeSpanCollection):
     scope: ReifiedInstrumentationScope
 
     @property
+    @override
     def otlp_scope(self) -> ReifiedInstrumentationScope:
         return self.scope
 
     spans: List[ReifiedSpan]
 
     @property
+    @override
     def otlp_spans(self) -> Iterator[ReifiedSpan]:
         return iter(self.spans)
 
     schema_url: Optional[str]
 
     @property
+    @override
     def otlp_schema_url(self) -> Optional[str]:
         return self.schema_url
 
@@ -985,18 +1054,21 @@ class ReifiedResourceSpanCollection(ResourceSpanCollection):
     resource: ReifiedResource
 
     @property
+    @override
     def otlp_resource(self) -> ReifiedResource:
         return self.resource
 
     scope_spans: List[ReifiedScopeSpanCollection]
 
     @property
+    @override
     def otlp_scope_spans(self) -> Iterator[ReifiedScopeSpanCollection]:
         return iter(self.scope_spans)
 
     schema_url: Optional[str]
 
     @property
+    @override
     def otlp_schema_url(self) -> Optional[str]:
         return self.schema_url
 
@@ -1006,5 +1078,6 @@ class ReifiedSpanCollection(SpanCollection):
     resource_spans: List[ReifiedResourceSpanCollection]
 
     @property
+    @override
     def otlp_resource_spans(self) -> Iterator[ReifiedResourceSpanCollection]:
         return iter(self.resource_spans)

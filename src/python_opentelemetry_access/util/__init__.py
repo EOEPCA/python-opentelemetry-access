@@ -1,5 +1,5 @@
 from collections.abc import Iterator
-from typing import Optional, Tuple, TypeVar, List, Union, Dict, Generic
+from typing import Optional, Tuple, TypeVar, List, Union, Dict, Generic, override
 from itertools import chain, groupby
 
 import opentelemetry_betterproto.opentelemetry.proto.common.v1 as common
@@ -20,9 +20,11 @@ class DumpIterator(Generic[T], Iterator[T]):
             self.iterator = iter([])
             self._has_head = False
 
+    @override
     def __iter__(self):
         return iter(self.iterator)
 
+    @override
     def __next__(self):
         return next(self.iterator)
 
@@ -34,12 +36,15 @@ class DumpIterator(Generic[T], Iterator[T]):
 
 
 class ListLikeDumpIterator(DumpIterator[T], list):
+    @override
     def __len__(self):
         raise NotImplementedError("JSONLikeListIter has no length")
 
+    @override
     def __getitem__(self, i):
         raise NotImplementedError("JSONLikeListIter cannot getitem")
 
+    @override
     def __setitem__(self, i):
         raise NotImplementedError("JSONLikeListIter cannot setitem")
 

@@ -1,5 +1,5 @@
 from collections.abc import Iterator
-from typing import Tuple, Optional, TextIO, BinaryIO, NewType, List, Union
+from typing import Tuple, Optional, TextIO, BinaryIO, NewType, List, Union, override
 from typing_extensions import TypedDict
 import json
 
@@ -145,18 +145,22 @@ class OTLPJsonSpanEvent(base.SpanEvent):
         self.jobj = jobj
 
     @property
+    @override
     def otlp_time_unix_nano(self) -> int:
         return int(self.jobj["timeUnixNano"])
 
     @property
+    @override
     def otlp_name(self) -> str:
         return self.jobj["name"]
 
     @property
+    @override
     def otlp_attributes_iter(self) -> util.JSONLikeDictIter:
         return iter_otlp_jsonlike_dict(self.jobj.get("attributes") or [])
 
     @property
+    @override
     def otlp_dropped_attributes_count(self) -> int:
         return self.jobj.get("droppedAttributesCount") or 0
 
@@ -170,11 +174,13 @@ class OTLPJsonStatus(base.Status):
         self.jobj = jobj
 
     @property
+    @override
     def otlp_message(self) -> Optional[str]:
         return self.jobj.get("message")
 
     ## TODO: Make sure this is the correct defaulting behaviour
     @property
+    @override
     def otlp_code(self) -> int:
         return self.jobj.get("code") or 0
 
@@ -186,6 +192,7 @@ class OTLPJsonSpanKind(base.SpanKind):
         self.code = code
 
     @property
+    @override
     def otlp_kind_code(self) -> int:
         return self.code
 
@@ -207,26 +214,32 @@ class OTLPJsonSpanLink(base.SpanLink):
         self.jobj = jobj
 
     @property
+    @override
     def otlp_trace_id(self) -> str:
         return self.jobj["traceId"]
 
     @property
+    @override
     def otlp_span_id(self) -> str:
         return self.jobj["spanId"]
 
     @property
+    @override
     def otlp_state(self) -> str:
         return self.jobj["state"]
 
     @property
+    @override
     def otlp_attributes_iter(self) -> util.JSONLikeDictIter:
         return iter_otlp_jsonlike_dict(self.jobj.get("attributes") or [])
 
     @property
+    @override
     def otlp_dropped_attributes_count(self) -> int:
         return self.jobj.get("droppedAttributesCount") or 0
 
     @property
+    @override
     def otlp_flags(self) -> int:
         return self.jobj.get("flags") or 0
 
@@ -258,70 +271,86 @@ class OTLPJsonSpan(base.Span):
         self.jobj = jobj
 
     @property
+    @override
     def otlp_trace_id(self) -> str:
         return self.jobj["traceId"]
 
     @property
+    @override
     def otlp_span_id(self) -> str:
         return self.jobj["spanId"]
 
     @property
+    @override
     def otlp_trace_state(self) -> Optional[str]:
         return self.jobj.get("traceState")
 
     @property
+    @override
     def otlp_parent_span_id(self) -> str:
         return self.jobj["parentSpanId"]
 
     @property
+    @override
     def otlp_flags(self) -> int:
         return self.jobj.get("flags") or 0
 
     @property
+    @override
     def otlp_name(self) -> str:
         return self.jobj["name"]
 
     @property
+    @override
     def otlp_kind(self) -> OTLPJsonSpanKind:
         return OTLPJsonSpanKind(self.jobj["kind"])
 
     @property
+    @override
     def otlp_start_time_unix_nano(self) -> int:
         return int(self.jobj["startTimeUnixNano"])
 
     @property
+    @override
     def otlp_end_time_unix_nano(self) -> int:
         return int(self.jobj["endTimeUnixNano"])
 
     @property
+    @override
     def otlp_attributes_iter(self) -> util.JSONLikeDictIter:
         return iter_otlp_jsonlike_dict(self.jobj.get("attributes") or [])
 
     @property
+    @override
     def otlp_dropped_attributes_count(self) -> int:
         return self.jobj.get("droppedAttributesCount") or 0
 
     @property
+    @override
     def otlp_events(self) -> Iterator[OTLPJsonSpanEvent]:
         return util.ListLikeDumpIterator(
             (OTLPJsonSpanEvent(event) for event in self.jobj.get("events") or [])
         )
 
     @property
+    @override
     def otlp_dropped_events_count(self) -> int:
         return self.jobj.get("droppedEventsCount") or 0
 
     @property
+    @override
     def otlp_links(self) -> Iterator[OTLPJsonSpanLink]:
         return util.ListLikeDumpIterator(
             (OTLPJsonSpanLink(link) for link in self.jobj.get("links") or [])
         )
 
     @property
+    @override
     def otlp_dropped_links_count(self) -> int:
         return self.jobj.get("droppedLinksCount") or 0
 
     @property
+    @override
     def otlp_status(self) -> OTLPJsonStatus:
         return OTLPJsonStatus(self.jobj["status"])
 
@@ -341,18 +370,22 @@ class OTLPJsonInstrumentationScope(base.InstrumentationScope):
         self.jobj = jobj
 
     @property
+    @override
     def otlp_name(self) -> str:
         return self.jobj["name"]
 
     @property
+    @override
     def otlp_version(self) -> Optional[str]:
         return self.jobj.get("version")
 
     @property
+    @override
     def otlp_attributes_iter(self) -> util.JSONLikeDictIter:
         return iter_otlp_jsonlike_dict(self.jobj.get("attributes") or [])
 
     @property
+    @override
     def otlp_dropped_attributes_count(self) -> int:
         return self.jobj.get("droppedAttributesCount") or 0
 
@@ -370,10 +403,12 @@ class OTLPJsonResource(base.Resource):
         self.jobj = jobj
 
     @property
+    @override
     def otlp_attributes_iter(self) -> util.JSONLikeDictIter:
         return iter_otlp_jsonlike_dict(self.jobj.get("attributes") or [])
 
     @property
+    @override
     def otlp_dropped_attributes_count(self) -> int:
         return self.jobj.get("droppedAttributesCount") or 0
 
@@ -392,14 +427,17 @@ class OTLPJsonScopeSpanCollection(base.ScopeSpanCollection):
         self.jobj = jobj
 
     @property
+    @override
     def otlp_scope(self) -> OTLPJsonInstrumentationScope:
         return OTLPJsonInstrumentationScope(self.jobj["scope"])
 
     @property
+    @override
     def otlp_spans(self) -> Iterator[OTLPJsonSpan]:
         return (OTLPJsonSpan(span) for span in self.jobj["spans"])
 
     @property
+    @override
     def otlp_schema_url(self) -> Optional[str]:
         return self.jobj.get("schemaUrl")
 
@@ -418,14 +456,17 @@ class OTLPJsonResourceSpanCollection(base.ResourceSpanCollection):
         self.jobj = jobj
 
     @property
+    @override
     def otlp_resource(self) -> OTLPJsonResource:
         return OTLPJsonResource(self.jobj["resource"])
 
     @property
+    @override
     def otlp_scope_spans(self) -> Iterator[OTLPJsonScopeSpanCollection]:
         return (OTLPJsonScopeSpanCollection(span) for span in self.jobj["scopeSpans"])
 
     @property
+    @override
     def otlp_schema_url(self) -> Optional[str]:
         return self.jobj.get("schemaUrl")
 
@@ -442,6 +483,7 @@ class OTLPJsonSpanCollection(base.SpanCollection):
         self.jobj = jobj
 
     @property
+    @override
     def otlp_resource_spans(self) -> Iterator[OTLPJsonResourceSpanCollection]:
         return (
             OTLPJsonResourceSpanCollection(span) for span in self.jobj["resourceSpans"]

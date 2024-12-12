@@ -4,7 +4,7 @@ import python_opentelemetry_access.opensearch.ss4o as ss4o
 
 # from dataclasses import dataclass
 from collections.abc import AsyncIterable
-from typing import List, Optional, Tuple
+from typing import List, Optional, Tuple, override
 from datetime import datetime
 
 import python_opentelemetry_access.proxy as proxy
@@ -18,6 +18,7 @@ class OpenSearchSS40Proxy(proxy.Proxy):
         self.index_name = "ss4o_traces-default-namespace"
         self.page_size = page_size
 
+    @override
     async def query_spans_page(
         self,
         from_time: Optional[datetime] = None,
