@@ -8,6 +8,7 @@ from typing import Optional, Annotated, List, Tuple, Dict
 from dataclasses import dataclass
 
 from fastapi import FastAPI, Query
+from fastapi.middleware.cors import CORSMiddleware
 
 # from fastapi.responses import StreamingResponse
 from pydantic import BaseModel, Field  # , Base64Bytes
@@ -23,7 +24,15 @@ class Settings:
 
 
 app = FastAPI()
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 settings = Settings(proxy=None)  # type: ignore
+
 
 
 class QueryParams(BaseModel):
@@ -105,10 +114,10 @@ async def get_spans(query_params: Annotated[QueryParams, Query()]) -> APIRespons
 
 
 @app.get("/v1/spans/{trace_id}")
-async def get_trace(trace_id: str, query_params: Annotated[QueryParams, Query()]):
+async def get_trace(trace_id: str, query_params: Annotated[QueryParams, Query()]) -> APIResponse:
     return await run_query(span_ids=[(trace_id, None)], query_params=query_params)
 
 
 @app.get("/v1/spans/{trace_id}/{span_id}")
-async def get_span(trace_id, span_id, query_params: Annotated[QueryParams, Query()]):
+async def get_span(trace_id: str, span_id: str, query_params: Annotated[QueryParams, Query()]) -> APIResponse:
     return await run_query(span_ids=[(trace_id, span_id)], query_params=query_params)
