@@ -14,3 +14,6 @@ wheels/
 # Virtual environments
 .venv
 tmp/
+
+# MacOS files
+.DS_Store
