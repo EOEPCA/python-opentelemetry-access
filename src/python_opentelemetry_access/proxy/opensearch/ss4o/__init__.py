@@ -32,12 +32,12 @@ class OpenSearchSS40Proxy(proxy.Proxy):
         filter: list[object] = []
         if from_time is not None:
             filter.append(
-                {"range": {"startTime": {"lte": from_time.isoformat()}}}
+                {"range": {"startTime": {"gte": from_time.isoformat()}}}
             )
 
         if to_time is not None:
             filter.append(
-                {"range": {"endTime": {"gte": to_time.isoformat()}}}
+                {"range": {"endTime": {"lte": to_time.isoformat()}}}
             )
 
         if span_ids is not None:
