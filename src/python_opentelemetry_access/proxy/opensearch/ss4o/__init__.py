@@ -13,7 +13,7 @@ from opensearchpy import AsyncOpenSearch
 
 
 class OpenSearchSS40Proxy(proxy.Proxy):
-    def __init__(self, client: AsyncOpenSearch, page_size: int = 200):
+    def __init__(self, client: AsyncOpenSearch, page_size: int = 1000):
         self.client = client
         self.index_name = "ss4o_traces-default-namespace"
         self.page_size = page_size
@@ -24,21 +24,17 @@ class OpenSearchSS40Proxy(proxy.Proxy):
         from_time: Optional[datetime] = None,
         to_time: Optional[datetime] = None,
         span_ids: Optional[List[Tuple[Optional[str], Optional[str]]]] = None,
-        resource_attributes: Optional[dict] = None,
-        scope_attributes: Optional[dict] = None,
-        span_attributes: Optional[dict] = None,
+        resource_attributes: Optional[dict[str, str | int | bool]] = None,
+        scope_attributes: Optional[dict[str, str | int | bool]] = None,
+        span_attributes: Optional[dict[str, str | int | bool]] = None,
         page_token: Optional[proxy.PageToken] = None,
     ) -> AsyncIterable[base.SpanCollection | proxy.PageToken]:
         filter: list[object] = []
         if from_time is not None:
-            filter.append(
-                {"range": {"startTime": {"gte": from_time.isoformat()}}}
-            )
+            filter.append({"range": {"startTime": {"gte": from_time.isoformat()}}})
 
         if to_time is not None:
-            filter.append(
-                {"range": {"endTime": {"lte": to_time.isoformat()}}}
-            )
+            filter.append({"range": {"endTime": {"lte": to_time.isoformat()}}})
 
         if span_ids is not None:
             if len(span_ids) != 1:
@@ -52,6 +48,26 @@ class OpenSearchSS40Proxy(proxy.Proxy):
 
             if span_id is not None:
                 filter.append({"match": {"spanId": span_id}})
+
+        def attributes_to_filters(
+            attributes: dict[str, str | int | bool], key_prefix: str
+        ) -> list[object]:
+            return [
+                {"term": {key_prefix + key + ".keyword": {"value": value}}}
+                for key, value in attributes.items()
+            ]
+        
+        if resource_attributes is not None:
+            filter.extend(attributes_to_filters(resource_attributes, "resource."))
+
+        if scope_attributes is not None:
+            filter.extend(
+                attributes_to_filters(scope_attributes, "instrumentationScope.")
+            )
+        
+        if span_attributes is not None:
+            filter.extend(attributes_to_filters(span_attributes, "attributes."))
+
         q = {
             "size": self.page_size,
             "query": {"bool": {"filter": filter}},

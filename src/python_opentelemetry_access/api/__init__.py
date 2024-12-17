@@ -41,9 +41,9 @@ class QueryParams(BaseModel):
     from_time: Optional[datetime] = Field(None)
     to_time: Optional[datetime] = Field(None)
 
-    span_attributes: Dict[str, str | int | bool] = {}
-    resource_attributes: Dict[str, str | int | bool] = {}
-    instrumentation_attributes: Dict[str, str | int | bool] = {}
+    resource_attributes: list[str] = []
+    scope_attributes: list[str] = []
+    span_attributes: list[str] = []
 
     ## TODO: Projection/verbosity parameters??
 
@@ -59,6 +59,8 @@ class APIResponse(BaseModel):
     results: List[otlpjson.OTLPJsonSpanCollection.Representation]
     next_page_token: Optional[str]
 
+def list_to_dict(values: list[str]) -> dict[str, str]:
+    return dict(value.split('=') for value in values)
 
 async def run_query(
     span_ids: Optional[List[Tuple[Optional[str], Optional[str]]]],
@@ -78,11 +80,18 @@ async def run_query(
     else:
         page_tokens = [None]
 
+    resource_attributes = list_to_dict(query_params.resource_attributes)
+    scope_attributes = list_to_dict(query_params.scope_attributes)
+    span_attributes = list_to_dict(query_params.span_attributes)
+
     for page_token in page_tokens:
         async for res in settings.proxy.query_spans_page(
             span_ids=span_ids,
             from_time=query_params.from_time,
             to_time=query_params.to_time,
+            resource_attributes=resource_attributes,
+            scope_attributes=scope_attributes,
+            span_attributes=span_attributes,
             page_token=page_token,
         ):
             if isinstance(res, proxy.PageToken):
