@@ -1,11 +1,11 @@
 # Build image to compile all packages
-FROM python:3.11 as build
+FROM python:3.12 as build
 
 COPY . /project
 WORKDIR /project
 RUN pip install uv && uv sync --no-editable
 
-FROM python:3.11
+FROM python:3.12
 
 COPY --from=build /project/.venv /venv
 
