@@ -13,7 +13,7 @@ from opensearchpy import AsyncOpenSearch
 
 
 class OpenSearchSS40Proxy(proxy.Proxy):
-    def __init__(self, client: AsyncOpenSearch, page_size: int = 1000):
+    def __init__(self, client: AsyncOpenSearch, page_size: int = 100):
         self.client = client
         self.index_name = "ss4o_traces-default-namespace"
         self.page_size = page_size
@@ -56,7 +56,7 @@ class OpenSearchSS40Proxy(proxy.Proxy):
                 {"term": {key_prefix + key + ".keyword": {"value": value}}}
                 for key, value in attributes.items()
             ]
-        
+
         if resource_attributes is not None:
             filter.extend(attributes_to_filters(resource_attributes, "resource."))
 
