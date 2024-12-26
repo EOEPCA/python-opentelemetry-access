@@ -27,7 +27,7 @@ dev-dependencies = [
 ]
 
 [tool.uv.sources]
-opentelemetry-betterproto = { git = "https://github.com/EOEPCA/opentelemetry-betterproto.git" }
+opentelemetry-betterproto = { git = "https://github.com/EOEPCA/opentelemetry-betterproto.git", branch = "2.0.0-beta2" }
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
