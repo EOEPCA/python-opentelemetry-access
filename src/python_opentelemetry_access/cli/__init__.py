@@ -13,6 +13,7 @@ from opensearchpy import AsyncOpenSearch
 from typing import Optional
 import asyncio
 import logging
+from os import environ
 from pathlib import Path
 from sys import stdin, stdout
 
@@ -128,16 +129,19 @@ def run_proxy(ctx, proxy):
         reload=False,
         log_level="debug",
         workers=1,
+        root_path=ctx.obj.get("root_path") or ""
     )
 
 
 @cli.group(context_settings=CONTEXT_SETTINGS)
 @click.option("--host", default="127.0.0.1")
 @click.option("--port", default=12345)
+@click.option("--root-path", default=None)
 @click.pass_context
-def proxy(ctx, host, port) -> None:
+def proxy(ctx, host, port, root_path) -> None:
     ctx.obj["host"] = host
     ctx.obj["port"] = port
+    ctx.obj["root_path"] = root_path or environ.get("FAST_API_ROOT_PATH")
 
 
 @proxy.command()

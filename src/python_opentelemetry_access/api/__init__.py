@@ -130,3 +130,15 @@ async def get_trace(trace_id: str, query_params: Annotated[QueryParams, Query()]
 @app.get("/v1/spans/{trace_id}/{span_id}")
 async def get_span(trace_id: str, span_id: str, query_params: Annotated[QueryParams, Query()]) -> APIResponse:
     return await run_query(span_ids=[(trace_id, span_id)], query_params=query_params)
+
+@app.get("/healthz", include_in_schema=False)
+async def healthz() -> str:
+    return "OK"
+
+@app.get("/livez", include_in_schema=False)
+async def livez() -> str:
+    return "OK"
+
+@app.get("/readyz", include_in_schema=False)
+async def readyz() -> str:
+    return "OK"
