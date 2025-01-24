@@ -24,9 +24,9 @@ class OpenSearchSS40Proxy(proxy.Proxy):
         from_time: Optional[datetime] = None,
         to_time: Optional[datetime] = None,
         span_ids: Optional[List[Tuple[Optional[str], Optional[str]]]] = None,
-        resource_attributes: Optional[dict[str, str | int | bool]] = None,
-        scope_attributes: Optional[dict[str, str | int | bool]] = None,
-        span_attributes: Optional[dict[str, str | int | bool]] = None,
+        resource_attributes: Optional[dict[str, list[str]]] = None,
+        scope_attributes: Optional[dict[str, list[str]]] = None,
+        span_attributes: Optional[dict[str, list[str]]] = None,
         page_token: Optional[proxy.PageToken] = None,
     ) -> AsyncIterable[base.SpanCollection | proxy.PageToken]:
         filter: list[object] = []
@@ -50,12 +50,18 @@ class OpenSearchSS40Proxy(proxy.Proxy):
                 filter.append({"match": {"spanId": span_id}})
 
         def attributes_to_filters(
-            attributes: dict[str, str | int | bool], key_prefix: str
+            attributes: dict[str, list[str]], key_prefix: str
         ) -> list[object]:
-            return [
-                {"term": {key_prefix + key + ".keyword": {"value": value}}}
-                for key, value in attributes.items()
-            ]
+            result: list[object] = []
+            for key, values in attributes.items():
+                match values:
+                    case []:
+                        pass
+                    case [value]:
+                        result.append({"term": {key_prefix + key + ".keyword": {"value": value}}})
+                    case values:
+                        result.append({"terms": {key_prefix + key + ".keyword": values}})
+            return result
 
         if resource_attributes is not None:
             filter.extend(attributes_to_filters(resource_attributes, "resource."))
