@@ -1,8 +1,9 @@
+from collections import defaultdict
 import python_opentelemetry_access.proxy as proxy
 import python_opentelemetry_access.otlpjson as otlpjson
 import python_opentelemetry_access.util as util
 
-from typing import Optional, Annotated, List, Tuple, Dict
+from typing import Optional, Annotated, List, Tuple
 
 # from functools import lru_cache
 from dataclasses import dataclass
@@ -59,8 +60,12 @@ class APIResponse(BaseModel):
     results: List[otlpjson.OTLPJsonSpanCollection.Representation]
     next_page_token: Optional[str]
 
-def list_to_dict(values: list[str]) -> dict[str, str]:
-    return dict(value.split('=') for value in values)
+def list_to_dict(values: list[str]) -> dict[str, list[str]]:
+    result: dict[str, list[str]] = defaultdict(list)
+    for value in values:
+        key, value = value.split('=')
+        result[key].append(value)
+    return result
 
 async def run_query(
     span_ids: Optional[List[Tuple[Optional[str], Optional[str]]]],

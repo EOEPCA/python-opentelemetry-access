@@ -20,9 +20,9 @@ class Proxy(ABC):
         from_time: Optional[datetime] = None,
         to_time: Optional[datetime] = None,
         span_ids: Optional[List[Tuple[Optional[str], Optional[str]]]] = None,
-        resource_attributes: Optional[dict] = None,
-        scope_attributes: Optional[dict] = None,
-        span_attributes: Optional[dict] = None,
+        resource_attributes: Optional[dict[str, list[str]]] = None,
+        scope_attributes: Optional[dict[str, list[str]]] = None,
+        span_attributes: Optional[dict[str, list[str]]] = None,
         page_token: Optional[PageToken] = None,
     ) -> AsyncIterable[base.SpanCollection | PageToken]:
         # A trick to make the type of the function what I want
@@ -36,9 +36,9 @@ class Proxy(ABC):
         from_time: Optional[datetime] = None,
         to_time: Optional[datetime] = None,
         span_ids: Optional[List[Tuple[Optional[str], Optional[str]]]] = None,
-        resource_attributes: Optional[dict] = None,
-        scope_attributes: Optional[dict] = None,
-        span_attributes: Optional[dict] = None,
+        resource_attributes: Optional[dict[str, list[str]]] = None,
+        scope_attributes: Optional[dict[str, list[str]]] = None,
+        span_attributes: Optional[dict[str, list[str]]] = None,
         starting_page_token: Optional[PageToken] = None,
     ) -> AsyncIterable[base.SpanCollection]:
         async for spans_or_page_token in self.query_spans_page(
@@ -70,7 +70,7 @@ def _match_span(
     from_time: Optional[datetime] = None,
     to_time: Optional[datetime] = None,
     span_ids: Optional[List[Tuple[Optional[str], Optional[str]]]] = None,
-    span_attributes: Optional[dict] = None,
+    span_attributes: Optional[dict[str, list[str]]] = None,
 ) -> bool:
     if (
         to_time is not None
@@ -92,13 +92,10 @@ def _match_span(
         return False
 
     if span_attributes is not None:
-        span_attributes_flat = util.normalise_attributes_shallow(span_attributes)
         for k, v in util.normalise_attributes_shallow_iter(
             util.iter_jsonlike_dict(span.attributes)
         ):
-            if k in span_attributes_flat and v not in util.expect_list(
-                span_attributes_flat[k]
-            ):
+            if k in span_attributes and str(util.expect_literal(v)) not in span_attributes[k]:
                 return False
 
     return True
@@ -109,7 +106,7 @@ def _filter_scope_span_collection(
     from_time: Optional[datetime] = None,
     to_time: Optional[datetime] = None,
     span_ids: Optional[List[Tuple[Optional[str], Optional[str]]]] = None,
-    span_attributes: Optional[dict] = None,
+    span_attributes: Optional[dict[str, list[str]]] = None,
 ) -> base.ReifiedScopeSpanCollection:
     spans.spans = [
         span
@@ -121,16 +118,15 @@ def _filter_scope_span_collection(
 
 
 def _match_scope(
-    scope: base.ReifiedInstrumentationScope, scope_attributes: Optional[dict] = None
+    scope: base.ReifiedInstrumentationScope, scope_attributes: Optional[dict[str, list[str]]] = None
 ) -> bool:
     if scope_attributes is None:
         return True
     else:
-        scope_attributes_flat = util.normalise_attributes_shallow(scope_attributes)
         return all(
             (
-                (k not in scope_attributes_flat)
-                or (v in util.expect_list(scope_attributes_flat[k]))
+                (k not in scope_attributes)
+                or (str(util.expect_literal(v)) in scope_attributes[k])
                 for k, v in util.normalise_attributes_shallow_iter(
                     util.iter_jsonlike_dict(scope.attributes)
                 )
@@ -143,8 +139,8 @@ def _filter_resource_span_collection(
     from_time: Optional[datetime] = None,
     to_time: Optional[datetime] = None,
     span_ids: Optional[List[Tuple[Optional[str], Optional[str]]]] = None,
-    scope_attributes: Optional[dict] = None,
-    span_attributes: Optional[dict] = None,
+    scope_attributes: Optional[dict[str, list[str]]] = None,
+    span_attributes: Optional[dict[str, list[str]]] = None,
 ) -> base.ReifiedResourceSpanCollection:
     spans.scope_spans = [
         _filter_scope_span_collection(
@@ -162,18 +158,15 @@ def _filter_resource_span_collection(
 
 
 def _match_resource(
-    resource: base.ReifiedResource, resource_attributes: Optional[dict] = None
+    resource: base.ReifiedResource, resource_attributes: Optional[dict[str, list[str]]] = None
 ) -> bool:
     if resource_attributes is None:
         return True
     else:
-        resource_attributes_flat = util.normalise_attributes_shallow(
-            resource_attributes
-        )
         return all(
             (
-                (k not in resource_attributes_flat)
-                or (v in util.expect_list(resource_attributes_flat[k]))
+                (k not in resource_attributes)
+                or (str(util.expect_literal(v)) in resource_attributes[k])
                 for k, v in util.normalise_attributes_shallow_iter(
                     util.iter_jsonlike_dict(resource.attributes)
                 )
@@ -186,9 +179,9 @@ def _filter_span_collection(
     from_time: Optional[datetime] = None,
     to_time: Optional[datetime] = None,
     span_ids: Optional[List[Tuple[Optional[str], Optional[str]]]] = None,
-    resource_attributes: Optional[dict] = None,
-    scope_attributes: Optional[dict] = None,
-    span_attributes: Optional[dict] = None,
+    resource_attributes: Optional[dict[str, list[str]]] = None,
+    scope_attributes: Optional[dict[str, list[str]]] = None,
+    span_attributes: Optional[dict[str, list[str]]] = None,
 ) -> base.ReifiedSpanCollection:
     spans.resource_spans = [
         _filter_resource_span_collection(
@@ -220,9 +213,9 @@ class MockProxy(Proxy):
         from_time: Optional[datetime] = None,
         to_time: Optional[datetime] = None,
         span_ids: Optional[List[Tuple[Optional[str], Optional[str]]]] = None,
-        resource_attributes: Optional[dict] = None,
-        scope_attributes: Optional[dict] = None,
-        span_attributes: Optional[dict] = None,
+        resource_attributes: Optional[dict[str, list[str]]] = None,
+        scope_attributes: Optional[dict[str, list[str]]] = None,
+        span_attributes: Optional[dict[str, list[str]]] = None,
         page_token: Optional[PageToken] = None,
     ) -> AsyncIterable[base.SpanCollection | PageToken]:
         if page_token is not None:
