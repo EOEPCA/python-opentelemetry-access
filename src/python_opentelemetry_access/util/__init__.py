@@ -201,14 +201,14 @@ def expect_list(x: JSONLike) -> JSONLikeList:
         raise TypeError(f"Expected list, got {type(x)}")
 
 
-def expect_literal(x: JSONLike) -> JSONLikeLiteral:
+def expect_literal(x: object) -> JSONLikeLiteral:
     if isinstance(x, str) or isinstance(x, int) or isinstance(x, float):
         return x
     else:
         raise TypeError(f"Expected literal, got {type(x)}")
 
 
-def expect_str(x) -> str:
+def expect_str(x: object) -> str:
     if isinstance(x, str):
         return x
     else:
@@ -334,4 +334,22 @@ def normalise_attributes_deep_iter(jobj: JSONLikeDictIter) -> JSONLikeDictIter:
 def normalise_attributes_deep(jobj: JSONLikeDict) -> JSONLikeDict:
     return force_jsonlike_dict_iter(
         normalise_attributes_deep_iter(iter_jsonlike_dict(jobj))
+    )
+
+
+def match_attributes(
+    actual_attributes: JSONLikeDict, expected_attributes: Optional[dict[str, list[str]]]
+) -> bool:
+    if expected_attributes is None:
+        return True
+    
+    normalized_attributes = dict(
+        normalise_attributes_shallow_iter(iter_jsonlike_dict(actual_attributes))
+    )
+    return all(
+        (
+            k in normalized_attributes
+            and str(expect_literal(normalized_attributes[k])) in vs
+        )
+        for k, vs in expected_attributes.items()
     )

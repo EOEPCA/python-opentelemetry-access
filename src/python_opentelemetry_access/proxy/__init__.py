@@ -91,14 +91,9 @@ def _match_span(
     ):
         return False
 
-    if span_attributes is not None:
-        for k, v in util.normalise_attributes_shallow_iter(
-            util.iter_jsonlike_dict(span.attributes)
-        ):
-            if k in span_attributes and str(util.expect_literal(v)) not in span_attributes[k]:
-                return False
-
-    return True
+    return util.match_attributes(
+        actual_attributes=span.attributes, expected_attributes=span_attributes
+    )
 
 
 def _filter_scope_span_collection(
@@ -117,23 +112,6 @@ def _filter_scope_span_collection(
     return spans
 
 
-def _match_scope(
-    scope: base.ReifiedInstrumentationScope, scope_attributes: Optional[dict[str, list[str]]] = None
-) -> bool:
-    if scope_attributes is None:
-        return True
-    else:
-        return all(
-            (
-                (k not in scope_attributes)
-                or (str(util.expect_literal(v)) in scope_attributes[k])
-                for k, v in util.normalise_attributes_shallow_iter(
-                    util.iter_jsonlike_dict(scope.attributes)
-                )
-            )
-        )
-
-
 def _filter_resource_span_collection(
     spans: base.ReifiedResourceSpanCollection,
     from_time: Optional[datetime] = None,
@@ -147,7 +125,10 @@ def _filter_resource_span_collection(
             inner_spans, from_time, to_time, span_ids, span_attributes
         )
         for inner_spans in spans.scope_spans
-        if _match_scope(inner_spans.scope, scope_attributes)
+        if util.match_attributes(
+            actual_attributes=inner_spans.scope.attributes,
+            expected_attributes=scope_attributes,
+        )
     ]
 
     spans.scope_spans = [
@@ -155,23 +136,6 @@ def _filter_resource_span_collection(
     ]
 
     return spans
-
-
-def _match_resource(
-    resource: base.ReifiedResource, resource_attributes: Optional[dict[str, list[str]]] = None
-) -> bool:
-    if resource_attributes is None:
-        return True
-    else:
-        return all(
-            (
-                (k not in resource_attributes)
-                or (str(util.expect_literal(v)) in resource_attributes[k])
-                for k, v in util.normalise_attributes_shallow_iter(
-                    util.iter_jsonlike_dict(resource.attributes)
-                )
-            )
-        )
 
 
 def _filter_span_collection(
@@ -193,7 +157,9 @@ def _filter_span_collection(
             span_attributes,
         )
         for inner_spans in spans.resource_spans
-        if _match_resource(inner_spans.resource, resource_attributes)
+        if util.match_attributes(
+            inner_spans.resource.attributes, expected_attributes=resource_attributes
+        )
     ]
 
     spans.resource_spans = [
