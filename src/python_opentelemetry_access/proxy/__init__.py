@@ -1,11 +1,11 @@
-import python_opentelemetry_access.base as base
-import python_opentelemetry_access.util as util
-
 from dataclasses import dataclass
 from abc import ABC, abstractmethod
 from collections.abc import AsyncIterable
 from typing import List, Optional, Tuple, override
 from datetime import datetime
+
+import python_opentelemetry_access.base as base
+import python_opentelemetry_access.util as util
 
 
 @dataclass
@@ -185,7 +185,15 @@ class MockProxy(Proxy):
         page_token: Optional[PageToken] = None,
     ) -> AsyncIterable[base.SpanCollection | PageToken]:
         if page_token is not None:
-            raise RuntimeError("Unexpected page token")
+            raise util.InvalidPageTokenException.create()
+            # raise APIException(
+            #     Error(
+            #         status="400",
+            #         code="UnexpectedPageToken",
+            #         title="Unexpected Page Token",
+            #         detail="Mock Proxy doesn't support page token (as it never issues next page tokens)",
+            #     )
+            # )
 
         yield _filter_span_collection(
             self._all_spans.to_reified(),

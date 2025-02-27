@@ -1,8 +1,26 @@
 from collections.abc import Iterator
-from typing import Optional, Tuple, TypeVar, List, Union, Dict, Generic, override
+from typing import Optional, Self, Tuple, TypeVar, List, Union, Dict, Generic, override
 from itertools import chain, groupby
 
 import opentelemetry_betterproto.opentelemetry.proto.common.v1 as common
+
+from api_utils.exceptions import APIException
+from api_utils.json_api_types import Error
+
+
+class InvalidPageTokenException(APIException):
+    """Page token is invalid"""
+
+    @classmethod
+    def create(cls) -> Self:
+        return cls(
+            Error(
+                status="400",
+                code=cls._create_code(),
+                title=cls._create_title_from_doc(),
+                detail="This page token was not issued by the Telemetry Proxy, and is thus invalid.",
+            )
+        )
 
 
 T = TypeVar("T")
@@ -342,7 +360,7 @@ def match_attributes(
 ) -> bool:
     if expected_attributes is None:
         return True
-    
+
     normalized_attributes = dict(
         normalise_attributes_shallow_iter(iter_jsonlike_dict(actual_attributes))
     )

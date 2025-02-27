@@ -1,49 +1,36 @@
+import binascii
 from collections import defaultdict
-
-from fastapi.responses import JSONResponse
-import python_opentelemetry_access.proxy as proxy
-import python_opentelemetry_access.otlpjson as otlpjson
-import python_opentelemetry_access.util as util
-
 from typing import Optional, Annotated, List, Tuple
-
-# from functools import lru_cache
 from dataclasses import dataclass
-
-from fastapi import APIRouter, FastAPI, Query, Request, Response, status
+from fastapi import FastAPI, Query, Request, Response, status
 from fastapi.middleware.cors import CORSMiddleware
-
-# from fastapi.responses import StreamingResponse
-from pydantic import BaseModel, Field  # , Base64Bytes
-
+from pydantic import BaseModel, Field
 import base64
-
 from datetime import datetime
 
-from python_opentelemetry_access.util.json_api_types import (
-    APIErrorResponse,
+from api_utils.api_utils import (
+    JSONAPIResponse,
+    add_exception_handlers,
+    get_api_router_with_defaults,
+    get_url_str,
+    set_custom_json_schema,
+)
+from api_utils.exceptions import APIException, APIInternalError
+from api_utils.json_api_types import (
     APIOKResponseList,
+    Error,
     LinkObject,
     Links,
     Resource as JSONAPIResource,
-    get_url_str,
 )
+import python_opentelemetry_access.proxy as proxy
+import python_opentelemetry_access.otlpjson as otlpjson
+import python_opentelemetry_access.util as util
 
 
 @dataclass
 class Settings:
     proxy: Optional[proxy.Proxy]
-
-
-app = FastAPI()
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
-settings = Settings(proxy=None)  # type: ignore
 
 
 class QueryParams(BaseModel):
@@ -69,17 +56,26 @@ class QueryParams(BaseModel):
 type APIOKResponse = APIOKResponseList[otlpjson.OTLPJsonSpanCollection.Representation]
 
 
-class APIResponse(BaseModel):
-    results: List[otlpjson.OTLPJsonSpanCollection.Representation]
-    next_page_token: Optional[str]
-
-
 def list_to_dict(values: list[str]) -> dict[str, list[str]]:
     result: dict[str, list[str]] = defaultdict(list)
     for value in values:
-        key, value = value.split("=")
-        result[key].append(value)
+        match value.split("="):
+            case [key, value]:
+                result[key].append(value)
+            case _:
+                raise APIException(
+                    Error(
+                        status="400",
+                        code="AttributeFilterParameterMalformed",
+                        title="Malformed Attribute Filter Parameter",
+                        detail=f"Attribute filter parameter must be of the shape 'my awesome key=my awesome value'. '{value}' is of incorrect shape.",
+                    )
+                )
+
     return result
+
+
+settings = Settings(proxy=None)  # type: ignore
 
 
 async def run_query(
@@ -89,16 +85,28 @@ async def run_query(
     query_params: QueryParams,
 ) -> APIOKResponse:
     if settings.proxy is None:
-        raise RuntimeError("No proxy initialised")
+        raise APIInternalError.create("No proxy initialised")
 
     new_page_tokens = []
     span_sets = []
 
     if query_params.page_token is not None:
-        page_tokens: List[Optional[proxy.PageToken]] = [
-            proxy.PageToken(base64.b64decode(token))
-            for token in query_params.page_token.split(".")
-        ]
+        try:
+            page_tokens: List[Optional[proxy.PageToken]] = [
+                proxy.PageToken(base64.b64decode(token, validate=True))
+                for token in query_params.page_token.split(".")
+            ]
+        except binascii.Error:
+            raise util.InvalidPageTokenException.create()
+            # raise APIException(
+            #     Error(
+            #         status="400",
+            #         code="PageTokenMalformed",
+            #         title="Page Token is in Incorrect Format",
+            #         detail=f"Expected page token to be dot (.) separated base 64 encoded strings. '{query_params.page_token}' doesn't comply to that.",
+            #     )
+            # )
+
     else:
         page_tokens = [None]
 
@@ -176,14 +184,17 @@ async def run_query(
     )
 
 
-class JSONAPIResponse(JSONResponse):
-    media_type = "application/vnd.api+json"
+app = FastAPI()
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+add_exception_handlers(app)
 
-
-# router = APIRouter(
-#     default_response_class=JSONAPIResponse,
-#     responses={status.HTTP_422_UNPROCESSABLE_ENTITY: {"model": APIErrorResponse}},
-# )
+router = get_api_router_with_defaults()
 
 
 # app. instead of router. because don't want to indicate that could return HTTP error 422
@@ -200,11 +211,13 @@ async def root(request: Request) -> APIOKResponseList[None]:
             JSONAPIResource[None](
                 id="documentation_website",
                 type="api_path",
+                attributes=None,
                 links={"self": get_url_str(base_url, "/docs")},
             ),
             JSONAPIResource[None](
                 id="get_spans",
                 type="api_path",
+                attributes=None,
                 links={"self": get_url_str(base_url, "/v1/spans")},
             ),
         ],
@@ -217,9 +230,8 @@ async def root(request: Request) -> APIOKResponseList[None]:
     )
 
 
-@app.get(
+@router.get(
     "/v1/spans",
-    response_class=JSONAPIResponse,
     status_code=status.HTTP_200_OK,
     response_model_exclude_unset=True,
 )
@@ -232,9 +244,8 @@ async def get_spans(
     )
 
 
-@app.get(
+@router.get(
     "/v1/spans/{trace_id}",
-    response_class=JSONAPIResponse,
     status_code=status.HTTP_200_OK,
     response_model_exclude_unset=True,
 )
@@ -253,9 +264,8 @@ async def get_trace(
     )
 
 
-@app.get(
+@router.get(
     "/v1/spans/{trace_id}/{span_id}",
-    response_class=JSONAPIResponse,
     status_code=status.HTTP_200_OK,
     response_model_exclude_unset=True,
 )
@@ -273,3 +283,8 @@ async def get_span(
         span_ids=[(trace_id, span_id)],
         query_params=query_params,
     )
+
+
+app.include_router(router)
+
+set_custom_json_schema(app, "Check Telemetry API", "v1")
