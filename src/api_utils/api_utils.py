@@ -16,10 +16,10 @@ class JSONAPIResponse(JSONResponse):
 
 
 def get_env_var_or_throw(name: str) -> str:
-    base_url = environ.get(name)
-    if base_url is None:
+    value = environ.get(name)
+    if value is None:
         raise ValueError(f"Environment variable {name} must be set")
-    return base_url
+    return value
 
 
 def get_request_url_str(base_url: str, request: Request) -> str:

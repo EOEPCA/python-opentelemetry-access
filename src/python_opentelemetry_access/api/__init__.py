@@ -12,6 +12,8 @@ from api_utils.api_utils import (
     JSONAPIResponse,
     add_exception_handlers,
     get_api_router_with_defaults,
+    get_env_var_or_throw,
+    get_request_url_str,
     get_url_str,
     set_custom_json_schema,
 )
@@ -30,7 +32,14 @@ import python_opentelemetry_access.util as util
 
 @dataclass
 class Settings:
-    proxy: Optional[proxy.Proxy]
+    _proxy: Optional[proxy.Proxy]
+    base_url: str
+
+    @property
+    def proxy(self) -> proxy.Proxy:
+        if self._proxy is None:
+            raise APIInternalError.create("No proxy initialised")
+        return self._proxy
 
 
 class QueryParams(BaseModel):
@@ -75,7 +84,9 @@ def list_to_dict(values: list[str]) -> dict[str, list[str]]:
     return result
 
 
-settings = Settings(proxy=None)  # type: ignore
+settings = Settings(
+    _proxy=None, base_url=get_env_var_or_throw("RH_TELEMETRY_API_BASE_URL")
+)
 
 
 async def run_query(
@@ -84,9 +95,6 @@ async def run_query(
     span_ids: Optional[List[Tuple[Optional[str], Optional[str]]]],
     query_params: QueryParams,
 ) -> APIOKResponse:
-    if settings.proxy is None:
-        raise APIInternalError.create("No proxy initialised")
-
     new_page_tokens = []
     span_sets = []
 
@@ -149,16 +157,17 @@ async def run_query(
     # query_params = request.query_params
     # query_params
 
-    base_url = str(request.base_url)
     query_params_list = [
         (key, value)
         for key, value in request.query_params.multi_items()
         if key != "page_token"
     ]
-    link_first = get_url_str(base_url, path, request.path_params, query_params_list)
+    link_first = get_url_str(
+        settings.base_url, path, request.path_params, query_params_list
+    )
     link_next = (
         get_url_str(
-            base_url,
+            settings.base_url,
             path,
             request.path_params,
             query_params_list=query_params_list + [("page_token", next_page_token)],
@@ -175,10 +184,10 @@ async def run_query(
             for span_set in span_sets
         ],
         links=Links(
-            self=str(request.url),
+            self=get_request_url_str(settings.base_url, request),
             first=link_first,
             next=link_next,
-            root=str(request.base_url),
+            root=settings.base_url,
         ),
         meta={"page": {"next_page_token": next_page_token}},
     )
@@ -205,26 +214,26 @@ router = get_api_router_with_defaults()
     response_class=JSONAPIResponse,
 )
 async def root(request: Request) -> APIOKResponseList[None]:
-    base_url = str(request.base_url)
     return APIOKResponseList[None](
         data=[
             JSONAPIResource[None](
                 id="documentation_website",
                 type="api_path",
                 attributes=None,
-                links={"self": get_url_str(base_url, "/docs")},
+                links={"self": get_url_str(settings.base_url, "/docs")},
             ),
             JSONAPIResource[None](
                 id="get_spans",
                 type="api_path",
                 attributes=None,
-                links={"self": get_url_str(base_url, "/v1/spans")},
+                links={"self": get_url_str(settings.base_url, "/v1/spans")},
             ),
         ],
         links=Links(
-            self=base_url,
+            self=settings.base_url,
             describedby=LinkObject(
-                title="OpenAPI schema", href=get_url_str(base_url, "/openapi.json")
+                title="OpenAPI schema",
+                href=get_url_str(settings.base_url, "/openapi.json"),
             ),
         ),
     )
