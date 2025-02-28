@@ -62,7 +62,17 @@ class QueryParams(BaseModel):
     page_token: Optional[str] = Field(None)
 
 
-type APIOKResponse = APIOKResponseList[otlpjson.OTLPJsonSpanCollection.Representation]
+class ResponseNextPageToken(BaseModel):
+    next_page_token: str | None
+
+
+class ResponseMeta(BaseModel):
+    page: ResponseNextPageToken
+
+
+type APIOKResponse = APIOKResponseList[
+    otlpjson.OTLPJsonSpanCollection.Representation, ResponseMeta
+]
 
 
 def list_to_dict(values: list[str]) -> dict[str, list[str]]:
@@ -176,7 +186,9 @@ async def run_query(
         else None
     )
 
-    return APIOKResponseList[otlpjson.OTLPJsonSpanCollection.Representation](
+    return APIOKResponseList[
+        otlpjson.OTLPJsonSpanCollection.Representation, ResponseMeta
+    ](
         data=[
             JSONAPIResource[
                 otlpjson.OTLPJsonSpanCollection.Representation
@@ -189,13 +201,15 @@ async def run_query(
             next=link_next,
             root=settings.base_url,
         ),
-        meta={"page": {"next_page_token": next_page_token}},
+        meta=ResponseMeta(page=ResponseNextPageToken(next_page_token=next_page_token)),
     )
 
 
 app = FastAPI()
 app.add_middleware(
     CORSMiddleware,
+    # Might need to replace allow_origins=["*"] with the below line, as was done in CheckManager
+    # allow_origin_regex=".*",
     allow_origins=["*"],
     allow_credentials=True,
     allow_methods=["*"],
@@ -213,8 +227,8 @@ router = get_api_router_with_defaults()
     response_model_exclude_unset=True,
     response_class=JSONAPIResponse,
 )
-async def root(request: Request) -> APIOKResponseList[None]:
-    return APIOKResponseList[None](
+async def root(request: Request) -> APIOKResponseList[None, None]:
+    return APIOKResponseList[None, None](
         data=[
             JSONAPIResource[None](
                 id="documentation_website",
@@ -236,6 +250,7 @@ async def root(request: Request) -> APIOKResponseList[None]:
                 href=get_url_str(settings.base_url, "/openapi.json"),
             ),
         ),
+        meta=None,
     )
 
 

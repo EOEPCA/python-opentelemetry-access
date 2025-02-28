@@ -104,9 +104,9 @@ class APIOKResponse[T](BaseModel):
     # included: list[Resource] | None = None
 
 
-class APIOKResponseList[T](BaseModel):
+class APIOKResponseList[T, U](BaseModel):
     data: list[Resource[T]]
-    meta: Json | None = None
+    meta: U
     # jsonapi: Json | None = None
     links: Links | None = None
     # included: list[Resource] | None = None
