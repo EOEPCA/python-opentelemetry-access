@@ -8,11 +8,11 @@ authors = [
 ]
 requires-python = ">=3.11"
 dependencies = [
-    "click>=8.1.7",
     "fastapi>=0.115.4",
     "opensearch-py[async]>=2.7.1",
     "opentelemetry-betterproto",
     "pandas>=2.2.3",
+    "typer>=0.13.0",
     "uvicorn>=0.32.0",
 ]
 
@@ -22,12 +22,37 @@ build-backend = "hatchling.build"
 
 [tool.uv]
 dev-dependencies = [
+    "mypy>=1.15.0",
     "pandas-stubs>=2.2.3.241009",
     "pytest>=8.3.3",
+    "pytest-cov>=6.0.0",
 ]
 
 [tool.uv.sources]
 opentelemetry-betterproto = { git = "https://github.com/EOEPCA/opentelemetry-betterproto.git", branch = "2.0.0-beta2" }
 
 [tool.pytest.ini_options]
+addopts = "-ra -q --cov=python_opentelemetry_access --cov-report=term-missing"
 testpaths = ["tests"]
+
+[tool.coverage.report]
+exclude_also = [
+    "import ",
+    "if False:",
+    "if __name__ == .__main__.:",
+    "@(abc\\.)?abstractmethod",
+]
+
+[tool.mypy]
+python_version = "3.12"
+packages = "python_opentelemetry_access"
+exclude = "cli"
+disallow_untyped_defs = false
+show_error_context = true
+pretty = true
+no_implicit_optional = true
+warn_unused_ignores = false
+warn_return_any = false
+
+[project.scripts]
+python-opentelemetry-access = "python_opentelemetry_access.cli:cli"

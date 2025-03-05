@@ -1,48 +1,65 @@
-# type: ignore
-import python_opentelemetry_access.opensearch.ss4o as ss4o
-import python_opentelemetry_access.otlpjson as otlpjson
-import python_opentelemetry_access.otlpproto as otlpproto
-
-import python_opentelemetry_access.proxy as proxy_mod
-import python_opentelemetry_access.proxy.opensearch.ss4o as ss4o_proxy
-import python_opentelemetry_access.api as api
-
-import uvicorn
-from opensearchpy import AsyncOpenSearch
-
-from typing import Optional
 import asyncio
-import logging
+from enum import StrEnum
+from logging import INFO, WARNING, getLogger
+from importlib.metadata import version
 from os import environ
 from pathlib import Path
 from sys import stdin, stdout
+from typing import Optional
+from typing_extensions import Annotated
 
-import click
+from opensearchpy import AsyncOpenSearch
+from typer import Argument, Context, Exit, Option, Typer
+import uvicorn
 
-logger = logging.getLogger("python-opentelemetry-access")
+import python_opentelemetry_access.api as api
+import python_opentelemetry_access.opensearch.ss4o as ss4o
+import python_opentelemetry_access.otlpjson as otlpjson
+import python_opentelemetry_access.otlpproto as otlpproto
+import python_opentelemetry_access.proxy as proxy_mod
+import python_opentelemetry_access.proxy.opensearch.ss4o as ss4o_proxy
+
+cli = Typer(
+    no_args_is_help=True,
+    context_settings={"help_option_names": ["-h", "--help"]}
+)
+proxy = Typer(no_args_is_help=True)
+cli.add_typer(proxy, name="proxy")
+
+logger = getLogger("python-opentelemetry-access")
 
 
-CONTEXT_SETTINGS = {"help_option_names": ["-h", "--help"]}
+def version_callback(value: bool):
+    if value:
+        print(
+            "python-opentelemetry-access version " +
+            version("python-opentelemetry-access")
+        )
+        raise Exit()
 
 
-@click.group(context_settings=CONTEXT_SETTINGS)
-@click.option("--verbose/--no-verbose", "-v", default=False)
-# @click.version_option(version=0.1.0, prog_name="python-opentelemetry-access")
-@click.pass_context
-def cli(ctx, verbose: bool) -> None:
+@cli.callback()
+def cli_callback(
+    ctx: Context,
+    verbose: Annotated[
+        bool,
+        Option(
+            "--verbose/--no-verbose", "-v",
+            show_default=False,
+        )
+    ] = False,
+    version: bool = Option(
+        None,
+        "--version",
+        help="Print version information and exit.",
+        callback=version_callback,
+    ),
+) -> None:
     """
     python-opentelemetry-access command line interface
     """
     ctx.obj = {"verbose": verbose}
-    logger.setLevel(logging.INFO if verbose else logging.WARNING)
-
-
-IN_FORMATS = {
-    "ss4o_bare": (False, ss4o.load_bare),
-    "ss4o": (False, ss4o.load),
-    "otlp-json": (False, otlpjson.load),
-    "otlp-proto": (True, otlpproto.load),
-}
+    logger.setLevel(INFO if verbose else WARNING)
 
 
 def dump_otlp_json(x, f):
@@ -54,6 +71,14 @@ def dump_otlp_proto(x, f):
     f.write(bytes(x.to_otlp_protobuf()))
 
 
+IN_FORMATS = {
+    "ss4o_bare": (False, ss4o.load_bare),
+    "ss4o": (False, ss4o.load),
+    "otlp-json": (False, otlpjson.load),
+    "otlp-proto": (True, otlpproto.load),
+}
+
+
 OUT_FORMATS = {
     "otlp-json": (False, dump_otlp_json),
     "otlp-proto": (True, dump_otlp_proto),
@@ -63,28 +88,43 @@ OUT_FORMATS = {
 @cli.command()
 def list_formats() -> None:
     for f in sorted(set(IN_FORMATS.keys()).union(OUT_FORMATS.keys())):
-        match (f in IN_FORMATS, f in OUT_FORMATS):
-            case (True, True):
+        match(f in IN_FORMATS, f in OUT_FORMATS):
+            case(True, True):
                 cap = "in and out"
-            case (True, False):
+            case(True, False):
                 cap = "only in"
-            case (False, True):
+            case(False, True):
                 cap = "only out"
             case _:
                 pass
         print(f"- {f} ({cap})")
 
 
+InFormat = StrEnum("InFormat", tuple(IN_FORMATS.keys()))
+OutFormat = StrEnum("OutFormat", tuple(OUT_FORMATS.keys()))
+
+
 @cli.command()
-@click.argument(
-    "infile", nargs=1, type=click.Path(exists=True, path_type=Path, allow_dash=True)
-)
-@click.argument(
-    "outfile", nargs=1, type=click.Path(exists=False, path_type=Path, allow_dash=True)
-)
-@click.option("--from", "-f", "from_", type=click.Choice(list(IN_FORMATS.keys())))
-@click.option("--to", "-t", type=click.Choice(list(OUT_FORMATS.keys())))
-def convert(infile: Path, outfile: Path, from_: str, to: str) -> None:
+def convert(
+    infile: Annotated[Path, Argument(
+        exists=True,
+        resolve_path=True,
+    )],
+    outfile: Annotated[Path, Argument(
+        exists=False,
+        resolve_path=True,
+    )],
+    from_: Annotated[InFormat, Option(
+        "-f", "--from",
+        help="Input format",
+        show_default=False,
+    )],
+    to: Annotated[OutFormat, Option(
+        "-t", "--to",
+        help="Output format",
+        show_default=False,
+    )],
+) -> None:
     """
     Converts from one representation to another
     """
@@ -123,7 +163,7 @@ def run_proxy(ctx, proxy):
     api.settings.proxy = proxy
 
     uvicorn.run(
-        api.app,
+        api.cli,
         host=ctx.obj.get("host") or "127.0.0.1",
         port=ctx.obj.get("port") or 12345,
         reload=False,
@@ -133,25 +173,27 @@ def run_proxy(ctx, proxy):
     )
 
 
-@cli.group(context_settings=CONTEXT_SETTINGS)
-@click.option("--host", default="127.0.0.1")
-@click.option("--port", default=12345)
-@click.option("--root-path", default=None)
-@click.pass_context
-def proxy(ctx, host, port, root_path) -> None:
+@proxy.callback()
+def proxy_callback(
+    ctx: Context,
+    host: Annotated[str, Option("--host")] = "127.0.0.1",
+    port: Annotated[int, Option("--port")] = 12345,
+    root_path: Annotated[Optional[str], Option("--root-path")] = None,
+) -> None:
     ctx.obj["host"] = host
     ctx.obj["port"] = port
     ctx.obj["root_path"] = root_path or environ.get("FAST_API_ROOT_PATH")
 
 
 @proxy.command()
-@click.option(
-    "--file",
-    required=True,
-    type=click.Path(exists=True, file_okay=True, dir_okay=False, path_type=Path),
-)
-@click.pass_context
-def mock(ctx, file) -> None:
+def mock(
+    ctx: Context,
+    file: Annotated[Path, Option(
+        "--file",
+        exists=True,
+        resolve_path=True,
+    )],
+) -> None:
     with open(file, "r") as f:
         this_proxy = proxy_mod.MockProxy(otlpjson.load(f))
 
@@ -159,23 +201,27 @@ def mock(ctx, file) -> None:
 
 
 @proxy.command()
-@click.option("--oshost", default="127.0.0.1")
-@click.option("--osport", default=9200)
-@click.option("--osuser", default=None)
-@click.option("--ospass", default=None)
-@click.option("--ca_certs", default=None)
-@click.option("--client_cert", default=None)
-@click.option("--client_key", default=None)
-@click.pass_context
 def opensearch_ss4o(
-    ctx,
-    oshost: str,
-    osport: str,
-    osuser: Optional[str],
-    ospass: Optional[str],
-    ca_certs: click.Path(exists=True, path_type=Path, allow_dash=False),
-    client_cert: click.Path(exists=True, path_type=Path, allow_dash=False),
-    client_key: click.Path(exists=True, path_type=Path, allow_dash=False),
+    ctx: Context,
+    oshost: Annotated[str, Option("--oshost")] = "127.0.0.1",
+    osport: Annotated[int, Option("--osport")] = 9200,
+    osuser: Annotated[Optional[str], Option("--osuser")] = None,
+    ospass: Annotated[Optional[str], Option("--ospass")] = None,
+    ca_certs: Annotated[Path, Option(
+        "--ca_certs",
+        exists=True,
+        allow_dash=False,
+    )] = None,
+    client_cert: Annotated[Path, Option(
+        "--client_cert",
+        exists=True,
+        allow_dash=False,
+    )] = None,
+    client_key: Annotated[Path, Option(
+        "--client_key",
+        exists=True,
+        allow_dash=False,
+    )] = None,
 ) -> None:
     opensearch_params = {"verify_certs": False, "ssl_show_warn": False}
 
