@@ -6,8 +6,8 @@ import json
 
 from itertools import groupby
 
-from ... import base
-from ... import util
+from .. import base
+from .. import util
 
 ## Only needed for correctly parsing nanosecond timestamps
 from pandas import Timestamp

@@ -2,8 +2,8 @@ from collections.abc import Iterator
 from typing import Optional, BinaryIO, override
 import binascii
 
-from .. import base
-from .. import util
+from . import base
+from . import util
 
 import opentelemetry_betterproto.opentelemetry.proto.common.v1 as common
 import opentelemetry_betterproto.opentelemetry.proto.trace.v1 as trace

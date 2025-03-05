@@ -3,8 +3,8 @@ from typing import Tuple, Optional, TextIO, BinaryIO, NewType, List, Union, over
 from typing_extensions import TypedDict
 import json
 
-from .. import base
-from .. import util
+from . import base
+from . import util
 
 
 class OTLPJsonIntAnyValueRepresentation(TypedDict):

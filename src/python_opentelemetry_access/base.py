@@ -11,7 +11,7 @@ import opentelemetry_betterproto.opentelemetry.proto.trace.v1 as trace
 import opentelemetry_betterproto.opentelemetry.proto.collector.trace.v1 as trace_collector
 import opentelemetry_betterproto.opentelemetry.proto.resource.v1 as resource
 
-from .. import util
+from . import util
 
 OTLPProtobufType = Union[
     trace.SpanSpanKind,
