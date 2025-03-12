@@ -170,8 +170,9 @@ def _filter_span_collection(
 
 
 class MockProxy(Proxy):
-    def __init__(self, all_spans: base.SpanCollection):
+    def __init__(self, all_spans: base.SpanCollection, page_size : int = 10):
         self._all_spans = all_spans.to_reified()
+        self._page_size = page_size
 
     @override
     async def query_spans_page(
@@ -185,7 +186,10 @@ class MockProxy(Proxy):
         page_token: Optional[PageToken] = None,
     ) -> AsyncIterable[base.SpanCollection | PageToken]:
         if page_token is not None:
-            raise util.InvalidPageTokenException.create()
+            skip_to = int.from_bytes(page_token.token, "little", signed=False)
+        else:
+            skip_to = 0
+            #raise util.InvalidPageTokenException.create()
             # raise APIException(
             #     Error(
             #         status="400",
@@ -195,7 +199,7 @@ class MockProxy(Proxy):
             #     )
             # )
 
-        yield _filter_span_collection(
+        result = _filter_span_collection(
             self._all_spans.to_reified(),
             from_time,
             to_time,
@@ -204,3 +208,13 @@ class MockProxy(Proxy):
             scope_attributes,
             span_attributes,
         )
+
+        new_skip_to = skip_to+self._page_size
+        remaining = len(result.resource_spans) - new_skip_to
+
+        result.resource_spans = result.resource_spans[skip_to:new_skip_to]
+        
+        yield result
+
+        if remaining > 0:
+            yield PageToken(new_skip_to.to_bytes(4, "little", signed=False))
