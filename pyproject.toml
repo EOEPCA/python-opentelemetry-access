@@ -6,7 +6,7 @@ readme = "README.md"
 authors = [
     { name = "Tilo Wiklund", email = "tilo.wiklund@sensmetry.com" } 
 ]
-requires-python = ">=3.11"
+requires-python = ">=3.12"
 dependencies = [
     "click>=8.1.7",
     "fastapi>=0.115.4",

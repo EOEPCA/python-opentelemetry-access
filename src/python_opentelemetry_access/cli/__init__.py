@@ -120,7 +120,7 @@ def convert(infile: Path, outfile: Path, from_: str, to: str) -> None:
 
 
 def run_proxy(ctx, proxy):
-    api.settings.proxy = proxy
+    api.settings._proxy = proxy
 
     uvicorn.run(
         api.app,
@@ -129,7 +129,7 @@ def run_proxy(ctx, proxy):
         reload=False,
         log_level="debug",
         workers=1,
-        root_path=ctx.obj.get("root_path") or ""
+        root_path=ctx.obj.get("root_path") or "",
     )
 
 
@@ -138,7 +138,7 @@ def run_proxy(ctx, proxy):
 @click.option("--port", default=12345)
 @click.option("--root-path", default=None)
 @click.pass_context
-def proxy(ctx, host, port, root_path) -> None:
+def proxy(ctx, host: str, port: str, root_path: str) -> None:
     ctx.obj["host"] = host
     ctx.obj["port"] = port
     ctx.obj["root_path"] = root_path or environ.get("FAST_API_ROOT_PATH")

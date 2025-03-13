@@ -1,15 +1,16 @@
-import python_opentelemetry_access.base as base
-import python_opentelemetry_access.opensearch.ss4o as ss4o
-# import python_opentelemetry_access.util as util
-
-# from dataclasses import dataclass
+import opensearchpy
 from collections.abc import AsyncIterable
 from typing import List, Optional, Tuple, override
 from datetime import datetime
-
-import python_opentelemetry_access.proxy as proxy
-
 from opensearchpy import AsyncOpenSearch
+
+from api_utils.exceptions import APIException
+from api_utils.json_api_types import Error
+
+import python_opentelemetry_access.base as base
+import python_opentelemetry_access.opensearch.ss4o as ss4o
+from python_opentelemetry_access.util import InvalidPageTokenException
+import python_opentelemetry_access.proxy as proxy
 
 
 class OpenSearchSS40Proxy(proxy.Proxy):
@@ -58,9 +59,13 @@ class OpenSearchSS40Proxy(proxy.Proxy):
                     case []:
                         pass
                     case [value]:
-                        result.append({"term": {key_prefix + key + ".keyword": {"value": value}}})
+                        result.append(
+                            {"term": {key_prefix + key + ".keyword": {"value": value}}}
+                        )
                     case values:
-                        result.append({"terms": {key_prefix + key + ".keyword": values}})
+                        result.append(
+                            {"terms": {key_prefix + key + ".keyword": values}}
+                        )
             return result
 
         if resource_attributes is not None:
@@ -70,7 +75,7 @@ class OpenSearchSS40Proxy(proxy.Proxy):
             filter.extend(
                 attributes_to_filters(scope_attributes, "instrumentationScope.")
             )
-        
+
         if span_attributes is not None:
             filter.extend(attributes_to_filters(span_attributes, "attributes."))
 
@@ -87,10 +92,53 @@ class OpenSearchSS40Proxy(proxy.Proxy):
             # q['search_after'] = page_token.token.decode('ascii').split("__")
             ## Validate
             token = page_token.token.decode("ascii")
-            _ = datetime.fromisoformat(token)
+            try:
+                _ = datetime.fromisoformat(token)
+            except ValueError:
+                raise InvalidPageTokenException.create()
             q["search_after"] = [token]
 
-        results = await self.client.search(body=q, index=self.index_name)
+        # results = await self.client.search(body=q, index=self.index_name)
+        try:
+            results = await self.client.search(body=q, index=self.index_name)
+        # Don't want to turn all connection exceptions to something visible to the end user
+        # to not expose implementation details and things that might be secret
+        except opensearchpy.AuthenticationException as e:
+            raise APIException(
+                Error(
+                    status="401" if e.status_code == "N/A" else str(e.status_code),
+                    code=e.__class__.__name__,
+                    title="Authentication Exception",
+                    detail=e.error,
+                )
+            )
+        except opensearchpy.AuthorizationException as e:
+            raise APIException(
+                Error(
+                    status="403" if e.status_code == "N/A" else str(e.status_code),
+                    code=e.__class__.__name__,
+                    title="Authorization Exception",
+                    detail=e.error,
+                )
+            )
+        except opensearchpy.ConnectionTimeout as e:
+            raise APIException(
+                Error(
+                    status="500" if e.status_code == "N/A" else str(e.status_code),
+                    code=e.__class__.__name__,
+                    title="Connection Timeout",
+                    detail=e.error,
+                )
+            )
+        except opensearchpy.NotFoundError as e:
+            raise APIException(
+                Error(
+                    status="404" if e.status_code == "N/A" else str(e.status_code),
+                    code=e.__class__.__name__,
+                    title="Not Found Error",
+                    detail=e.error,
+                )
+            )
 
         ## There should be a more clever way of doing this, but
         ## we cannot rely on results['hits']['total']['value'], since
