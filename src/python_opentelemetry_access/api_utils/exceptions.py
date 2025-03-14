@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 from typing import Any, Callable, Self
 
-from api_utils.json_api_types import APIErrorResponse, Error
+from .json_api_types import APIErrorResponse, Error
 
 
 @dataclass

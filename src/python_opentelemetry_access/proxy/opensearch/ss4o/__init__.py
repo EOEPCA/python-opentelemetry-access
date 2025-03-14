@@ -4,8 +4,8 @@ from typing import List, Optional, Tuple, override
 from datetime import datetime
 from opensearchpy import AsyncOpenSearch
 
-from api_utils.exceptions import APIException
-from api_utils.json_api_types import Error
+from python_opentelemetry_access.api_utils.exceptions import APIException
+from python_opentelemetry_access.api_utils.json_api_types import Error
 
 import python_opentelemetry_access.base as base
 import python_opentelemetry_access.opensearch.ss4o as ss4o
