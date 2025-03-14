@@ -4,8 +4,8 @@ from itertools import chain, groupby
 
 import opentelemetry_betterproto.opentelemetry.proto.common.v1 as common
 
-from api_utils.exceptions import APIException
-from api_utils.json_api_types import Error
+from python_opentelemetry_access.api_utils.exceptions import APIException
+from python_opentelemetry_access.api_utils.json_api_types import Error
 
 
 class InvalidPageTokenException(APIException):

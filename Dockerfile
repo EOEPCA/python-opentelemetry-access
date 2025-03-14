@@ -1,5 +1,5 @@
 # Build image to compile all packages
-FROM python:3.12 as build
+FROM python:3.12 AS build
 
 COPY . /project
 WORKDIR /project

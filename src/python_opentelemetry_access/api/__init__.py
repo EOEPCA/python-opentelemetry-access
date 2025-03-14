@@ -8,7 +8,7 @@ from pydantic import BaseModel, Field
 import base64
 from datetime import datetime
 
-from api_utils.api_utils import (
+from python_opentelemetry_access.api_utils.api_utils import (
     JSONAPIResponse,
     add_exception_handlers,
     get_api_router_with_defaults,
@@ -17,8 +17,8 @@ from api_utils.api_utils import (
     get_url_str,
     set_custom_json_schema,
 )
-from api_utils.exceptions import APIException, APIInternalError
-from api_utils.json_api_types import (
+from python_opentelemetry_access.api_utils.exceptions import APIException, APIInternalError
+from python_opentelemetry_access.api_utils.json_api_types import (
     APIOKResponseList,
     Error,
     LinkObject,

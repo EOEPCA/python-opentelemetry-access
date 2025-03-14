@@ -7,8 +7,8 @@ from fastapi.exceptions import RequestValidationError
 from fastapi.openapi.utils import get_openapi
 from fastapi.responses import JSONResponse
 
-from api_utils.exceptions import get_status_code_and_errors
-from api_utils.json_api_types import APIErrorResponse, Error
+from .exceptions import get_status_code_and_errors
+from .json_api_types import APIErrorResponse, Error
 
 
 class JSONAPIResponse(JSONResponse):
