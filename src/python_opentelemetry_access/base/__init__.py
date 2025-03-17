@@ -62,7 +62,7 @@ class OTLPData(Protocol):
     @abstractmethod
     def to_otlp_json_iter(self) -> util.JSONLikeIter:
         pass
-    
+
     def to_otlp_json_str_iter(self) -> Iterator[str]:
         return OTLPJSONEncoder().iterencode(self.to_otlp_json_iter())
 
