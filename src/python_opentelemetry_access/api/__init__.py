@@ -308,6 +308,19 @@ async def get_span(
         query_params=query_params,
     )
 
+@router.get(
+    "/livez",
+    status_code=status.HTTP_200_OK,
+)
+async def livez() -> str:
+    return "OK"
+
+@router.get(
+    "/readyz",
+    status_code=status.HTTP_200_OK,
+)
+async def readyz() -> str:
+    return "OK"
 
 app.include_router(router)
 
