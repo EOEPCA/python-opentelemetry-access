@@ -133,7 +133,18 @@ def to_otlp_any_value_iter(jval: JSONLikeIter) -> JSONLikeDictIter:
                 [
                     (
                         "arrayValue",
-                        JSONLikeListIter((to_otlp_any_value_iter(x) for x in jval)),
+                        JSONLikeDictIter(
+                            iter(
+                                [
+                                    (
+                                        "values",
+                                        JSONLikeListIter(
+                                            (to_otlp_any_value_iter(x) for x in jval)
+                                        ),
+                                    )
+                                ]
+                            )
+                        ),
                     )
                 ]
             )

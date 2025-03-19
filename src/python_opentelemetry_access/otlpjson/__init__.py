@@ -23,8 +23,12 @@ class OTLPJsonBoolAnyValueRepresentation(TypedDict):
     boolValue: bool
 
 
+class OTLPJsonArrayValuesRepresentation(TypedDict):
+    values: List["OTLPJsonAnyValueRepresentation"]
+
+
 class OTLPJsonArrayAnyValueRepresentation(TypedDict):
-    arrayValue: List["OTLPJsonAnyValueRepresentation"]
+    arrayValue: OTLPJsonArrayValuesRepresentation
 
 
 class OTLPJsonKVRepresentation(TypedDict):
@@ -72,6 +76,8 @@ def iter_otlp_jsonlike_anyvalue(
         case {"doubleValue": x}:
             if isinstance(x, float):
                 return x
+            elif isinstance(x, int):
+                return float(x)
             else:
                 raise TypeError(
                     f"OTLP JSON doubleValue expected to be encoded as float, got {type(x)}"
@@ -83,15 +89,16 @@ def iter_otlp_jsonlike_anyvalue(
                 raise TypeError(
                     f"OTLP JSON boolValue expected to be encoded as bool, got {type(x)}"
                 )
-        case {"arrayValue": xs}:
-            if isinstance(xs, list):
-                return util.JSONLikeListIter(
-                    (iter_otlp_jsonlike_anyvalue(x) for x in xs)
-                )
-            else:
-                raise TypeError(
-                    f"OTLP JSON arrayValue expected to be encoded as list, got {type(xs)}"
-                )
+        case {"arrayValue": x}:
+            match x:
+                case {"values": list(xs)}:
+                    return util.JSONLikeListIter(
+                        (iter_otlp_jsonlike_anyvalue(x) for x in xs)
+                    )
+                case _:
+                    raise TypeError(
+                        f"OTLP JSON arrayValue expected to be encoded as dictionary with exactly one key named 'values', got {x}"
+                    )
         case {"kvlistValue": xs}:
             if isinstance(xs, list):
                 return iter_otlp_jsonlike_dict(xs)

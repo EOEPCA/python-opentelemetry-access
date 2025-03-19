@@ -12,12 +12,14 @@ from python_opentelemetry_access.api_utils.api_utils import (
     JSONAPIResponse,
     add_exception_handlers,
     get_api_router_with_defaults,
-    get_env_var_or_throw,
     get_request_url_str,
     get_url_str,
     set_custom_json_schema,
 )
-from python_opentelemetry_access.api_utils.exceptions import APIException, APIInternalError
+from python_opentelemetry_access.api_utils.exceptions import (
+    APIException,
+    APIInternalError,
+)
 from python_opentelemetry_access.api_utils.json_api_types import (
     APIOKResponseList,
     Error,
@@ -33,13 +35,19 @@ import python_opentelemetry_access.util as util
 @dataclass
 class Settings:
     _proxy: Optional[proxy.Proxy]
-    base_url: str
+    _base_url: Optional[str]
 
     @property
     def proxy(self) -> proxy.Proxy:
         if self._proxy is None:
             raise APIInternalError.create("No proxy initialised")
         return self._proxy
+
+    @property
+    def base_url(self) -> str:
+        if self._base_url is None:
+            raise APIInternalError.create("Base URL must be set")
+        return self._base_url
 
 
 class QueryParams(BaseModel):
@@ -94,9 +102,7 @@ def list_to_dict(values: list[str]) -> dict[str, list[str]]:
     return result
 
 
-settings = Settings(
-    _proxy=None, base_url=get_env_var_or_throw("RH_TELEMETRY_API_BASE_URL")
-)
+settings = Settings(_proxy=None, _base_url=None)
 
 
 async def run_query(
