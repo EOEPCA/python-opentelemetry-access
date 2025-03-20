@@ -366,8 +366,17 @@ def normalise_attributes_deep(jobj: JSONLikeDict) -> JSONLikeDict:
     )
 
 
+# IT's unclear to me if should represent key existence request with value None of with empty list
+# I'm leaning towards value None. It then becomes a question how we deal with the case where user specifies
+# key "foo" must exist, and another condition is "foo=5". I guess it just means "foo=5"?
+type AttributesFilter = dict[str, Optional[list[str]]]
+"""If some key is None, that means the key must exist, and the value can be anything"""
+
+
 def match_attributes(
-    actual_attributes: JSONLikeDict, expected_attributes: Optional[dict[str, list[str]]]
+    actual_attributes: JSONLikeDict,
+    # spell out the type to avoid circular imports
+    expected_attributes: Optional[AttributesFilter],
 ) -> bool:
     if expected_attributes is None:
         return True
@@ -378,7 +387,7 @@ def match_attributes(
     return all(
         (
             k in normalized_attributes
-            and str(expect_literal(normalized_attributes[k])) in vs
+            and (vs is None or str(expect_literal(normalized_attributes[k])) in vs)
         )
         for k, vs in expected_attributes.items()
     )

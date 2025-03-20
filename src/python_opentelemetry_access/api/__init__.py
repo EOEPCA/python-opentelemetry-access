@@ -1,5 +1,4 @@
 import binascii
-from collections import defaultdict
 from typing import Optional, Annotated, List, Tuple
 from dataclasses import dataclass
 from fastapi import FastAPI, Query, Request, Response, status
@@ -56,9 +55,10 @@ class QueryParams(BaseModel):
     from_time: Optional[datetime] = Field(None)
     to_time: Optional[datetime] = Field(None)
 
-    resource_attributes: list[str] = []
-    scope_attributes: list[str] = []
-    span_attributes: list[str] = []
+    resource_attributes: list[str] = Field([])
+    scope_attributes: list[str] = Field([])
+    span_attributes: list[str] = Field([])
+    span_name: Optional[str] = Field(None)
 
     ## TODO: Projection/verbosity parameters??
 
@@ -83,12 +83,24 @@ type APIOKResponse = APIOKResponseList[
 ]
 
 
-def list_to_dict(values: list[str]) -> dict[str, list[str]]:
-    result: dict[str, list[str]] = defaultdict(list)
+def list_to_dict(values: list[str]) -> util.AttributesFilter:
+    result: util.AttributesFilter = {}
     for value in values:
         match value.split("="):
+            case [key]:
+                if key not in result:
+                    result[key] = None
             case [key, value]:
-                result[key].append(value)
+                # Not the most natural way to express this, but mypy doesn't agree that the commented out code type checks
+                # if (key not in result) or (result[key] is None):
+                #     result[key] = []
+                # result[key].append(value)
+                if key not in result:
+                    result[key] = []
+                cur_values = result[key]
+                if cur_values is None:
+                    cur_values = result[key] = []
+                cur_values.append(value)
             case _:
                 raise APIException(
                     Error(
@@ -98,7 +110,6 @@ def list_to_dict(values: list[str]) -> dict[str, list[str]]:
                         detail=f"Attribute filter parameter must be of the shape 'my awesome key=my awesome value'. '{value}' is of incorrect shape.",
                     )
                 )
-
     return result
 
 
@@ -146,6 +157,7 @@ async def run_query(
             resource_attributes=resource_attributes,
             scope_attributes=scope_attributes,
             span_attributes=span_attributes,
+            span_name=query_params.span_name,
             page_token=page_token,
         ):
             if isinstance(res, proxy.PageToken):
