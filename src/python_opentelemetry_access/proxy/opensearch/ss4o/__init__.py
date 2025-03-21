@@ -63,13 +63,19 @@ class OpenSearchSS40Proxy(proxy.Proxy):
                     case []:
                         pass
                     case [value]:
-                        result.append(
-                            # {"term": {key_prefix + key: {"value": value}}}
-                            {"term": {key_prefix + key + ".keyword": {"value": value}}}
-                        )
+                        result.append({"match": {key_prefix + key: value}})
                     case list(values):
                         result.append(
-                            {"terms": {key_prefix + key + ".keyword": values}}
+                            {
+                                "bool": {
+                                    # should acts as an OR here, as explained in
+                                    # https://discuss.elastic.co/t/how-do-i-create-a-boolean-or-filter/282281
+                                    "should": [
+                                        {"match": {key_prefix + key: value}}
+                                        for value in values
+                                    ]
+                                }
+                            }
                         )
                     case unreachable:
                         assert_never(unreachable)
