@@ -11,7 +11,9 @@ def test_roundtrip_complete_proto():
         {"key": "foo", "value": {"doubleValue": 3.2}},
         {
             "key": "other",
-            "value": {"arrayValue": [{"stringValue": "bar"}, {"intValue": "2"}]},
+            "value": {
+                "arrayValue": {"values": [{"stringValue": "bar"}, {"intValue": "2"}]}
+            },
         },
         {
             "key": "stuff",

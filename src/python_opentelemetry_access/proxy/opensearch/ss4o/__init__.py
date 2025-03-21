@@ -1,9 +1,10 @@
 import opensearchpy
 from collections.abc import AsyncIterable
-from typing import List, Optional, Tuple, override
+from typing import List, Optional, Tuple, override, assert_never
 from datetime import datetime
 from opensearchpy import AsyncOpenSearch
 
+from python_opentelemetry_access import util
 from python_opentelemetry_access.api_utils.exceptions import APIException
 from python_opentelemetry_access.api_utils.json_api_types import Error
 
@@ -25,9 +26,10 @@ class OpenSearchSS40Proxy(proxy.Proxy):
         from_time: Optional[datetime] = None,
         to_time: Optional[datetime] = None,
         span_ids: Optional[List[Tuple[Optional[str], Optional[str]]]] = None,
-        resource_attributes: Optional[dict[str, list[str]]] = None,
-        scope_attributes: Optional[dict[str, list[str]]] = None,
-        span_attributes: Optional[dict[str, list[str]]] = None,
+        resource_attributes: Optional[util.AttributesFilter] = None,
+        scope_attributes: Optional[util.AttributesFilter] = None,
+        span_attributes: Optional[util.AttributesFilter] = None,
+        span_name: Optional[str] = None,
         page_token: Optional[proxy.PageToken] = None,
     ) -> AsyncIterable[base.SpanCollection | proxy.PageToken]:
         filter: list[object] = []
@@ -51,21 +53,32 @@ class OpenSearchSS40Proxy(proxy.Proxy):
                 filter.append({"match": {"spanId": span_id}})
 
         def attributes_to_filters(
-            attributes: dict[str, list[str]], key_prefix: str
+            attributes: util.AttributesFilter, key_prefix: str
         ) -> list[object]:
             result: list[object] = []
             for key, values in attributes.items():
                 match values:
+                    case None:
+                        result.append({"exists": {"field": key_prefix + key}})
                     case []:
                         pass
                     case [value]:
+                        result.append({"match": {key_prefix + key: value}})
+                    case list(values):
                         result.append(
-                            {"term": {key_prefix + key + ".keyword": {"value": value}}}
+                            {
+                                "bool": {
+                                    # should acts as an OR here, as explained in
+                                    # https://discuss.elastic.co/t/how-do-i-create-a-boolean-or-filter/282281
+                                    "should": [
+                                        {"match": {key_prefix + key: value}}
+                                        for value in values
+                                    ]
+                                }
+                            }
                         )
-                    case values:
-                        result.append(
-                            {"terms": {key_prefix + key + ".keyword": values}}
-                        )
+                    case unreachable:
+                        assert_never(unreachable)
             return result
 
         if resource_attributes is not None:
@@ -78,6 +91,9 @@ class OpenSearchSS40Proxy(proxy.Proxy):
 
         if span_attributes is not None:
             filter.extend(attributes_to_filters(span_attributes, "attributes."))
+
+        if span_name is not None:
+            filter.append({"term": {"name.keyword": {"value": span_name}}})
 
         q = {
             "size": self.page_size,
@@ -156,3 +172,7 @@ class OpenSearchSS40Proxy(proxy.Proxy):
 
         if next_page_token is not None:
             yield proxy.PageToken(next_page_token)
+
+    @override
+    async def aclose(self) -> None:
+        await self.client.close()
