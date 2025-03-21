@@ -1,6 +1,7 @@
 import asyncio
+from dataclasses import dataclass
 from datetime import datetime, timedelta
-from typing import Any, AsyncIterable, Coroutine, Iterable
+from typing import Any, AsyncIterable, Iterable, Optional
 from opensearchpy import AsyncOpenSearch
 import pytest
 from opentelemetry import trace
@@ -9,9 +10,10 @@ from opentelemetry.util import types
 from python_opentelemetry_access import otlpjson, proxy
 from python_opentelemetry_access.base import Span
 from python_opentelemetry_access.proxy.opensearch.ss4o import OpenSearchSS40Proxy
+from python_opentelemetry_access.util import AttributesFilter
 
 
-type NestedDict = dict[str, NestedDict | types.AttributeValue]
+# type NestedDict = dict[str, NestedDict | types.AttributeValue]
 
 
 def _get_fields_attr_name(data_name: str) -> str:
@@ -26,59 +28,83 @@ def save_data(data_name: str, data: dict[str, types.AttributeValue]) -> None:
     trace.get_current_span().set_attributes(data)
 
 
+@dataclass
+class Data:
+    span_duration: timedelta
+    attributes: dict[str, Any]
+
+
+def get_span_duration(span: Span) -> timedelta:
+    result = timedelta(
+        seconds=(span.otlp_end_time_unix_nano - span.otlp_start_time_unix_nano)
+        / 1_000_000_000
+    )
+    print(span.otlp_end_time_unix_nano - span.otlp_start_time_unix_nano, result)
+    return result
+
+
+async def _load_data_async(
+    proxy: proxy.Proxy,
+    span_name: Optional[str],
+    span_attributes: Optional[AttributesFilter],
+    max_data_age: timedelta,
+) -> AsyncIterable[Data]:
+    try:
+        now = datetime.now()
+        async for spanCollection in proxy.query_spans_async(
+            from_time=now - max_data_age,
+            to_time=now,
+            span_attributes=span_attributes,
+            span_name=span_name,
+        ):
+            for _resource, _scope, span in spanCollection.iter_spans():
+                yield Data(
+                    span_duration=get_span_duration(span),
+                    attributes=span.otlp_attributes,
+                )
+    finally:
+        await proxy.aclose()
+
+
 async def load_data_from_name_async(
     proxy: proxy.Proxy, data_name: str, max_data_age: timedelta
-) -> AsyncIterable[dict[str, types.AttributeValue]]:
-    try:
-        now = datetime.now()
-        fields_attr_name = _get_fields_attr_name(data_name)
-        async for spanCollection in proxy.query_spans_async(
-            from_time=now - max_data_age,
-            to_time=now,
-            span_attributes={fields_attr_name: None},
-        ):
-            for _resource, _scope, span in spanCollection.iter_spans():
-                # fields = [
-                #     expect_str(field)
-                #     for field in expect_list(span.otlp_attributes[fields_attr_name])
-                # ]
-                fields = span.otlp_attributes[fields_attr_name]
-                yield {field: span.otlp_attributes[field] for field in fields}  # type: ignore
-    finally:
-        await proxy.aclose()
+) -> AsyncIterable[Data]:
+    fields_attr_name = _get_fields_attr_name(data_name)
+    async for data in _load_data_async(
+        proxy,
+        span_name=None,
+        span_attributes={fields_attr_name: None},
+        max_data_age=max_data_age,
+    ):
+        fields: list[str] = data.attributes[fields_attr_name]
+        yield Data(
+            span_duration=data.span_duration,
+            attributes={field: data.attributes[field] for field in fields},
+        )
 
 
-async def load_span_from_fields_async(
-    proxy: proxy.Proxy, data_fields: list[str], max_data_age: timedelta
-) -> AsyncIterable[Span]:
-    try:
-        now = datetime.now()
-        async for spanCollection in proxy.query_spans_async(
-            from_time=now - max_data_age,
-            to_time=now,
-            span_attributes={field: None for field in data_fields},
-        ):
-            for _resource, _scope, span in spanCollection.iter_spans():
-                yield span
-    finally:
-        await proxy.aclose()
+def load_data_from_fields_async(
+    proxy: proxy.Proxy,
+    data_fields: list[str],
+    max_data_age: timedelta,
+) -> AsyncIterable[Data]:
+    return _load_data_async(
+        proxy=proxy,
+        span_name=None,
+        span_attributes={field: None for field in data_fields},
+        max_data_age=max_data_age,
+    )
 
 
-async def load_span_from_span_name_async(
+def load_data_from_span_name_async(
     proxy: proxy.Proxy, span_name: str, max_data_age: timedelta
-) -> AsyncIterable[Span]:
-    try:
-        now = datetime.now()
-        async for spanCollection in proxy.query_spans_async(
-            from_time=now - max_data_age, to_time=now, span_name=span_name
-        ):
-            for _resource, _scope, span in spanCollection.iter_spans():
-                yield span
-    finally:
-        await proxy.aclose()
+) -> AsyncIterable[Data]:
+    return _load_data_async(
+        proxy, span_name=span_name, span_attributes=None, max_data_age=max_data_age
+    )
 
 
-async def async_list[T](
+async def _async_list[T](
     async_iterable: AsyncIterable[T],
 ) -> Iterable[T]:
     # TODO: would be nice to return the values as they become available, not accumulate them all first
@@ -88,19 +114,34 @@ async def async_list[T](
     return results
 
 
-def async_to_sync_iterable[T](
+def _async_to_sync_iterable[T](
     async_iterable: AsyncIterable[T],
 ) -> Iterable[T]:
-    return asyncio.run(async_list(async_iterable))
+    return asyncio.run(_async_list(async_iterable))
 
 
 def load_data_sync(
     proxy: proxy.Proxy, data_name: str, max_data_age: timedelta
-) -> Iterable[dict[str, types.AttributeValue]]:
-    return async_to_sync_iterable(
+) -> Iterable[Data]:
+    return _async_to_sync_iterable(
         load_data_from_name_async(proxy, data_name, max_data_age)
     )
-    # return asyncio.run(_load_data_internal(proxy, data_name, max_data_age))
+
+
+def load_data_from_fields_sync(
+    proxy: proxy.Proxy, data_fields: list[str], max_data_age: timedelta
+) -> Iterable[Data]:
+    return _async_to_sync_iterable(
+        load_data_from_fields_async(proxy, data_fields, max_data_age)
+    )
+
+
+def load_data_from_span_name_sync(
+    proxy: proxy.Proxy, span_name: str, max_data_age: timedelta
+) -> Iterable[Data]:
+    return _async_to_sync_iterable(
+        load_data_from_span_name_async(proxy, span_name, max_data_age)
+    )
 
 
 def get_mock_proxy(file: str) -> proxy.Proxy:
@@ -126,12 +167,24 @@ def get_opensearch_proxy() -> proxy.Proxy:
     return OpenSearchSS40Proxy(client)
 
 
-INFO_DUMP_SPAN_NAME = "INFO_DUMP"
+# USER DEFINED CODE START
 
 
-# def test_bla() -> None:
-#     with tracer.start_as_current_span("HELLO_SPAN") as span:
-#         span.set_attribute("hello", [1, 2, 3])
+def test_requests_duration() -> None:
+    duration_sum = timedelta()
+    duration_count = 0
+    for data in load_data_from_span_name_sync(
+        proxy=get_opensearch_proxy(), span_name="GET", max_data_age=timedelta(weeks=4)
+    ):
+        if (
+            "http.url" in data.attributes
+            and data.attributes["http.url"]
+            == "https://openeo.dataspace.copernicus.eu/openeo/1.2"
+        ):
+            duration_sum += data.span_duration
+            duration_count += 1
+    assert duration_count >= 1
+    assert duration_sum / duration_count < timedelta(milliseconds=100)
 
 
 def test_generate_data() -> None:
@@ -146,7 +199,7 @@ def test_get_requests_sync() -> None:
         data_name="my_data",
         max_data_age=timedelta(weeks=4),
     ):
-        sum_sum += sum(data["results"])
+        sum_sum += sum(data.attributes["results"])
         sum_count += 1
     assert sum_sum / sum_count < 2.0
 
@@ -160,7 +213,7 @@ async def test_get_requests_async() -> None:
         data_name="my_data",
         max_data_age=timedelta(weeks=4),
     ):
-        sum_sum += sum(data["results"])
+        sum_sum += sum(data.attributes["results"])
         sum_count += 1
     assert sum_sum / sum_count < 2.0
 
