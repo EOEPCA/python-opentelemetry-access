@@ -13,6 +13,7 @@ dependencies = [
     "opensearch-py[async]>=2.7.1",
     "opentelemetry-betterproto",
     "pandas>=2.2.3",
+    "requests>=2.32.3",
     "uvicorn>=0.32.0",
 ]
 
@@ -24,6 +25,7 @@ build-backend = "hatchling.build"
 dev-dependencies = [
     "pandas-stubs>=2.2.3.241009",
     "pytest>=8.3.3",
+    "types-requests>=2.32.0.20250306",
 ]
 
 [tool.uv.sources]

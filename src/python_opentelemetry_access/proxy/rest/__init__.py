@@ -1,12 +1,11 @@
 import typing
-
 import requests
 from collections.abc import AsyncIterable
 from datetime import datetime
-
 from urllib.parse import urljoin
 
 from python_opentelemetry_access import base as base, proxy as proxy
+from python_opentelemetry_access.otlpjson import OTLPJsonSpanCollection
 
 
 def _query_obj(
@@ -22,15 +21,15 @@ def _query_obj(
         params["from_time"] = from_time.isoformat()
     if to_time is not None:
         params["to_time"] = to_time.isoformat()
-    if resource_attributes is not None:
+    if resource_attributes is not None and len(resource_attributes) > 0:
         raise NotImplementedError("")
-        #params["resource_attributes"] = [
-        #    
-        #]
-    if scope_attributes is not None:
+        # params["resource_attributes"] = [
+        #
+        # ]
+    if scope_attributes is not None and len(scope_attributes) > 0:
         raise NotImplementedError("")
         pass
-    if span_attributes is not None:
+    if span_attributes is not None and len(span_attributes) > 0:
         raise NotImplementedError("")
         pass
 
@@ -127,12 +126,24 @@ class RESTProxy(proxy.Proxy):
 
         (trace_id, span_id) = span_ids[skip_to_idx]
 
+        # If our data always corresponed to the type it says id does,
+        # i.e. APIOKResponseList[otlpjson.OTLPJsonSpanCollection.Representation, ResponseMeta]
+        # then I would use the following code
+        # result = APIOKResponseList[
+        #     otlpjson.OTLPJsonSpanCollection.Representation, ResponseMeta
+        # ].model_validate(
+        #     self._session.get(self._span_url(trace_id, span_id), params=params).json()
+        # )
+        # for spans in result.data:
+        #     yield OTLPJsonSpanCollection(spans.attributes)
+        # next_page_token = result.meta.page.next_page_token
+
         result = self._session.get(
             self._span_url(trace_id, span_id), params=params
         ).json()
-        yield result["data"]
-
-        next_page_token = result["meta"]["page"]["next"]
+        for spans in result["data"]:
+            yield OTLPJsonSpanCollection(spans["attributes"])
+        next_page_token = result["meta"]["page"]["next_page_token"]
         if next_page_token is not None:
             yield proxy.PageToken(
                 _encode_rest_proxy_token(skip_to_idx, next_page_token)
@@ -174,9 +185,8 @@ class RESTProxy(proxy.Proxy):
 
             if remote_token is not None:
                 params["page_token"] = remote_token
-                
-                
-            next_request : requests.PreparedRequest | None = requests.Request(
+
+            next_request: requests.PreparedRequest | None = requests.Request(
                 "GET", url=self._span_url(trace_id, span_id), params=params
             ).prepare()
 
@@ -189,6 +199,8 @@ class RESTProxy(proxy.Proxy):
                 yield result["data"]
 
                 next_url = result["links"]["next"]
-                next_request = requests.Request(
-                    "GET", next_url
-                ).prepare() if next_url is not None else None
+                next_request = (
+                    requests.Request("GET", next_url).prepare()
+                    if next_url is not None
+                    else None
+                )

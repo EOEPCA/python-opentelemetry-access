@@ -5,6 +5,7 @@ import python_opentelemetry_access.otlpproto as otlpproto
 
 import python_opentelemetry_access.proxy as proxy_mod
 import python_opentelemetry_access.proxy.opensearch.ss4o as ss4o_proxy
+import python_opentelemetry_access.proxy.rest as rest_proxy
 import python_opentelemetry_access.api as api
 
 import uvicorn
@@ -155,6 +156,14 @@ def mock(ctx, file) -> None:
     with open(file, "r") as f:
         this_proxy = proxy_mod.MockProxy(otlpjson.load(f))
 
+    run_proxy(ctx, this_proxy)
+
+
+@proxy.command()
+@click.option("--remote_url", required=True, type=click.STRING)
+@click.pass_context
+def rest(ctx, remote_url) -> None:
+    this_proxy = rest_proxy.RESTProxy(remote_url)
     run_proxy(ctx, this_proxy)
 
 
