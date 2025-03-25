@@ -93,8 +93,11 @@ def load_data_from_fields_async(
     )
 
 
-def load_data_from_span_name_async(
-    proxy: proxy.Proxy, span_name: str, max_data_age: timedelta
+def load_span_data_async(
+    proxy: proxy.Proxy,
+    span_name: str | None,
+    span_attributes: AttributesFilter | None,
+    max_data_age: timedelta,
 ) -> AsyncIterable[Data]:
     return _load_data_async(
         proxy, span_name=span_name, span_attributes=None, max_data_age=max_data_age
@@ -133,11 +136,14 @@ def load_data_from_fields_sync(
     )
 
 
-def load_data_from_span_name_sync(
-    proxy: proxy.Proxy, span_name: str, max_data_age: timedelta
+def load_span_data_sync(
+    proxy: proxy.Proxy,
+    span_name: str | None,
+    span_attributes: AttributesFilter | None,
+    max_data_age: timedelta,
 ) -> Iterable[Data]:
     return _async_to_sync_iterable(
-        load_data_from_span_name_async(proxy, span_name, max_data_age)
+        load_span_data_async(proxy, span_name, span_attributes, max_data_age)
     )
 
 
@@ -170,16 +176,16 @@ def get_opensearch_proxy() -> proxy.Proxy:
 def test_requests_duration() -> None:
     duration_sum = timedelta()
     duration_count = 0
-    for data in load_data_from_span_name_sync(
-        proxy=get_opensearch_proxy(), span_name="GET", max_data_age=timedelta(weeks=4)
+    for data in load_span_data_sync(
+        proxy=get_opensearch_proxy(),
+        span_name="GET",
+        span_attributes={
+            "http.url": ["https://openeo.dataspace.copernicus.eu/openeo/1.2"]
+        },
+        max_data_age=timedelta(weeks=4),
     ):
-        if (
-            "http.url" in data.attributes
-            and data.attributes["http.url"]
-            == "https://openeo.dataspace.copernicus.eu/openeo/1.2"
-        ):
-            duration_sum += data.span_duration
-            duration_count += 1
+        duration_sum += data.span_duration
+        duration_count += 1
     assert duration_count >= 1
     assert duration_sum / duration_count < timedelta(milliseconds=100)
 
