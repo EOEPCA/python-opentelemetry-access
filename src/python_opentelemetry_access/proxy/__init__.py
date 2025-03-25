@@ -1,8 +1,8 @@
 from dataclasses import dataclass
 from abc import ABC, abstractmethod
 from collections.abc import AsyncIterable
-from typing import List, Optional, Tuple, override
-from datetime import datetime
+from typing import Iterable, List, Optional, Tuple, override
+from datetime import datetime, timedelta
 
 import python_opentelemetry_access.base as base
 import python_opentelemetry_access.util as util
@@ -66,6 +66,51 @@ class Proxy(ABC):
                     yield spans
             else:
                 yield spans_or_page_token
+
+    async def load_span_data_async(
+        self,
+        span_name: Optional[str],
+        span_attributes: Optional[util.AttributesFilter],
+        max_data_age: timedelta,
+    ) -> AsyncIterable[util.CheckData]:
+        now = datetime.now()
+        async for spanCollection in self.query_spans_async(
+            from_time=now - max_data_age,
+            to_time=now,
+            span_attributes=span_attributes,
+            span_name=span_name,
+        ):
+            for _resource, _scope, span in spanCollection.iter_spans():
+                yield util.CheckData(
+                    span_duration=span.duration(),
+                    attributes=span.otlp_attributes,
+                )
+
+    def load_span_data_sync(
+        self,
+        span_name: str | None,
+        span_attributes: util.AttributesFilter | None,
+        max_data_age: timedelta,
+    ) -> Iterable[util.CheckData]:
+        return util.async_to_sync_iterable(
+            self.load_span_data_async(span_name, span_attributes, max_data_age)
+        )
+
+    def load_data_from_fields_async(
+        self, data_fields: list[str], max_data_age: timedelta
+    ) -> AsyncIterable[util.CheckData]:
+        return self.load_span_data_async(
+            span_name=None,
+            span_attributes={field: None for field in data_fields},
+            max_data_age=max_data_age,
+        )
+
+    def load_data_from_fields_sync(
+        self, data_fields: list[str], max_data_age: timedelta
+    ) -> Iterable[util.CheckData]:
+        return util.async_to_sync_iterable(
+            self.load_data_from_fields_async(data_fields, max_data_age)
+        )
 
     # Close connections, release resources and such
     # aclose is the standard name such methods when they are asynchronous

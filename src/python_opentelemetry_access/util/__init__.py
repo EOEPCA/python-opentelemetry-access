@@ -1,5 +1,21 @@
+import asyncio
 from collections.abc import Iterator
-from typing import Optional, Self, Tuple, TypeVar, List, Union, Dict, Generic, override
+from dataclasses import dataclass
+from datetime import timedelta
+from typing import (
+    Any,
+    AsyncIterable,
+    Iterable,
+    Optional,
+    Self,
+    Tuple,
+    TypeVar,
+    List,
+    Union,
+    Dict,
+    Generic,
+    override,
+)
 from itertools import chain, groupby
 
 import opentelemetry_betterproto.opentelemetry.proto.common.v1 as common
@@ -391,3 +407,25 @@ def match_attributes(
         )
         for k, vs in expected_attributes.items()
     )
+
+
+@dataclass
+class CheckData:
+    span_duration: timedelta
+    attributes: dict[str, Any]
+
+
+async def _async_list[T](
+    async_iterable: AsyncIterable[T],
+) -> Iterable[T]:
+    # TODO: would be nice to return the values as they become available, not accumulate them all first
+    results: list[T] = []
+    async for data in async_iterable:
+        results.append(data)
+    return results
+
+
+def async_to_sync_iterable[T](
+    async_iterable: AsyncIterable[T],
+) -> Iterable[T]:
+    return asyncio.run(_async_list(async_iterable))
