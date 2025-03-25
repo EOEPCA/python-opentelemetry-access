@@ -39,7 +39,7 @@ def load_data_from_name_sync(
     )
 
 
-def save_data(data_name: str, data: dict[str, types.AttributeValue]) -> None:
+def report_data(data_name: str, data: dict[str, types.AttributeValue]) -> None:
     cur_span = trace.get_current_span()
     cur_span.set_attribute(_get_fields_attr_name(data_name), list(data.keys()))
     cur_span.set_attributes(data)
@@ -95,7 +95,7 @@ def test_requests_duration(proxy: Proxy) -> None:
 
 
 def test_generate_data() -> None:
-    save_data(data_name="my_data", data={"results": [1.0, 2.0, 2.0]})
+    report_data(data_name="my_data", data={"results": [1.0, 2.0, 2.0]})
 
 
 def test_get_requests_sync(proxy: Proxy) -> None:
