@@ -20,12 +20,10 @@ def _get_fields_attr_name(data_name: str) -> str:
     return f"data_{data_name}_fields"
 
 
-# THESE TWO functions should probably be the new API, at least for the simplest cases
-# THOUGH with this you don't get span length. Might include span length in the result?
 def save_data(data_name: str, data: dict[str, types.AttributeValue]) -> None:
     cur_span = trace.get_current_span()
     cur_span.set_attribute(_get_fields_attr_name(data_name), list(data.keys()))
-    trace.get_current_span().set_attributes(data)
+    cur_span.set_attributes(data)
 
 
 @dataclass
@@ -39,7 +37,6 @@ def get_span_duration(span: Span) -> timedelta:
         seconds=(span.otlp_end_time_unix_nano - span.otlp_start_time_unix_nano)
         / 1_000_000_000
     )
-    print(span.otlp_end_time_unix_nano - span.otlp_start_time_unix_nano, result)
     return result
 
 
