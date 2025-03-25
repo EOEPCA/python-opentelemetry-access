@@ -3844,6 +3844,2521 @@
                     ]
                 }
             ]
+        },
+        {
+            "resource": {
+                "attributes": [
+                    {
+                        "key": "container.id",
+                        "value": {
+                            "stringValue": "7476c08a27f26b8a8f4d34ce6e3a5bed1231aa6493f1f682212ac04d7d54ac7b"
+                        }
+                    },
+                    {
+                        "key": "container.runtime",
+                        "value": {
+                            "stringValue": "docker"
+                        }
+                    },
+                    {
+                        "key": "health_check.name",
+                        "value": {
+                            "stringValue": "hourly-simple-http-check"
+                        }
+                    },
+                    {
+                        "key": "k8s.cronjob.name",
+                        "value": {
+                            "stringValue": "resource-health-healthchecks-cronjob-2"
+                        }
+                    },
+                    {
+                        "key": "process.command",
+                        "value": {
+                            "stringValue": "/venv/bin/python"
+                        }
+                    },
+                    {
+                        "key": "process.command_args",
+                        "value": {
+                            "stringValue": "/venv/bin/pytest --export-traces --suppress-tests-failed-exit-code tests.py --user-id defaultuser"
+                        }
+                    },
+                    {
+                        "key": "process.command_line",
+                        "value": {
+                            "stringValue": "/venv/bin/python /venv/bin/pytest --export-traces --suppress-tests-failed-exit-code tests.py --user-id defaultuser"
+                        }
+                    },
+                    {
+                        "key": "process.executable.name",
+                        "value": {
+                            "stringValue": "pytest"
+                        }
+                    },
+                    {
+                        "key": "process.executable.path",
+                        "value": {
+                            "stringValue": "/usr/local/bin/python3.11"
+                        }
+                    },
+                    {
+                        "key": "process.owner",
+                        "value": {
+                            "stringValue": "root"
+                        }
+                    },
+                    {
+                        "key": "process.pid",
+                        "value": {
+                            "stringValue": "13"
+                        }
+                    },
+                    {
+                        "key": "process.runtime.description",
+                        "value": {
+                            "stringValue": "3.11.10 (main, Oct 19 2024, 01:04:28) [GCC 12.2.0]"
+                        }
+                    },
+                    {
+                        "key": "process.runtime.name",
+                        "value": {
+                            "stringValue": "cpython"
+                        }
+                    },
+                    {
+                        "key": "process.runtime.version",
+                        "value": {
+                            "stringValue": "3.11.10"
+                        }
+                    },
+                    {
+                        "key": "service.name",
+                        "value": {
+                            "stringValue": "unknown_service:pytest"
+                        }
+                    },
+                    {
+                        "key": "telemetry.auto.version",
+                        "value": {
+                            "stringValue": "0.46b0"
+                        }
+                    },
+                    {
+                        "key": "telemetry.sdk.language",
+                        "value": {
+                            "stringValue": "python"
+                        }
+                    },
+                    {
+                        "key": "telemetry.sdk.name",
+                        "value": {
+                            "stringValue": "opentelemetry"
+                        }
+                    },
+                    {
+                        "key": "telemetry.sdk.version",
+                        "value": {
+                            "stringValue": "1.25.0"
+                        }
+                    },
+                    {
+                        "key": "user.id",
+                        "value": {
+                            "stringValue": "Health BB user"
+                        }
+                    }
+                ]
+            },
+            "scopeSpans": [
+                {
+                    "scope": {
+                        "name": "opentelemetry.instrumentation.requests",
+                        "version": "0.46b0"
+                    },
+                    "spans": [
+                        {
+                            "traceId": "11fb21dac257ef8f470fc9cc59ab32e3",
+                            "spanId": "9bd83f0b50ece132",
+                            "parentSpanId": "dd0b4d5b98a1a352",
+                            "name": "GET",
+                            "kind": 3,
+                            "startTimeUnixNano": "1742428804865720322",
+                            "endTimeUnixNano": "1742428805457068521",
+                            "attributes": [
+                                {
+                                    "key": "data_stream",
+                                    "value": {
+                                        "kvlistValue": [
+                                            {
+                                                "key": "dataset",
+                                                "value": {
+                                                    "stringValue": "default"
+                                                }
+                                            },
+                                            {
+                                                "key": "namespace",
+                                                "value": {
+                                                    "stringValue": "namespace"
+                                                }
+                                            },
+                                            {
+                                                "key": "type",
+                                                "value": {
+                                                    "stringValue": "span"
+                                                }
+                                            }
+                                        ]
+                                    }
+                                },
+                                {
+                                    "key": "http.method",
+                                    "value": {
+                                        "stringValue": "GET"
+                                    }
+                                },
+                                {
+                                    "key": "http.status_code",
+                                    "value": {
+                                        "intValue": "200"
+                                    }
+                                },
+                                {
+                                    "key": "http.url",
+                                    "value": {
+                                        "stringValue": "https://www.google.com/"
+                                    }
+                                }
+                            ],
+                            "status": {}
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "resource": {
+                "attributes": [
+                    {
+                        "key": "container.id",
+                        "value": {
+                            "stringValue": "0971d6eed28e057f30d18307be549708f43fcf707bab5ad83dfcc42c6e6a1502"
+                        }
+                    },
+                    {
+                        "key": "container.runtime",
+                        "value": {
+                            "stringValue": "docker"
+                        }
+                    },
+                    {
+                        "key": "health_check.name",
+                        "value": {
+                            "stringValue": "hourly-simple-openeo-check"
+                        }
+                    },
+                    {
+                        "key": "k8s.cronjob.name",
+                        "value": {
+                            "stringValue": "resource-health-healthchecks-cronjob-3"
+                        }
+                    },
+                    {
+                        "key": "process.command",
+                        "value": {
+                            "stringValue": "/venv/bin/python"
+                        }
+                    },
+                    {
+                        "key": "process.command_args",
+                        "value": {
+                            "stringValue": "/venv/bin/pytest --export-traces --suppress-tests-failed-exit-code tests.py --user-id defaultuser"
+                        }
+                    },
+                    {
+                        "key": "process.command_line",
+                        "value": {
+                            "stringValue": "/venv/bin/python /venv/bin/pytest --export-traces --suppress-tests-failed-exit-code tests.py --user-id defaultuser"
+                        }
+                    },
+                    {
+                        "key": "process.executable.name",
+                        "value": {
+                            "stringValue": "pytest"
+                        }
+                    },
+                    {
+                        "key": "process.executable.path",
+                        "value": {
+                            "stringValue": "/usr/local/bin/python3.11"
+                        }
+                    },
+                    {
+                        "key": "process.owner",
+                        "value": {
+                            "stringValue": "root"
+                        }
+                    },
+                    {
+                        "key": "process.pid",
+                        "value": {
+                            "stringValue": "13"
+                        }
+                    },
+                    {
+                        "key": "process.runtime.description",
+                        "value": {
+                            "stringValue": "3.11.10 (main, Oct 19 2024, 01:04:28) [GCC 12.2.0]"
+                        }
+                    },
+                    {
+                        "key": "process.runtime.name",
+                        "value": {
+                            "stringValue": "cpython"
+                        }
+                    },
+                    {
+                        "key": "process.runtime.version",
+                        "value": {
+                            "stringValue": "3.11.10"
+                        }
+                    },
+                    {
+                        "key": "service.name",
+                        "value": {
+                            "stringValue": "unknown_service:pytest"
+                        }
+                    },
+                    {
+                        "key": "telemetry.auto.version",
+                        "value": {
+                            "stringValue": "0.46b0"
+                        }
+                    },
+                    {
+                        "key": "telemetry.sdk.language",
+                        "value": {
+                            "stringValue": "python"
+                        }
+                    },
+                    {
+                        "key": "telemetry.sdk.name",
+                        "value": {
+                            "stringValue": "opentelemetry"
+                        }
+                    },
+                    {
+                        "key": "telemetry.sdk.version",
+                        "value": {
+                            "stringValue": "1.25.0"
+                        }
+                    },
+                    {
+                        "key": "user.id",
+                        "value": {
+                            "stringValue": "Health BB user"
+                        }
+                    }
+                ]
+            },
+            "scopeSpans": [
+                {
+                    "scope": {
+                        "name": "opentelemetry.instrumentation.requests",
+                        "version": "0.46b0"
+                    },
+                    "spans": [
+                        {
+                            "traceId": "c0fda0d61f9ac35f2b143718e972d8be",
+                            "spanId": "af35bdce21ea6547",
+                            "parentSpanId": "3c4ebd1166f7cd30",
+                            "name": "GET",
+                            "kind": 3,
+                            "startTimeUnixNano": "1742428804898483791",
+                            "endTimeUnixNano": "1742428804983450766",
+                            "attributes": [
+                                {
+                                    "key": "data_stream",
+                                    "value": {
+                                        "kvlistValue": [
+                                            {
+                                                "key": "dataset",
+                                                "value": {
+                                                    "stringValue": "default"
+                                                }
+                                            },
+                                            {
+                                                "key": "namespace",
+                                                "value": {
+                                                    "stringValue": "namespace"
+                                                }
+                                            },
+                                            {
+                                                "key": "type",
+                                                "value": {
+                                                    "stringValue": "span"
+                                                }
+                                            }
+                                        ]
+                                    }
+                                },
+                                {
+                                    "key": "http.method",
+                                    "value": {
+                                        "stringValue": "GET"
+                                    }
+                                },
+                                {
+                                    "key": "http.status_code",
+                                    "value": {
+                                        "intValue": "200"
+                                    }
+                                },
+                                {
+                                    "key": "http.url",
+                                    "value": {
+                                        "stringValue": "https://openeo.dataspace.copernicus.eu/openeo/1.2"
+                                    }
+                                }
+                            ],
+                            "status": {}
+                        },
+                        {
+                            "traceId": "c0fda0d61f9ac35f2b143718e972d8be",
+                            "spanId": "fd440f960ece721f",
+                            "parentSpanId": "48acd673b01789c4",
+                            "name": "GET",
+                            "kind": 3,
+                            "startTimeUnixNano": "1742428804986254670",
+                            "endTimeUnixNano": "1742428805038682733",
+                            "attributes": [
+                                {
+                                    "key": "data_stream",
+                                    "value": {
+                                        "kvlistValue": [
+                                            {
+                                                "key": "dataset",
+                                                "value": {
+                                                    "stringValue": "default"
+                                                }
+                                            },
+                                            {
+                                                "key": "namespace",
+                                                "value": {
+                                                    "stringValue": "namespace"
+                                                }
+                                            },
+                                            {
+                                                "key": "type",
+                                                "value": {
+                                                    "stringValue": "span"
+                                                }
+                                            }
+                                        ]
+                                    }
+                                },
+                                {
+                                    "key": "http.method",
+                                    "value": {
+                                        "stringValue": "GET"
+                                    }
+                                },
+                                {
+                                    "key": "http.status_code",
+                                    "value": {
+                                        "intValue": "200"
+                                    }
+                                },
+                                {
+                                    "key": "http.url",
+                                    "value": {
+                                        "stringValue": "https://openeo-staging.dataspace.copernicus.eu/openeo/1.2"
+                                    }
+                                }
+                            ],
+                            "status": {}
+                        },
+                        {
+                            "traceId": "c0fda0d61f9ac35f2b143718e972d8be",
+                            "spanId": "7e55b6660929b5cc",
+                            "parentSpanId": "ace0a45d1af3ff6d",
+                            "name": "GET",
+                            "kind": 3,
+                            "startTimeUnixNano": "1742428805041350003",
+                            "endTimeUnixNano": "1742428805073799413",
+                            "attributes": [
+                                {
+                                    "key": "data_stream",
+                                    "value": {
+                                        "kvlistValue": [
+                                            {
+                                                "key": "dataset",
+                                                "value": {
+                                                    "stringValue": "default"
+                                                }
+                                            },
+                                            {
+                                                "key": "namespace",
+                                                "value": {
+                                                    "stringValue": "namespace"
+                                                }
+                                            },
+                                            {
+                                                "key": "type",
+                                                "value": {
+                                                    "stringValue": "span"
+                                                }
+                                            }
+                                        ]
+                                    }
+                                },
+                                {
+                                    "key": "http.method",
+                                    "value": {
+                                        "stringValue": "GET"
+                                    }
+                                },
+                                {
+                                    "key": "http.status_code",
+                                    "value": {
+                                        "intValue": "200"
+                                    }
+                                },
+                                {
+                                    "key": "http.url",
+                                    "value": {
+                                        "stringValue": "https://openeofed.dataspace.copernicus.eu/openeo/1.2"
+                                    }
+                                }
+                            ],
+                            "status": {}
+                        },
+                        {
+                            "traceId": "c0fda0d61f9ac35f2b143718e972d8be",
+                            "spanId": "cb2fae4a69fb5fab",
+                            "parentSpanId": "7faf9a3ed886bfc8",
+                            "name": "GET",
+                            "kind": 3,
+                            "startTimeUnixNano": "1742428805076426652",
+                            "endTimeUnixNano": "1742428805163417678",
+                            "attributes": [
+                                {
+                                    "key": "data_stream",
+                                    "value": {
+                                        "kvlistValue": [
+                                            {
+                                                "key": "dataset",
+                                                "value": {
+                                                    "stringValue": "default"
+                                                }
+                                            },
+                                            {
+                                                "key": "namespace",
+                                                "value": {
+                                                    "stringValue": "namespace"
+                                                }
+                                            },
+                                            {
+                                                "key": "type",
+                                                "value": {
+                                                    "stringValue": "span"
+                                                }
+                                            }
+                                        ]
+                                    }
+                                },
+                                {
+                                    "key": "http.method",
+                                    "value": {
+                                        "stringValue": "GET"
+                                    }
+                                },
+                                {
+                                    "key": "http.status_code",
+                                    "value": {
+                                        "intValue": "200"
+                                    }
+                                },
+                                {
+                                    "key": "http.url",
+                                    "value": {
+                                        "stringValue": "https://openeofed-staging.dataspace.copernicus.eu/openeo/1.2"
+                                    }
+                                }
+                            ],
+                            "status": {}
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "resource": {
+                "attributes": [
+                    {
+                        "key": "container.id",
+                        "value": {
+                            "stringValue": "7476c08a27f26b8a8f4d34ce6e3a5bed1231aa6493f1f682212ac04d7d54ac7b"
+                        }
+                    },
+                    {
+                        "key": "container.runtime",
+                        "value": {
+                            "stringValue": "docker"
+                        }
+                    },
+                    {
+                        "key": "health_check.name",
+                        "value": {
+                            "stringValue": "hourly-simple-http-check"
+                        }
+                    },
+                    {
+                        "key": "k8s.cronjob.name",
+                        "value": {
+                            "stringValue": "resource-health-healthchecks-cronjob-2"
+                        }
+                    },
+                    {
+                        "key": "process.command",
+                        "value": {
+                            "stringValue": "/venv/bin/python"
+                        }
+                    },
+                    {
+                        "key": "process.command_args",
+                        "value": {
+                            "stringValue": "/venv/bin/pytest --export-traces --suppress-tests-failed-exit-code tests.py --user-id defaultuser"
+                        }
+                    },
+                    {
+                        "key": "process.command_line",
+                        "value": {
+                            "stringValue": "/venv/bin/python /venv/bin/pytest --export-traces --suppress-tests-failed-exit-code tests.py --user-id defaultuser"
+                        }
+                    },
+                    {
+                        "key": "process.executable.name",
+                        "value": {
+                            "stringValue": "pytest"
+                        }
+                    },
+                    {
+                        "key": "process.executable.path",
+                        "value": {
+                            "stringValue": "/usr/local/bin/python3.11"
+                        }
+                    },
+                    {
+                        "key": "process.owner",
+                        "value": {
+                            "stringValue": "root"
+                        }
+                    },
+                    {
+                        "key": "process.pid",
+                        "value": {
+                            "stringValue": "13"
+                        }
+                    },
+                    {
+                        "key": "process.runtime.description",
+                        "value": {
+                            "stringValue": "3.11.10 (main, Oct 19 2024, 01:04:28) [GCC 12.2.0]"
+                        }
+                    },
+                    {
+                        "key": "process.runtime.name",
+                        "value": {
+                            "stringValue": "cpython"
+                        }
+                    },
+                    {
+                        "key": "process.runtime.version",
+                        "value": {
+                            "stringValue": "3.11.10"
+                        }
+                    },
+                    {
+                        "key": "service.name",
+                        "value": {
+                            "stringValue": "unknown_service:pytest"
+                        }
+                    },
+                    {
+                        "key": "telemetry.auto.version",
+                        "value": {
+                            "stringValue": "0.46b0"
+                        }
+                    },
+                    {
+                        "key": "telemetry.sdk.language",
+                        "value": {
+                            "stringValue": "python"
+                        }
+                    },
+                    {
+                        "key": "telemetry.sdk.name",
+                        "value": {
+                            "stringValue": "opentelemetry"
+                        }
+                    },
+                    {
+                        "key": "telemetry.sdk.version",
+                        "value": {
+                            "stringValue": "1.25.0"
+                        }
+                    },
+                    {
+                        "key": "user.id",
+                        "value": {
+                            "stringValue": "Health BB user"
+                        }
+                    }
+                ]
+            },
+            "scopeSpans": [
+                {
+                    "scope": {
+                        "name": "opentelemetry.instrumentation.requests",
+                        "version": "0.46b0"
+                    },
+                    "spans": [
+                        {
+                            "traceId": "11fb21dac257ef8f470fc9cc59ab32e3",
+                            "spanId": "230c4a71ddc7531e",
+                            "parentSpanId": "8017572b9cbe2f2e",
+                            "name": "GET",
+                            "kind": 3,
+                            "startTimeUnixNano": "1742428805459881957",
+                            "endTimeUnixNano": "1742428805548710408",
+                            "attributes": [
+                                {
+                                    "key": "data_stream",
+                                    "value": {
+                                        "kvlistValue": [
+                                            {
+                                                "key": "dataset",
+                                                "value": {
+                                                    "stringValue": "default"
+                                                }
+                                            },
+                                            {
+                                                "key": "namespace",
+                                                "value": {
+                                                    "stringValue": "namespace"
+                                                }
+                                            },
+                                            {
+                                                "key": "type",
+                                                "value": {
+                                                    "stringValue": "span"
+                                                }
+                                            }
+                                        ]
+                                    }
+                                },
+                                {
+                                    "key": "http.method",
+                                    "value": {
+                                        "stringValue": "GET"
+                                    }
+                                },
+                                {
+                                    "key": "http.status_code",
+                                    "value": {
+                                        "intValue": "200"
+                                    }
+                                },
+                                {
+                                    "key": "http.url",
+                                    "value": {
+                                        "stringValue": "https://eoepca.org/"
+                                    }
+                                }
+                            ],
+                            "status": {}
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "resource": {
+                "attributes": [
+                    {
+                        "key": "container.id",
+                        "value": {
+                            "stringValue": "fea94228c7a9f3a20596770656166fc36bdad20ac9df50f6826e1f75cfcb4de1"
+                        }
+                    },
+                    {
+                        "key": "container.runtime",
+                        "value": {
+                            "stringValue": "docker"
+                        }
+                    },
+                    {
+                        "key": "health_check.name",
+                        "value": {
+                            "stringValue": "hourly-simple-openeo-check"
+                        }
+                    },
+                    {
+                        "key": "k8s.cronjob.name",
+                        "value": {
+                            "stringValue": "resource-health-healthchecks-cronjob-3"
+                        }
+                    },
+                    {
+                        "key": "process.command",
+                        "value": {
+                            "stringValue": "/venv/bin/python"
+                        }
+                    },
+                    {
+                        "key": "process.command_args",
+                        "value": {
+                            "stringValue": "/venv/bin/pytest --export-traces --suppress-tests-failed-exit-code tests.py --user-id defaultuser"
+                        }
+                    },
+                    {
+                        "key": "process.command_line",
+                        "value": {
+                            "stringValue": "/venv/bin/python /venv/bin/pytest --export-traces --suppress-tests-failed-exit-code tests.py --user-id defaultuser"
+                        }
+                    },
+                    {
+                        "key": "process.executable.name",
+                        "value": {
+                            "stringValue": "pytest"
+                        }
+                    },
+                    {
+                        "key": "process.executable.path",
+                        "value": {
+                            "stringValue": "/usr/local/bin/python3.11"
+                        }
+                    },
+                    {
+                        "key": "process.owner",
+                        "value": {
+                            "stringValue": "root"
+                        }
+                    },
+                    {
+                        "key": "process.pid",
+                        "value": {
+                            "stringValue": "13"
+                        }
+                    },
+                    {
+                        "key": "process.runtime.description",
+                        "value": {
+                            "stringValue": "3.11.10 (main, Oct 19 2024, 01:04:28) [GCC 12.2.0]"
+                        }
+                    },
+                    {
+                        "key": "process.runtime.name",
+                        "value": {
+                            "stringValue": "cpython"
+                        }
+                    },
+                    {
+                        "key": "process.runtime.version",
+                        "value": {
+                            "stringValue": "3.11.10"
+                        }
+                    },
+                    {
+                        "key": "service.name",
+                        "value": {
+                            "stringValue": "unknown_service:pytest"
+                        }
+                    },
+                    {
+                        "key": "telemetry.auto.version",
+                        "value": {
+                            "stringValue": "0.46b0"
+                        }
+                    },
+                    {
+                        "key": "telemetry.sdk.language",
+                        "value": {
+                            "stringValue": "python"
+                        }
+                    },
+                    {
+                        "key": "telemetry.sdk.name",
+                        "value": {
+                            "stringValue": "opentelemetry"
+                        }
+                    },
+                    {
+                        "key": "telemetry.sdk.version",
+                        "value": {
+                            "stringValue": "1.25.0"
+                        }
+                    },
+                    {
+                        "key": "user.id",
+                        "value": {
+                            "stringValue": "Health BB user"
+                        }
+                    }
+                ]
+            },
+            "scopeSpans": [
+                {
+                    "scope": {
+                        "name": "opentelemetry.instrumentation.requests",
+                        "version": "0.46b0"
+                    },
+                    "spans": [
+                        {
+                            "traceId": "d1821f87cc0af375849dae4c0361a5ad",
+                            "spanId": "c673dccd333ffe6f",
+                            "parentSpanId": "c851a6993a0de3ce",
+                            "name": "GET",
+                            "kind": 3,
+                            "startTimeUnixNano": "1742432404389897564",
+                            "endTimeUnixNano": "1742432404497619306",
+                            "attributes": [
+                                {
+                                    "key": "data_stream",
+                                    "value": {
+                                        "kvlistValue": [
+                                            {
+                                                "key": "dataset",
+                                                "value": {
+                                                    "stringValue": "default"
+                                                }
+                                            },
+                                            {
+                                                "key": "namespace",
+                                                "value": {
+                                                    "stringValue": "namespace"
+                                                }
+                                            },
+                                            {
+                                                "key": "type",
+                                                "value": {
+                                                    "stringValue": "span"
+                                                }
+                                            }
+                                        ]
+                                    }
+                                },
+                                {
+                                    "key": "http.method",
+                                    "value": {
+                                        "stringValue": "GET"
+                                    }
+                                },
+                                {
+                                    "key": "http.status_code",
+                                    "value": {
+                                        "intValue": "200"
+                                    }
+                                },
+                                {
+                                    "key": "http.url",
+                                    "value": {
+                                        "stringValue": "https://openeo.dataspace.copernicus.eu/openeo/1.2"
+                                    }
+                                }
+                            ],
+                            "status": {}
+                        },
+                        {
+                            "traceId": "d1821f87cc0af375849dae4c0361a5ad",
+                            "spanId": "a597f5111350cc0d",
+                            "parentSpanId": "30ce2eeb576c88cd",
+                            "name": "GET",
+                            "kind": 3,
+                            "startTimeUnixNano": "1742432404500733859",
+                            "endTimeUnixNano": "1742432404552028984",
+                            "attributes": [
+                                {
+                                    "key": "data_stream",
+                                    "value": {
+                                        "kvlistValue": [
+                                            {
+                                                "key": "dataset",
+                                                "value": {
+                                                    "stringValue": "default"
+                                                }
+                                            },
+                                            {
+                                                "key": "namespace",
+                                                "value": {
+                                                    "stringValue": "namespace"
+                                                }
+                                            },
+                                            {
+                                                "key": "type",
+                                                "value": {
+                                                    "stringValue": "span"
+                                                }
+                                            }
+                                        ]
+                                    }
+                                },
+                                {
+                                    "key": "http.method",
+                                    "value": {
+                                        "stringValue": "GET"
+                                    }
+                                },
+                                {
+                                    "key": "http.status_code",
+                                    "value": {
+                                        "intValue": "200"
+                                    }
+                                },
+                                {
+                                    "key": "http.url",
+                                    "value": {
+                                        "stringValue": "https://openeo-staging.dataspace.copernicus.eu/openeo/1.2"
+                                    }
+                                }
+                            ],
+                            "status": {}
+                        },
+                        {
+                            "traceId": "d1821f87cc0af375849dae4c0361a5ad",
+                            "spanId": "dc248acbb67e2f76",
+                            "parentSpanId": "bd041912da529022",
+                            "name": "GET",
+                            "kind": 3,
+                            "startTimeUnixNano": "1742432404554750475",
+                            "endTimeUnixNano": "1742432404593298845",
+                            "attributes": [
+                                {
+                                    "key": "data_stream",
+                                    "value": {
+                                        "kvlistValue": [
+                                            {
+                                                "key": "dataset",
+                                                "value": {
+                                                    "stringValue": "default"
+                                                }
+                                            },
+                                            {
+                                                "key": "namespace",
+                                                "value": {
+                                                    "stringValue": "namespace"
+                                                }
+                                            },
+                                            {
+                                                "key": "type",
+                                                "value": {
+                                                    "stringValue": "span"
+                                                }
+                                            }
+                                        ]
+                                    }
+                                },
+                                {
+                                    "key": "http.method",
+                                    "value": {
+                                        "stringValue": "GET"
+                                    }
+                                },
+                                {
+                                    "key": "http.status_code",
+                                    "value": {
+                                        "intValue": "200"
+                                    }
+                                },
+                                {
+                                    "key": "http.url",
+                                    "value": {
+                                        "stringValue": "https://openeofed.dataspace.copernicus.eu/openeo/1.2"
+                                    }
+                                }
+                            ],
+                            "status": {}
+                        },
+                        {
+                            "traceId": "d1821f87cc0af375849dae4c0361a5ad",
+                            "spanId": "650f6a5062857395",
+                            "parentSpanId": "5809e3a0d6b3d9e7",
+                            "name": "GET",
+                            "kind": 3,
+                            "startTimeUnixNano": "1742432404596169281",
+                            "endTimeUnixNano": "1742432404652327262",
+                            "attributes": [
+                                {
+                                    "key": "data_stream",
+                                    "value": {
+                                        "kvlistValue": [
+                                            {
+                                                "key": "dataset",
+                                                "value": {
+                                                    "stringValue": "default"
+                                                }
+                                            },
+                                            {
+                                                "key": "namespace",
+                                                "value": {
+                                                    "stringValue": "namespace"
+                                                }
+                                            },
+                                            {
+                                                "key": "type",
+                                                "value": {
+                                                    "stringValue": "span"
+                                                }
+                                            }
+                                        ]
+                                    }
+                                },
+                                {
+                                    "key": "http.method",
+                                    "value": {
+                                        "stringValue": "GET"
+                                    }
+                                },
+                                {
+                                    "key": "http.status_code",
+                                    "value": {
+                                        "intValue": "200"
+                                    }
+                                },
+                                {
+                                    "key": "http.url",
+                                    "value": {
+                                        "stringValue": "https://openeofed-staging.dataspace.copernicus.eu/openeo/1.2"
+                                    }
+                                }
+                            ],
+                            "status": {}
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "resource": {
+                "attributes": [
+                    {
+                        "key": "container.id",
+                        "value": {
+                            "stringValue": "d853d497e95949a4ba8b76761620c95f015f01d9d3a5463bafc8ff1d6683538a"
+                        }
+                    },
+                    {
+                        "key": "container.runtime",
+                        "value": {
+                            "stringValue": "docker"
+                        }
+                    },
+                    {
+                        "key": "health_check.name",
+                        "value": {
+                            "stringValue": "hourly-simple-http-check"
+                        }
+                    },
+                    {
+                        "key": "k8s.cronjob.name",
+                        "value": {
+                            "stringValue": "resource-health-healthchecks-cronjob-2"
+                        }
+                    },
+                    {
+                        "key": "process.command",
+                        "value": {
+                            "stringValue": "/venv/bin/python"
+                        }
+                    },
+                    {
+                        "key": "process.command_args",
+                        "value": {
+                            "stringValue": "/venv/bin/pytest --export-traces --suppress-tests-failed-exit-code tests.py --user-id defaultuser"
+                        }
+                    },
+                    {
+                        "key": "process.command_line",
+                        "value": {
+                            "stringValue": "/venv/bin/python /venv/bin/pytest --export-traces --suppress-tests-failed-exit-code tests.py --user-id defaultuser"
+                        }
+                    },
+                    {
+                        "key": "process.executable.name",
+                        "value": {
+                            "stringValue": "pytest"
+                        }
+                    },
+                    {
+                        "key": "process.executable.path",
+                        "value": {
+                            "stringValue": "/usr/local/bin/python3.11"
+                        }
+                    },
+                    {
+                        "key": "process.owner",
+                        "value": {
+                            "stringValue": "root"
+                        }
+                    },
+                    {
+                        "key": "process.pid",
+                        "value": {
+                            "stringValue": "13"
+                        }
+                    },
+                    {
+                        "key": "process.runtime.description",
+                        "value": {
+                            "stringValue": "3.11.10 (main, Oct 19 2024, 01:04:28) [GCC 12.2.0]"
+                        }
+                    },
+                    {
+                        "key": "process.runtime.name",
+                        "value": {
+                            "stringValue": "cpython"
+                        }
+                    },
+                    {
+                        "key": "process.runtime.version",
+                        "value": {
+                            "stringValue": "3.11.10"
+                        }
+                    },
+                    {
+                        "key": "service.name",
+                        "value": {
+                            "stringValue": "unknown_service:pytest"
+                        }
+                    },
+                    {
+                        "key": "telemetry.auto.version",
+                        "value": {
+                            "stringValue": "0.46b0"
+                        }
+                    },
+                    {
+                        "key": "telemetry.sdk.language",
+                        "value": {
+                            "stringValue": "python"
+                        }
+                    },
+                    {
+                        "key": "telemetry.sdk.name",
+                        "value": {
+                            "stringValue": "opentelemetry"
+                        }
+                    },
+                    {
+                        "key": "telemetry.sdk.version",
+                        "value": {
+                            "stringValue": "1.25.0"
+                        }
+                    },
+                    {
+                        "key": "user.id",
+                        "value": {
+                            "stringValue": "Health BB user"
+                        }
+                    }
+                ]
+            },
+            "scopeSpans": [
+                {
+                    "scope": {
+                        "name": "opentelemetry.instrumentation.requests",
+                        "version": "0.46b0"
+                    },
+                    "spans": [
+                        {
+                            "traceId": "a5c9af5d19680f93aaf733502fe24859",
+                            "spanId": "37377b3591f14497",
+                            "parentSpanId": "35dc3e535fb4fd8e",
+                            "name": "GET",
+                            "kind": 3,
+                            "startTimeUnixNano": "1742432404965917866",
+                            "endTimeUnixNano": "1742432405680148317",
+                            "attributes": [
+                                {
+                                    "key": "data_stream",
+                                    "value": {
+                                        "kvlistValue": [
+                                            {
+                                                "key": "dataset",
+                                                "value": {
+                                                    "stringValue": "default"
+                                                }
+                                            },
+                                            {
+                                                "key": "namespace",
+                                                "value": {
+                                                    "stringValue": "namespace"
+                                                }
+                                            },
+                                            {
+                                                "key": "type",
+                                                "value": {
+                                                    "stringValue": "span"
+                                                }
+                                            }
+                                        ]
+                                    }
+                                },
+                                {
+                                    "key": "http.method",
+                                    "value": {
+                                        "stringValue": "GET"
+                                    }
+                                },
+                                {
+                                    "key": "http.status_code",
+                                    "value": {
+                                        "intValue": "200"
+                                    }
+                                },
+                                {
+                                    "key": "http.url",
+                                    "value": {
+                                        "stringValue": "https://www.google.com/"
+                                    }
+                                }
+                            ],
+                            "status": {}
+                        },
+                        {
+                            "traceId": "a5c9af5d19680f93aaf733502fe24859",
+                            "spanId": "49d5214dd7b3ce21",
+                            "parentSpanId": "75d9d031c8cdaab0",
+                            "name": "GET",
+                            "kind": 3,
+                            "startTimeUnixNano": "1742432405682889651",
+                            "endTimeUnixNano": "1742432405710202954",
+                            "attributes": [
+                                {
+                                    "key": "data_stream",
+                                    "value": {
+                                        "kvlistValue": [
+                                            {
+                                                "key": "dataset",
+                                                "value": {
+                                                    "stringValue": "default"
+                                                }
+                                            },
+                                            {
+                                                "key": "namespace",
+                                                "value": {
+                                                    "stringValue": "namespace"
+                                                }
+                                            },
+                                            {
+                                                "key": "type",
+                                                "value": {
+                                                    "stringValue": "span"
+                                                }
+                                            }
+                                        ]
+                                    }
+                                },
+                                {
+                                    "key": "http.method",
+                                    "value": {
+                                        "stringValue": "GET"
+                                    }
+                                },
+                                {
+                                    "key": "http.status_code",
+                                    "value": {
+                                        "intValue": "200"
+                                    }
+                                },
+                                {
+                                    "key": "http.url",
+                                    "value": {
+                                        "stringValue": "https://eoepca.org/"
+                                    }
+                                }
+                            ],
+                            "status": {}
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "resource": {
+                "attributes": [
+                    {
+                        "key": "container.id",
+                        "value": {
+                            "stringValue": "c1642ca577d180f531217d75dc71fda3ec8431c5cfb0fe7b6b0703ab6cda3cae"
+                        }
+                    },
+                    {
+                        "key": "container.runtime",
+                        "value": {
+                            "stringValue": "docker"
+                        }
+                    },
+                    {
+                        "key": "health_check.name",
+                        "value": {
+                            "stringValue": "hourly-simple-http-check"
+                        }
+                    },
+                    {
+                        "key": "k8s.cronjob.name",
+                        "value": {
+                            "stringValue": "resource-health-healthchecks-cronjob-2"
+                        }
+                    },
+                    {
+                        "key": "process.command",
+                        "value": {
+                            "stringValue": "/venv/bin/python"
+                        }
+                    },
+                    {
+                        "key": "process.command_args",
+                        "value": {
+                            "stringValue": "/venv/bin/pytest --export-traces --suppress-tests-failed-exit-code tests.py --user-id defaultuser"
+                        }
+                    },
+                    {
+                        "key": "process.command_line",
+                        "value": {
+                            "stringValue": "/venv/bin/python /venv/bin/pytest --export-traces --suppress-tests-failed-exit-code tests.py --user-id defaultuser"
+                        }
+                    },
+                    {
+                        "key": "process.executable.name",
+                        "value": {
+                            "stringValue": "pytest"
+                        }
+                    },
+                    {
+                        "key": "process.executable.path",
+                        "value": {
+                            "stringValue": "/usr/local/bin/python3.11"
+                        }
+                    },
+                    {
+                        "key": "process.owner",
+                        "value": {
+                            "stringValue": "root"
+                        }
+                    },
+                    {
+                        "key": "process.pid",
+                        "value": {
+                            "stringValue": "13"
+                        }
+                    },
+                    {
+                        "key": "process.runtime.description",
+                        "value": {
+                            "stringValue": "3.11.10 (main, Oct 19 2024, 01:04:28) [GCC 12.2.0]"
+                        }
+                    },
+                    {
+                        "key": "process.runtime.name",
+                        "value": {
+                            "stringValue": "cpython"
+                        }
+                    },
+                    {
+                        "key": "process.runtime.version",
+                        "value": {
+                            "stringValue": "3.11.10"
+                        }
+                    },
+                    {
+                        "key": "service.name",
+                        "value": {
+                            "stringValue": "unknown_service:pytest"
+                        }
+                    },
+                    {
+                        "key": "telemetry.auto.version",
+                        "value": {
+                            "stringValue": "0.46b0"
+                        }
+                    },
+                    {
+                        "key": "telemetry.sdk.language",
+                        "value": {
+                            "stringValue": "python"
+                        }
+                    },
+                    {
+                        "key": "telemetry.sdk.name",
+                        "value": {
+                            "stringValue": "opentelemetry"
+                        }
+                    },
+                    {
+                        "key": "telemetry.sdk.version",
+                        "value": {
+                            "stringValue": "1.25.0"
+                        }
+                    },
+                    {
+                        "key": "user.id",
+                        "value": {
+                            "stringValue": "Health BB user"
+                        }
+                    }
+                ]
+            },
+            "scopeSpans": [
+                {
+                    "scope": {
+                        "name": "opentelemetry.instrumentation.requests",
+                        "version": "0.46b0"
+                    },
+                    "spans": [
+                        {
+                            "traceId": "27292f39df18b09c09e052b5995c6e76",
+                            "spanId": "ee38193370070974",
+                            "parentSpanId": "bb4f2c1437e275a5",
+                            "name": "GET",
+                            "kind": 3,
+                            "startTimeUnixNano": "1742436004570108793",
+                            "endTimeUnixNano": "1742436005278658545",
+                            "attributes": [
+                                {
+                                    "key": "data_stream",
+                                    "value": {
+                                        "kvlistValue": [
+                                            {
+                                                "key": "dataset",
+                                                "value": {
+                                                    "stringValue": "default"
+                                                }
+                                            },
+                                            {
+                                                "key": "namespace",
+                                                "value": {
+                                                    "stringValue": "namespace"
+                                                }
+                                            },
+                                            {
+                                                "key": "type",
+                                                "value": {
+                                                    "stringValue": "span"
+                                                }
+                                            }
+                                        ]
+                                    }
+                                },
+                                {
+                                    "key": "http.method",
+                                    "value": {
+                                        "stringValue": "GET"
+                                    }
+                                },
+                                {
+                                    "key": "http.status_code",
+                                    "value": {
+                                        "intValue": "200"
+                                    }
+                                },
+                                {
+                                    "key": "http.url",
+                                    "value": {
+                                        "stringValue": "https://www.google.com/"
+                                    }
+                                }
+                            ],
+                            "status": {}
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "resource": {
+                "attributes": [
+                    {
+                        "key": "container.id",
+                        "value": {
+                            "stringValue": "a84c0301d4a6652d7d62a3fb61bbb7c0ef5768913527f39b85f0d939310af932"
+                        }
+                    },
+                    {
+                        "key": "container.runtime",
+                        "value": {
+                            "stringValue": "docker"
+                        }
+                    },
+                    {
+                        "key": "health_check.name",
+                        "value": {
+                            "stringValue": "hourly-simple-openeo-check"
+                        }
+                    },
+                    {
+                        "key": "k8s.cronjob.name",
+                        "value": {
+                            "stringValue": "resource-health-healthchecks-cronjob-3"
+                        }
+                    },
+                    {
+                        "key": "process.command",
+                        "value": {
+                            "stringValue": "/venv/bin/python"
+                        }
+                    },
+                    {
+                        "key": "process.command_args",
+                        "value": {
+                            "stringValue": "/venv/bin/pytest --export-traces --suppress-tests-failed-exit-code tests.py --user-id defaultuser"
+                        }
+                    },
+                    {
+                        "key": "process.command_line",
+                        "value": {
+                            "stringValue": "/venv/bin/python /venv/bin/pytest --export-traces --suppress-tests-failed-exit-code tests.py --user-id defaultuser"
+                        }
+                    },
+                    {
+                        "key": "process.executable.name",
+                        "value": {
+                            "stringValue": "pytest"
+                        }
+                    },
+                    {
+                        "key": "process.executable.path",
+                        "value": {
+                            "stringValue": "/usr/local/bin/python3.11"
+                        }
+                    },
+                    {
+                        "key": "process.owner",
+                        "value": {
+                            "stringValue": "root"
+                        }
+                    },
+                    {
+                        "key": "process.pid",
+                        "value": {
+                            "stringValue": "13"
+                        }
+                    },
+                    {
+                        "key": "process.runtime.description",
+                        "value": {
+                            "stringValue": "3.11.10 (main, Oct 19 2024, 01:04:28) [GCC 12.2.0]"
+                        }
+                    },
+                    {
+                        "key": "process.runtime.name",
+                        "value": {
+                            "stringValue": "cpython"
+                        }
+                    },
+                    {
+                        "key": "process.runtime.version",
+                        "value": {
+                            "stringValue": "3.11.10"
+                        }
+                    },
+                    {
+                        "key": "service.name",
+                        "value": {
+                            "stringValue": "unknown_service:pytest"
+                        }
+                    },
+                    {
+                        "key": "telemetry.auto.version",
+                        "value": {
+                            "stringValue": "0.46b0"
+                        }
+                    },
+                    {
+                        "key": "telemetry.sdk.language",
+                        "value": {
+                            "stringValue": "python"
+                        }
+                    },
+                    {
+                        "key": "telemetry.sdk.name",
+                        "value": {
+                            "stringValue": "opentelemetry"
+                        }
+                    },
+                    {
+                        "key": "telemetry.sdk.version",
+                        "value": {
+                            "stringValue": "1.25.0"
+                        }
+                    },
+                    {
+                        "key": "user.id",
+                        "value": {
+                            "stringValue": "Health BB user"
+                        }
+                    }
+                ]
+            },
+            "scopeSpans": [
+                {
+                    "scope": {
+                        "name": "opentelemetry.instrumentation.requests",
+                        "version": "0.46b0"
+                    },
+                    "spans": [
+                        {
+                            "traceId": "7c86c1986d84a38b119465c5c2d433a5",
+                            "spanId": "b812c512540210d6",
+                            "parentSpanId": "6f082a830fd99007",
+                            "name": "GET",
+                            "kind": 3,
+                            "startTimeUnixNano": "1742436004703390486",
+                            "endTimeUnixNano": "1742436004778613585",
+                            "attributes": [
+                                {
+                                    "key": "data_stream",
+                                    "value": {
+                                        "kvlistValue": [
+                                            {
+                                                "key": "dataset",
+                                                "value": {
+                                                    "stringValue": "default"
+                                                }
+                                            },
+                                            {
+                                                "key": "namespace",
+                                                "value": {
+                                                    "stringValue": "namespace"
+                                                }
+                                            },
+                                            {
+                                                "key": "type",
+                                                "value": {
+                                                    "stringValue": "span"
+                                                }
+                                            }
+                                        ]
+                                    }
+                                },
+                                {
+                                    "key": "http.method",
+                                    "value": {
+                                        "stringValue": "GET"
+                                    }
+                                },
+                                {
+                                    "key": "http.status_code",
+                                    "value": {
+                                        "intValue": "200"
+                                    }
+                                },
+                                {
+                                    "key": "http.url",
+                                    "value": {
+                                        "stringValue": "https://openeo.dataspace.copernicus.eu/openeo/1.2"
+                                    }
+                                }
+                            ],
+                            "status": {}
+                        },
+                        {
+                            "traceId": "7c86c1986d84a38b119465c5c2d433a5",
+                            "spanId": "c3f43106052d40ef",
+                            "parentSpanId": "2f71cdd40ff26a71",
+                            "name": "GET",
+                            "kind": 3,
+                            "startTimeUnixNano": "1742436004781453020",
+                            "endTimeUnixNano": "1742436004860070531",
+                            "attributes": [
+                                {
+                                    "key": "data_stream",
+                                    "value": {
+                                        "kvlistValue": [
+                                            {
+                                                "key": "dataset",
+                                                "value": {
+                                                    "stringValue": "default"
+                                                }
+                                            },
+                                            {
+                                                "key": "namespace",
+                                                "value": {
+                                                    "stringValue": "namespace"
+                                                }
+                                            },
+                                            {
+                                                "key": "type",
+                                                "value": {
+                                                    "stringValue": "span"
+                                                }
+                                            }
+                                        ]
+                                    }
+                                },
+                                {
+                                    "key": "http.method",
+                                    "value": {
+                                        "stringValue": "GET"
+                                    }
+                                },
+                                {
+                                    "key": "http.status_code",
+                                    "value": {
+                                        "intValue": "200"
+                                    }
+                                },
+                                {
+                                    "key": "http.url",
+                                    "value": {
+                                        "stringValue": "https://openeo-staging.dataspace.copernicus.eu/openeo/1.2"
+                                    }
+                                }
+                            ],
+                            "status": {}
+                        },
+                        {
+                            "traceId": "7c86c1986d84a38b119465c5c2d433a5",
+                            "spanId": "a17fcf87a294a873",
+                            "parentSpanId": "73c0db9183fe04d3",
+                            "name": "GET",
+                            "kind": 3,
+                            "startTimeUnixNano": "1742436004862806493",
+                            "endTimeUnixNano": "1742436004901036125",
+                            "attributes": [
+                                {
+                                    "key": "data_stream",
+                                    "value": {
+                                        "kvlistValue": [
+                                            {
+                                                "key": "dataset",
+                                                "value": {
+                                                    "stringValue": "default"
+                                                }
+                                            },
+                                            {
+                                                "key": "namespace",
+                                                "value": {
+                                                    "stringValue": "namespace"
+                                                }
+                                            },
+                                            {
+                                                "key": "type",
+                                                "value": {
+                                                    "stringValue": "span"
+                                                }
+                                            }
+                                        ]
+                                    }
+                                },
+                                {
+                                    "key": "http.method",
+                                    "value": {
+                                        "stringValue": "GET"
+                                    }
+                                },
+                                {
+                                    "key": "http.status_code",
+                                    "value": {
+                                        "intValue": "200"
+                                    }
+                                },
+                                {
+                                    "key": "http.url",
+                                    "value": {
+                                        "stringValue": "https://openeofed.dataspace.copernicus.eu/openeo/1.2"
+                                    }
+                                }
+                            ],
+                            "status": {}
+                        },
+                        {
+                            "traceId": "7c86c1986d84a38b119465c5c2d433a5",
+                            "spanId": "1752c2cf47a539d2",
+                            "parentSpanId": "3efa3d2a77705c41",
+                            "name": "GET",
+                            "kind": 3,
+                            "startTimeUnixNano": "1742436004904251802",
+                            "endTimeUnixNano": "1742436004937246868",
+                            "attributes": [
+                                {
+                                    "key": "data_stream",
+                                    "value": {
+                                        "kvlistValue": [
+                                            {
+                                                "key": "dataset",
+                                                "value": {
+                                                    "stringValue": "default"
+                                                }
+                                            },
+                                            {
+                                                "key": "namespace",
+                                                "value": {
+                                                    "stringValue": "namespace"
+                                                }
+                                            },
+                                            {
+                                                "key": "type",
+                                                "value": {
+                                                    "stringValue": "span"
+                                                }
+                                            }
+                                        ]
+                                    }
+                                },
+                                {
+                                    "key": "http.method",
+                                    "value": {
+                                        "stringValue": "GET"
+                                    }
+                                },
+                                {
+                                    "key": "http.status_code",
+                                    "value": {
+                                        "intValue": "200"
+                                    }
+                                },
+                                {
+                                    "key": "http.url",
+                                    "value": {
+                                        "stringValue": "https://openeofed-staging.dataspace.copernicus.eu/openeo/1.2"
+                                    }
+                                }
+                            ],
+                            "status": {}
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "resource": {
+                "attributes": [
+                    {
+                        "key": "container.id",
+                        "value": {
+                            "stringValue": "c1642ca577d180f531217d75dc71fda3ec8431c5cfb0fe7b6b0703ab6cda3cae"
+                        }
+                    },
+                    {
+                        "key": "container.runtime",
+                        "value": {
+                            "stringValue": "docker"
+                        }
+                    },
+                    {
+                        "key": "health_check.name",
+                        "value": {
+                            "stringValue": "hourly-simple-http-check"
+                        }
+                    },
+                    {
+                        "key": "k8s.cronjob.name",
+                        "value": {
+                            "stringValue": "resource-health-healthchecks-cronjob-2"
+                        }
+                    },
+                    {
+                        "key": "process.command",
+                        "value": {
+                            "stringValue": "/venv/bin/python"
+                        }
+                    },
+                    {
+                        "key": "process.command_args",
+                        "value": {
+                            "stringValue": "/venv/bin/pytest --export-traces --suppress-tests-failed-exit-code tests.py --user-id defaultuser"
+                        }
+                    },
+                    {
+                        "key": "process.command_line",
+                        "value": {
+                            "stringValue": "/venv/bin/python /venv/bin/pytest --export-traces --suppress-tests-failed-exit-code tests.py --user-id defaultuser"
+                        }
+                    },
+                    {
+                        "key": "process.executable.name",
+                        "value": {
+                            "stringValue": "pytest"
+                        }
+                    },
+                    {
+                        "key": "process.executable.path",
+                        "value": {
+                            "stringValue": "/usr/local/bin/python3.11"
+                        }
+                    },
+                    {
+                        "key": "process.owner",
+                        "value": {
+                            "stringValue": "root"
+                        }
+                    },
+                    {
+                        "key": "process.pid",
+                        "value": {
+                            "stringValue": "13"
+                        }
+                    },
+                    {
+                        "key": "process.runtime.description",
+                        "value": {
+                            "stringValue": "3.11.10 (main, Oct 19 2024, 01:04:28) [GCC 12.2.0]"
+                        }
+                    },
+                    {
+                        "key": "process.runtime.name",
+                        "value": {
+                            "stringValue": "cpython"
+                        }
+                    },
+                    {
+                        "key": "process.runtime.version",
+                        "value": {
+                            "stringValue": "3.11.10"
+                        }
+                    },
+                    {
+                        "key": "service.name",
+                        "value": {
+                            "stringValue": "unknown_service:pytest"
+                        }
+                    },
+                    {
+                        "key": "telemetry.auto.version",
+                        "value": {
+                            "stringValue": "0.46b0"
+                        }
+                    },
+                    {
+                        "key": "telemetry.sdk.language",
+                        "value": {
+                            "stringValue": "python"
+                        }
+                    },
+                    {
+                        "key": "telemetry.sdk.name",
+                        "value": {
+                            "stringValue": "opentelemetry"
+                        }
+                    },
+                    {
+                        "key": "telemetry.sdk.version",
+                        "value": {
+                            "stringValue": "1.25.0"
+                        }
+                    },
+                    {
+                        "key": "user.id",
+                        "value": {
+                            "stringValue": "Health BB user"
+                        }
+                    }
+                ]
+            },
+            "scopeSpans": [
+                {
+                    "scope": {
+                        "name": "opentelemetry.instrumentation.requests",
+                        "version": "0.46b0"
+                    },
+                    "spans": [
+                        {
+                            "traceId": "27292f39df18b09c09e052b5995c6e76",
+                            "spanId": "59b6195c68375ea1",
+                            "parentSpanId": "6f1dd90195519cae",
+                            "name": "GET",
+                            "kind": 3,
+                            "startTimeUnixNano": "1742436005281283813",
+                            "endTimeUnixNano": "1742436005308315601",
+                            "attributes": [
+                                {
+                                    "key": "data_stream",
+                                    "value": {
+                                        "kvlistValue": [
+                                            {
+                                                "key": "dataset",
+                                                "value": {
+                                                    "stringValue": "default"
+                                                }
+                                            },
+                                            {
+                                                "key": "namespace",
+                                                "value": {
+                                                    "stringValue": "namespace"
+                                                }
+                                            },
+                                            {
+                                                "key": "type",
+                                                "value": {
+                                                    "stringValue": "span"
+                                                }
+                                            }
+                                        ]
+                                    }
+                                },
+                                {
+                                    "key": "http.method",
+                                    "value": {
+                                        "stringValue": "GET"
+                                    }
+                                },
+                                {
+                                    "key": "http.status_code",
+                                    "value": {
+                                        "intValue": "200"
+                                    }
+                                },
+                                {
+                                    "key": "http.url",
+                                    "value": {
+                                        "stringValue": "https://eoepca.org/"
+                                    }
+                                }
+                            ],
+                            "status": {}
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "resource": {
+                "attributes": [
+                    {
+                        "key": "container.id",
+                        "value": {
+                            "stringValue": "b288bbd6e58cb9b7f09f4ebd20a3e6d4baf366ab929027984a3cc08a0be5900f"
+                        }
+                    },
+                    {
+                        "key": "container.runtime",
+                        "value": {
+                            "stringValue": "docker"
+                        }
+                    },
+                    {
+                        "key": "health_check.name",
+                        "value": {
+                            "stringValue": "hourly-simple-openeo-check"
+                        }
+                    },
+                    {
+                        "key": "k8s.cronjob.name",
+                        "value": {
+                            "stringValue": "resource-health-healthchecks-cronjob-3"
+                        }
+                    },
+                    {
+                        "key": "process.command",
+                        "value": {
+                            "stringValue": "/venv/bin/python"
+                        }
+                    },
+                    {
+                        "key": "process.command_args",
+                        "value": {
+                            "stringValue": "/venv/bin/pytest --export-traces --suppress-tests-failed-exit-code tests.py --user-id defaultuser"
+                        }
+                    },
+                    {
+                        "key": "process.command_line",
+                        "value": {
+                            "stringValue": "/venv/bin/python /venv/bin/pytest --export-traces --suppress-tests-failed-exit-code tests.py --user-id defaultuser"
+                        }
+                    },
+                    {
+                        "key": "process.executable.name",
+                        "value": {
+                            "stringValue": "pytest"
+                        }
+                    },
+                    {
+                        "key": "process.executable.path",
+                        "value": {
+                            "stringValue": "/usr/local/bin/python3.11"
+                        }
+                    },
+                    {
+                        "key": "process.owner",
+                        "value": {
+                            "stringValue": "root"
+                        }
+                    },
+                    {
+                        "key": "process.pid",
+                        "value": {
+                            "stringValue": "13"
+                        }
+                    },
+                    {
+                        "key": "process.runtime.description",
+                        "value": {
+                            "stringValue": "3.11.10 (main, Oct 19 2024, 01:04:28) [GCC 12.2.0]"
+                        }
+                    },
+                    {
+                        "key": "process.runtime.name",
+                        "value": {
+                            "stringValue": "cpython"
+                        }
+                    },
+                    {
+                        "key": "process.runtime.version",
+                        "value": {
+                            "stringValue": "3.11.10"
+                        }
+                    },
+                    {
+                        "key": "service.name",
+                        "value": {
+                            "stringValue": "unknown_service:pytest"
+                        }
+                    },
+                    {
+                        "key": "telemetry.auto.version",
+                        "value": {
+                            "stringValue": "0.46b0"
+                        }
+                    },
+                    {
+                        "key": "telemetry.sdk.language",
+                        "value": {
+                            "stringValue": "python"
+                        }
+                    },
+                    {
+                        "key": "telemetry.sdk.name",
+                        "value": {
+                            "stringValue": "opentelemetry"
+                        }
+                    },
+                    {
+                        "key": "telemetry.sdk.version",
+                        "value": {
+                            "stringValue": "1.25.0"
+                        }
+                    },
+                    {
+                        "key": "user.id",
+                        "value": {
+                            "stringValue": "Health BB user"
+                        }
+                    }
+                ]
+            },
+            "scopeSpans": [
+                {
+                    "scope": {
+                        "name": "opentelemetry.instrumentation.requests",
+                        "version": "0.46b0"
+                    },
+                    "spans": [
+                        {
+                            "traceId": "366c9908ddef14ccd3ba8b3411fff358",
+                            "spanId": "03f0697807ef764c",
+                            "parentSpanId": "e92d74f2f724f17e",
+                            "name": "GET",
+                            "kind": 3,
+                            "startTimeUnixNano": "1742439604413764171",
+                            "endTimeUnixNano": "1742439604490916300",
+                            "attributes": [
+                                {
+                                    "key": "data_stream",
+                                    "value": {
+                                        "kvlistValue": [
+                                            {
+                                                "key": "dataset",
+                                                "value": {
+                                                    "stringValue": "default"
+                                                }
+                                            },
+                                            {
+                                                "key": "namespace",
+                                                "value": {
+                                                    "stringValue": "namespace"
+                                                }
+                                            },
+                                            {
+                                                "key": "type",
+                                                "value": {
+                                                    "stringValue": "span"
+                                                }
+                                            }
+                                        ]
+                                    }
+                                },
+                                {
+                                    "key": "http.method",
+                                    "value": {
+                                        "stringValue": "GET"
+                                    }
+                                },
+                                {
+                                    "key": "http.status_code",
+                                    "value": {
+                                        "intValue": "200"
+                                    }
+                                },
+                                {
+                                    "key": "http.url",
+                                    "value": {
+                                        "stringValue": "https://openeo.dataspace.copernicus.eu/openeo/1.2"
+                                    }
+                                }
+                            ],
+                            "status": {}
+                        },
+                        {
+                            "traceId": "366c9908ddef14ccd3ba8b3411fff358",
+                            "spanId": "a180c8e01b2d1766",
+                            "parentSpanId": "fb779a7a0eabddee",
+                            "name": "GET",
+                            "kind": 3,
+                            "startTimeUnixNano": "1742439604493836240",
+                            "endTimeUnixNano": "1742439604557895520",
+                            "attributes": [
+                                {
+                                    "key": "data_stream",
+                                    "value": {
+                                        "kvlistValue": [
+                                            {
+                                                "key": "dataset",
+                                                "value": {
+                                                    "stringValue": "default"
+                                                }
+                                            },
+                                            {
+                                                "key": "namespace",
+                                                "value": {
+                                                    "stringValue": "namespace"
+                                                }
+                                            },
+                                            {
+                                                "key": "type",
+                                                "value": {
+                                                    "stringValue": "span"
+                                                }
+                                            }
+                                        ]
+                                    }
+                                },
+                                {
+                                    "key": "http.method",
+                                    "value": {
+                                        "stringValue": "GET"
+                                    }
+                                },
+                                {
+                                    "key": "http.status_code",
+                                    "value": {
+                                        "intValue": "200"
+                                    }
+                                },
+                                {
+                                    "key": "http.url",
+                                    "value": {
+                                        "stringValue": "https://openeo-staging.dataspace.copernicus.eu/openeo/1.2"
+                                    }
+                                }
+                            ],
+                            "status": {}
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "resource": {
+                "attributes": [
+                    {
+                        "key": "container.id",
+                        "value": {
+                            "stringValue": "3dc973748bda42ec501e64f994b8eeda07667f7d3f4236f4a8debe0406003666"
+                        }
+                    },
+                    {
+                        "key": "container.runtime",
+                        "value": {
+                            "stringValue": "docker"
+                        }
+                    },
+                    {
+                        "key": "health_check.name",
+                        "value": {
+                            "stringValue": "hourly-simple-http-check"
+                        }
+                    },
+                    {
+                        "key": "k8s.cronjob.name",
+                        "value": {
+                            "stringValue": "resource-health-healthchecks-cronjob-2"
+                        }
+                    },
+                    {
+                        "key": "process.command",
+                        "value": {
+                            "stringValue": "/venv/bin/python"
+                        }
+                    },
+                    {
+                        "key": "process.command_args",
+                        "value": {
+                            "stringValue": "/venv/bin/pytest --export-traces --suppress-tests-failed-exit-code tests.py --user-id defaultuser"
+                        }
+                    },
+                    {
+                        "key": "process.command_line",
+                        "value": {
+                            "stringValue": "/venv/bin/python /venv/bin/pytest --export-traces --suppress-tests-failed-exit-code tests.py --user-id defaultuser"
+                        }
+                    },
+                    {
+                        "key": "process.executable.name",
+                        "value": {
+                            "stringValue": "pytest"
+                        }
+                    },
+                    {
+                        "key": "process.executable.path",
+                        "value": {
+                            "stringValue": "/usr/local/bin/python3.11"
+                        }
+                    },
+                    {
+                        "key": "process.owner",
+                        "value": {
+                            "stringValue": "root"
+                        }
+                    },
+                    {
+                        "key": "process.pid",
+                        "value": {
+                            "stringValue": "13"
+                        }
+                    },
+                    {
+                        "key": "process.runtime.description",
+                        "value": {
+                            "stringValue": "3.11.10 (main, Oct 19 2024, 01:04:28) [GCC 12.2.0]"
+                        }
+                    },
+                    {
+                        "key": "process.runtime.name",
+                        "value": {
+                            "stringValue": "cpython"
+                        }
+                    },
+                    {
+                        "key": "process.runtime.version",
+                        "value": {
+                            "stringValue": "3.11.10"
+                        }
+                    },
+                    {
+                        "key": "service.name",
+                        "value": {
+                            "stringValue": "unknown_service:pytest"
+                        }
+                    },
+                    {
+                        "key": "telemetry.auto.version",
+                        "value": {
+                            "stringValue": "0.46b0"
+                        }
+                    },
+                    {
+                        "key": "telemetry.sdk.language",
+                        "value": {
+                            "stringValue": "python"
+                        }
+                    },
+                    {
+                        "key": "telemetry.sdk.name",
+                        "value": {
+                            "stringValue": "opentelemetry"
+                        }
+                    },
+                    {
+                        "key": "telemetry.sdk.version",
+                        "value": {
+                            "stringValue": "1.25.0"
+                        }
+                    },
+                    {
+                        "key": "user.id",
+                        "value": {
+                            "stringValue": "Health BB user"
+                        }
+                    }
+                ]
+            },
+            "scopeSpans": [
+                {
+                    "scope": {
+                        "name": "opentelemetry.instrumentation.requests",
+                        "version": "0.46b0"
+                    },
+                    "spans": [
+                        {
+                            "traceId": "8fad0c49212f5bc5d766c2039d75b121",
+                            "spanId": "9ebc9eb1a8cfa235",
+                            "parentSpanId": "b9e94e8333faf8b8",
+                            "name": "GET",
+                            "kind": 3,
+                            "startTimeUnixNano": "1742439604515085577",
+                            "endTimeUnixNano": "1742439605114364323",
+                            "attributes": [
+                                {
+                                    "key": "data_stream",
+                                    "value": {
+                                        "kvlistValue": [
+                                            {
+                                                "key": "dataset",
+                                                "value": {
+                                                    "stringValue": "default"
+                                                }
+                                            },
+                                            {
+                                                "key": "namespace",
+                                                "value": {
+                                                    "stringValue": "namespace"
+                                                }
+                                            },
+                                            {
+                                                "key": "type",
+                                                "value": {
+                                                    "stringValue": "span"
+                                                }
+                                            }
+                                        ]
+                                    }
+                                },
+                                {
+                                    "key": "http.method",
+                                    "value": {
+                                        "stringValue": "GET"
+                                    }
+                                },
+                                {
+                                    "key": "http.status_code",
+                                    "value": {
+                                        "intValue": "200"
+                                    }
+                                },
+                                {
+                                    "key": "http.url",
+                                    "value": {
+                                        "stringValue": "https://www.google.com/"
+                                    }
+                                }
+                            ],
+                            "status": {}
+                        }
+                    ]
+                }
+            ]
         }
     ]
 }

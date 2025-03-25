@@ -50,6 +50,7 @@ class Proxy(ABC):
             resource_attributes,
             scope_attributes,
             span_attributes,
+            span_name,
             page_token=starting_page_token,
         ):
             if isinstance(spans_or_page_token, PageToken):

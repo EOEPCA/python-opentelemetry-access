@@ -68,13 +68,20 @@ def get_opensearch_proxy() -> Proxy:
     return OpenSearchSS40Proxy(client)
 
 
+@pytest.fixture
+def proxy() -> Proxy:
+    return get_mock_proxy("example_tests/test_spans.json")
+
+
 # USER DEFINED CODE START
 
 
-def test_requests_duration() -> None:
+def test_requests_duration(proxy: Proxy) -> None:
+    # proxy = get_opensearch_proxy()
+    proxy = get_mock_proxy("example_tests/test_spans.json")
     duration_sum = timedelta()
     duration_count = 0
-    for data in get_opensearch_proxy().load_span_data_sync(
+    for data in proxy.load_span_data_sync(
         span_name="GET",
         span_attributes={
             "http.url": ["https://openeo.dataspace.copernicus.eu/openeo/1.2"]
@@ -91,11 +98,11 @@ def test_generate_data() -> None:
     save_data(data_name="my_data", data={"results": [1.0, 2.0, 2.0]})
 
 
-def test_get_requests_sync() -> None:
+def test_get_requests_sync(proxy: Proxy) -> None:
     sum_sum = 0.0
     sum_count = 0
     for data in load_data_from_name_sync(
-        proxy=get_mock_proxy("example_tests/test_spans.json"),
+        proxy=proxy,
         data_name="my_data",
         max_data_age=timedelta(weeks=4),
     ):
@@ -105,11 +112,11 @@ def test_get_requests_sync() -> None:
 
 
 @pytest.mark.asyncio
-async def test_get_requests_async() -> None:
+async def test_get_requests_async(proxy: Proxy) -> None:
     sum_sum = 0.0
     sum_count = 0
     async for data in load_data_from_name_async(
-        proxy=get_mock_proxy("example_tests/test_spans.json"),
+        proxy=proxy,
         data_name="my_data",
         max_data_age=timedelta(weeks=4),
     ):
