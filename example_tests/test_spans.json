@@ -240,15 +240,9 @@
                                     }
                                 },
                                 {
-                                    "key": "data_my_data_fields",
+                                    "key": "my_data",
                                     "value": {
-                                        "arrayValue": {
-                                            "values": [
-                                                {
-                                                    "stringValue": "results"
-                                                }
-                                            ]
-                                        }
+                                        "boolValue": true
                                     }
                                 },
                                 {
@@ -1009,15 +1003,9 @@
                                     }
                                 },
                                 {
-                                    "key": "data_my_data_fields",
+                                    "key": "my_data",
                                     "value": {
-                                        "arrayValue": {
-                                            "values": [
-                                                {
-                                                    "stringValue": "results"
-                                                }
-                                            ]
-                                        }
+                                        "boolValue": true
                                     }
                                 },
                                 {
@@ -1778,15 +1766,9 @@
                                     }
                                 },
                                 {
-                                    "key": "data_my_data_fields",
+                                    "key": "my_data",
                                     "value": {
-                                        "arrayValue": {
-                                            "values": [
-                                                {
-                                                    "stringValue": "results"
-                                                }
-                                            ]
-                                        }
+                                        "boolValue": true
                                     }
                                 },
                                 {
@@ -2547,15 +2529,9 @@
                                     }
                                 },
                                 {
-                                    "key": "data_my_data_fields",
+                                    "key": "my_data",
                                     "value": {
-                                        "arrayValue": {
-                                            "values": [
-                                                {
-                                                    "stringValue": "results"
-                                                }
-                                            ]
-                                        }
+                                        "boolValue": true
                                     }
                                 },
                                 {
@@ -3316,15 +3292,9 @@
                                     }
                                 },
                                 {
-                                    "key": "data_my_data_fields",
+                                    "key": "my_data",
                                     "value": {
-                                        "arrayValue": {
-                                            "values": [
-                                                {
-                                                    "stringValue": "results"
-                                                }
-                                            ]
-                                        }
+                                        "boolValue": true
                                     }
                                 },
                                 {

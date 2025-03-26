@@ -7,41 +7,32 @@ from opentelemetry.util import types
 
 from python_opentelemetry_access import otlpjson
 from python_opentelemetry_access import util
+from python_opentelemetry_access.base import ReifiedSpan
 from python_opentelemetry_access.proxy import MockProxy, Proxy
 from python_opentelemetry_access.proxy.opensearch.ss4o import OpenSearchSS40Proxy
 
 
-def _get_fields_attr_name(data_name: str) -> str:
-    return f"data_{data_name}_fields"
-
-
-async def load_data_from_name_async(
+def load_spans_from_data_name_async(
     proxy: Proxy, data_name: str, max_data_age: timedelta
-) -> AsyncIterable[util.CheckData]:
-    fields_attr_name = _get_fields_attr_name(data_name)
-    async for data in proxy.load_span_data_async(
+) -> AsyncIterable[ReifiedSpan]:
+    return proxy.load_span_data_async(
         span_name=None,
-        span_attributes={fields_attr_name: None},
+        span_attributes={data_name: [True]},
         max_data_age=max_data_age,
-    ):
-        fields: list[str] = data.attributes[fields_attr_name]
-        yield util.CheckData(
-            span_duration=data.span_duration,
-            attributes={field: data.attributes[field] for field in fields},
-        )
-
-
-def load_data_from_name_sync(
-    proxy: Proxy, data_name: str, max_data_age: timedelta
-) -> Iterable[util.CheckData]:
-    return util.async_to_sync_iterable(
-        load_data_from_name_async(proxy, data_name, max_data_age)
     )
 
 
-def report_data(data_name: str, data: dict[str, types.AttributeValue]) -> None:
+def load_spans_from_data_name_sync(
+    proxy: Proxy, data_name: str, max_data_age: timedelta
+) -> Iterable[ReifiedSpan]:
+    return util.async_to_sync_iterable(
+        load_spans_from_data_name_async(proxy, data_name, max_data_age)
+    )
+
+
+def report_with_name(data_name: str, data: dict[str, types.AttributeValue]) -> None:
     cur_span = trace.get_current_span()
-    cur_span.set_attribute(_get_fields_attr_name(data_name), list(data.keys()))
+    cur_span.set_attribute(data_name, True)
     cur_span.set_attributes(data)
 
 
@@ -81,32 +72,32 @@ def test_requests_duration(proxy: Proxy) -> None:
     proxy = get_mock_proxy("example_tests/test_spans.json")
     duration_sum = timedelta()
     duration_count = 0
-    for data in proxy.load_span_data_sync(
+    for span in proxy.load_span_data_sync(
         span_name="GET",
         span_attributes={
             "http.url": ["https://openeo.dataspace.copernicus.eu/openeo/1.2"]
         },
         max_data_age=timedelta(weeks=4),
     ):
-        duration_sum += data.span_duration
+        duration_sum += span.duration()
         duration_count += 1
     assert duration_count >= 1
     assert duration_sum / duration_count < timedelta(milliseconds=100)
 
 
 def test_generate_data() -> None:
-    report_data(data_name="my_data", data={"results": [1.0, 2.0, 2.0]})
+    report_with_name(data_name="my_data", data={"results": [1.0, 2.0, 2.0]})
 
 
 def test_get_requests_sync(proxy: Proxy) -> None:
     sum_sum = 0.0
     sum_count = 0
-    for data in load_data_from_name_sync(
+    for span in load_spans_from_data_name_sync(
         proxy=proxy,
         data_name="my_data",
         max_data_age=timedelta(weeks=4),
     ):
-        sum_sum += sum(data.attributes["results"])
+        sum_sum += sum(span.attributes["results"])
         sum_count += 1
     assert sum_sum / sum_count < 2.0
 
@@ -115,12 +106,12 @@ def test_get_requests_sync(proxy: Proxy) -> None:
 async def test_get_requests_async(proxy: Proxy) -> None:
     sum_sum = 0.0
     sum_count = 0
-    async for data in load_data_from_name_async(
+    async for span in load_spans_from_data_name_async(
         proxy=proxy,
         data_name="my_data",
         max_data_age=timedelta(weeks=4),
     ):
-        sum_sum += sum(data.attributes["results"])
+        sum_sum += sum(span.attributes["results"])
         sum_count += 1
     assert sum_sum / sum_count < 2.0
 

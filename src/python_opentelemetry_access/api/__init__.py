@@ -84,7 +84,7 @@ type APIOKResponse = APIOKResponseList[
 
 
 def list_to_dict(values: list[str]) -> util.AttributesFilter:
-    result: util.AttributesFilter = {}
+    result: dict[str, Optional[list[str]]] = {}
     for value in values:
         match value.split("="):
             case [key]:
@@ -110,7 +110,8 @@ def list_to_dict(values: list[str]) -> util.AttributesFilter:
                         detail=f"Attribute filter parameter must be of the shape 'my awesome key=my awesome value'. '{value}' is of incorrect shape.",
                     )
                 )
-    return result
+    # To satisfy Mypy
+    return {key: value for key, value in result.items()}
 
 
 settings = Settings(_proxy=None, _base_url=None)
