@@ -1,5 +1,4 @@
 import binascii
-from collections import defaultdict
 from typing import Optional, Annotated, List, Tuple
 from dataclasses import dataclass
 from fastapi import FastAPI, Query, Request, Response, status
@@ -12,12 +11,14 @@ from python_opentelemetry_access.api_utils.api_utils import (
     JSONAPIResponse,
     add_exception_handlers,
     get_api_router_with_defaults,
-    get_env_var_or_throw,
     get_request_url_str,
     get_url_str,
     set_custom_json_schema,
 )
-from python_opentelemetry_access.api_utils.exceptions import APIException, APIInternalError
+from python_opentelemetry_access.api_utils.exceptions import (
+    APIException,
+    APIInternalError,
+)
 from python_opentelemetry_access.api_utils.json_api_types import (
     APIOKResponseList,
     Error,
@@ -33,13 +34,19 @@ import python_opentelemetry_access.util as util
 @dataclass
 class Settings:
     _proxy: Optional[proxy.Proxy]
-    base_url: str
+    _base_url: Optional[str]
 
     @property
     def proxy(self) -> proxy.Proxy:
         if self._proxy is None:
             raise APIInternalError.create("No proxy initialised")
         return self._proxy
+
+    @property
+    def base_url(self) -> str:
+        if self._base_url is None:
+            raise APIInternalError.create("Base URL must be set")
+        return self._base_url
 
 
 class QueryParams(BaseModel):
@@ -48,9 +55,10 @@ class QueryParams(BaseModel):
     from_time: Optional[datetime] = Field(None)
     to_time: Optional[datetime] = Field(None)
 
-    resource_attributes: list[str] = []
-    scope_attributes: list[str] = []
-    span_attributes: list[str] = []
+    resource_attributes: list[str] = Field([])
+    scope_attributes: list[str] = Field([])
+    span_attributes: list[str] = Field([])
+    span_name: Optional[str] = Field(None)
 
     ## TODO: Projection/verbosity parameters??
 
@@ -75,12 +83,24 @@ type APIOKResponse = APIOKResponseList[
 ]
 
 
-def list_to_dict(values: list[str]) -> dict[str, list[str]]:
-    result: dict[str, list[str]] = defaultdict(list)
+def list_to_dict(values: list[str]) -> util.AttributesFilter:
+    result: dict[str, Optional[list[str]]] = {}
     for value in values:
         match value.split("="):
+            case [key]:
+                if key not in result:
+                    result[key] = None
             case [key, value]:
-                result[key].append(value)
+                # Not the most natural way to express this, but mypy doesn't agree that the commented out code type checks
+                # if (key not in result) or (result[key] is None):
+                #     result[key] = []
+                # result[key].append(value)
+                if key not in result:
+                    result[key] = []
+                cur_values = result[key]
+                if cur_values is None:
+                    cur_values = result[key] = []
+                cur_values.append(value)
             case _:
                 raise APIException(
                     Error(
@@ -90,13 +110,11 @@ def list_to_dict(values: list[str]) -> dict[str, list[str]]:
                         detail=f"Attribute filter parameter must be of the shape 'my awesome key=my awesome value'. '{value}' is of incorrect shape.",
                     )
                 )
+    # To satisfy Mypy
+    return {key: value for key, value in result.items()}
 
-    return result
 
-
-settings = Settings(
-    _proxy=None, base_url=get_env_var_or_throw("RH_TELEMETRY_API_BASE_URL")
-)
+settings = Settings(_proxy=None, _base_url=None)
 
 
 async def run_query(
@@ -140,6 +158,7 @@ async def run_query(
             resource_attributes=resource_attributes,
             scope_attributes=scope_attributes,
             span_attributes=span_attributes,
+            span_name=query_params.span_name,
             page_token=page_token,
         ):
             if isinstance(res, proxy.PageToken):

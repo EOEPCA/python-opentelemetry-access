@@ -1,4 +1,5 @@
 from collections.abc import Iterator
+from datetime import timedelta
 from typing import Union, Protocol, Optional, Tuple, List, override
 from abc import abstractmethod
 import json
@@ -62,7 +63,7 @@ class OTLPData(Protocol):
     @abstractmethod
     def to_otlp_json_iter(self) -> util.JSONLikeIter:
         pass
-    
+
     def to_otlp_json_str_iter(self) -> Iterator[str]:
         return OTLPJSONEncoder().iterencode(self.to_otlp_json_iter())
 
@@ -463,6 +464,12 @@ class Span(OTLPData, Protocol):
     @abstractmethod
     def otlp_status(self) -> Status:
         pass
+
+    def duration(self) -> timedelta:
+        return timedelta(
+            seconds=(self.otlp_end_time_unix_nano - self.otlp_start_time_unix_nano)
+            / 1_000_000_000
+        )
 
 
 class InstrumentationScope(OTLPData, Protocol):

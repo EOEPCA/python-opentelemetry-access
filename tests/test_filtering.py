@@ -12,14 +12,35 @@ class Params:
     from_time: datetime | None = None
     to_time: datetime | None = None
     span_ids: list[tuple[str | None, str | None]] | None = None
-    resource_attributes: dict[str, list[str]] | None = None
-    scope_attributes: dict[str, list[str]] | None = None
-    span_attributes: dict[str, list[str]] | None = None
+    resource_attributes: util.AttributesFilter | None = None
+    scope_attributes: util.AttributesFilter | None = None
+    span_attributes: util.AttributesFilter | None = None
+    span_name: str | None = None
 
 
 @mark.parametrize(
     "params",
     [
+        Params(
+            expected_spans=["res1_scope1_trace1_span1", "res1_scope2_trace1_span1"],
+            span_name="some_span1",
+        ),
+        Params(
+            expected_spans=["res1_scope1_trace1_span1", "res1_scope2_trace1_span1"],
+            resource_attributes={
+                "int_resource_attr": ["100"],
+                "string_resource_attr": None,
+            },
+            span_attributes={"string_span_attr": ["span string 1"]},
+        ),
+        Params(
+            expected_spans=[],
+            resource_attributes={
+                "int_resource_attr": ["100"],
+                "string_resource_attr_typo": None,
+            },
+            span_attributes={"string_span_attr": ["span string 1"]},
+        ),
         Params(
             expected_spans=["res1_scope1_trace1_span1", "res1_scope2_trace1_span1"],
             resource_attributes={"int_resource_attr": ["100"]},
@@ -56,6 +77,7 @@ def test_filtering(params: Params) -> None:
         resource_attributes=params.resource_attributes,
         scope_attributes=params.scope_attributes,
         span_attributes=params.span_attributes,
+        span_name=params.span_name,
     )
 
     span_ids = set(
@@ -99,7 +121,7 @@ def _get_spans() -> util.JSONLike:
                                 "parentSpanId": "",
                                 "startTimeUnixNano": "1729007194857023153",
                                 "endTimeUnixNano": "1729007194857127603",
-                                "name": "some_span",
+                                "name": "some_span1",
                                 "kind": 1,
                                 "status": {},
                                 "attributes": [
@@ -119,7 +141,7 @@ def _get_spans() -> util.JSONLike:
                                 "parentSpanId": "res1_scope1_trace1_span1",
                                 "startTimeUnixNano": "1729007194857023153",
                                 "endTimeUnixNano": "1729007194857127603",
-                                "name": "some_span",
+                                "name": "some_span2",
                                 "kind": 1,
                                 "status": {},
                                 "attributes": [
@@ -153,7 +175,7 @@ def _get_spans() -> util.JSONLike:
                                 "parentSpanId": "",
                                 "startTimeUnixNano": "1729007194857023153",
                                 "endTimeUnixNano": "1729007194857127603",
-                                "name": "some_span",
+                                "name": "some_span1",
                                 "kind": 1,
                                 "status": {},
                                 "attributes": [
@@ -173,7 +195,7 @@ def _get_spans() -> util.JSONLike:
                                 "parentSpanId": "res1_scope2_trace1_span1",
                                 "startTimeUnixNano": "1729007194857023153",
                                 "endTimeUnixNano": "1729007194857127603",
-                                "name": "some_span",
+                                "name": "some_span2",
                                 "kind": 1,
                                 "status": {},
                                 "attributes": [
@@ -220,7 +242,7 @@ def _get_spans() -> util.JSONLike:
                                 "parentSpanId": "",
                                 "startTimeUnixNano": "1729007194857023153",
                                 "endTimeUnixNano": "1729007194857127603",
-                                "name": "some_span",
+                                "name": "some_span3",
                                 "kind": 1,
                                 "status": {},
                                 "attributes": [
