@@ -9,6 +9,7 @@ authors = [
 requires-python = ">=3.12"
 dependencies = [
     "click>=8.1.7",
+    "eoepca-security",
     "fastapi>=0.115.4",
     "opensearch-py[async]>=2.7.1",
     "opentelemetry-betterproto",
@@ -32,6 +33,7 @@ dev-dependencies = [
 
 [tool.uv.sources]
 opentelemetry-betterproto = { git = "https://github.com/EOEPCA/opentelemetry-betterproto.git", branch = "2.0.0-beta2" }
+eoepca-security = { git = "https://github.com/EOEPCA/python-eoepca-security/" }
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

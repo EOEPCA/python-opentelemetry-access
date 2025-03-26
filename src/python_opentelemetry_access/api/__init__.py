@@ -1,7 +1,7 @@
 import binascii
 from typing import Optional, Annotated, List, Tuple
 from dataclasses import dataclass
-from fastapi import FastAPI, Query, Request, Response, status
+from fastapi import Depends, FastAPI, Query, Request, Response, status
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
 import base64
@@ -29,12 +29,15 @@ from python_opentelemetry_access.api_utils.json_api_types import (
 import python_opentelemetry_access.proxy as proxy
 import python_opentelemetry_access.otlpjson as otlpjson
 import python_opentelemetry_access.util as util
+from eoepca_security import OIDCProxyScheme, Tokens
 
 
 @dataclass
 class Settings:
     _proxy: Optional[proxy.Proxy]
     _base_url: Optional[str]
+    _open_id_connect_url: Optional[str]
+    _open_id_connect_audience: Optional[str]
 
     @property
     def proxy(self) -> proxy.Proxy:
@@ -47,6 +50,33 @@ class Settings:
         if self._base_url is None:
             raise APIInternalError.create("Base URL must be set")
         return self._base_url
+
+    @property
+    def open_id_connect_url(self) -> str:
+        if self._open_id_connect_url is None:
+            raise APIInternalError.create("open_id_connect_url must be set")
+        return self._open_id_connect_url
+
+    @property
+    def open_id_connect_audience(self) -> str:
+        if self._open_id_connect_audience is None:
+            raise APIInternalError.create("open_id_connect_audience must be set")
+        return self._open_id_connect_audience
+
+
+# I turn this into a function so that if settings.open_id_connect_url and such are set AFTER this file imported, those
+# settings are also picked up
+async def get_tokens(request: Request) -> Optional[Tokens]:
+    return await OIDCProxyScheme(
+        openIdConnectUrl=settings.open_id_connect_url,
+        audience=settings.open_id_connect_audience,
+        id_token_header="x-id-token",
+        refresh_token_header="x-refresh-token",
+        auth_token_header="Authorization",
+        auth_token_in_authorization=True,
+        auto_error=False,
+        scheme_name="OIDC behind auth proxy",
+    )(request)
 
 
 class QueryParams(BaseModel):
@@ -113,10 +143,16 @@ def list_to_dict(values: list[str]) -> util.AttributesFilter:
     return result
 
 
-settings = Settings(_proxy=None, _base_url=None)
+settings = Settings(
+    _proxy=None,
+    _base_url=None,
+    _open_id_connect_url=None,
+    _open_id_connect_audience=None,
+)
 
 
 async def run_query(
+    tokens: Optional[Tokens],
     request: Request,
     path: str,
     span_ids: Optional[List[Tuple[Optional[str], Optional[str]]]],
@@ -151,6 +187,7 @@ async def run_query(
 
     for page_token in page_tokens:
         async for res in settings.proxy.query_spans_page(
+            tokens=tokens,
             span_ids=span_ids,
             from_time=query_params.from_time,
             to_time=query_params.to_time,
@@ -278,11 +315,14 @@ async def root(request: Request) -> APIOKResponseList[None, None]:
     response_model_exclude_unset=True,
 )
 async def get_spans(
-    request: Request, response: Response, query_params: Annotated[QueryParams, Query()]
+    tokens: Annotated[Optional[Tokens], Depends(get_tokens)],
+    request: Request,
+    response: Response,
+    query_params: Annotated[QueryParams, Query()],
 ) -> APIOKResponse:
     response.headers["Allow"] = "GET"
     return await run_query(
-        request, path="/v1/spans", span_ids=None, query_params=query_params
+        tokens, request, path="/v1/spans", span_ids=None, query_params=query_params
     )
 
 
@@ -292,6 +332,7 @@ async def get_spans(
     response_model_exclude_unset=True,
 )
 async def get_trace(
+    tokens: Annotated[Optional[Tokens], Depends(get_tokens)],
     request: Request,
     response: Response,
     trace_id: str,
@@ -299,6 +340,7 @@ async def get_trace(
 ) -> APIOKResponse:
     response.headers["Allow"] = "GET"
     return await run_query(
+        tokens,
         request,
         path="/v1/spans/{trace_id}",
         span_ids=[(trace_id, None)],
@@ -312,6 +354,7 @@ async def get_trace(
     response_model_exclude_unset=True,
 )
 async def get_span(
+    tokens: Annotated[Optional[Tokens], Depends(get_tokens)],
     request: Request,
     response: Response,
     trace_id: str,
@@ -320,6 +363,7 @@ async def get_span(
 ) -> APIOKResponse:
     response.headers["Allow"] = "GET"
     return await run_query(
+        tokens,
         request,
         path="/v1/spans/{trace_id}/{span_id}",
         span_ids=[(trace_id, span_id)],

@@ -80,15 +80,15 @@ TODO: Describe for general backend
 
 Currently it supports the `MockProxy` to expose a single otlp-json file
 ```
-$ RH_TELEMETRY_API_BASE_URL=http://127.0.0.1:12345 python -m python_opentelemetry_access proxy --host 0.0.0.0 --port 12345 mock --file tests/examples/ex2.json
+$ RH_TELEMETRY_API_BASE_URL=http://127.0.0.1:12345 RH_TELEMETRY_API_OPEN_ID_CONNECT_URL=https://iam-auth.develop.eoepca.org/realms/eoepca/.well-known/openid-configuration python -m python_opentelemetry_access proxy --host 0.0.0.0 --port 12345 mock --file tests/examples/ex2.json
 ```
 or telemetry stored in OpenSearch using the ss4o schema, using username/password
 ```
-$ RH_TELEMETRY_API_BASE_URL=http://127.0.0.1:12345 python -m python_opentelemetry_access proxy --host 0.0.0.0 --port 12345 opensearch-ss4o --oshost=... --osport=... --osuser=... --ospass=...
+$ RH_TELEMETRY_API_BASE_URL=http://127.0.0.1:12345 RH_TELEMETRY_API_OPEN_ID_CONNECT_URL=https://iam-auth.develop.eoepca.org/realms/eoepca/.well-known/openid-configuration OPEN_ID_CONNECT_AUDIENCE=account python -m python_opentelemetry_access proxy --host 0.0.0.0 --port 12345 opensearch-ss4o --oshost=... --osport=... --osuser=... --ospass=...
 ```
 and/or mTLS
 ```
-$ RH_TELEMETRY_API_BASE_URL=http://127.0.0.1:12345 python -m python_opentelemetry_access proxy --host 0.0.0.0 --port 12345 opensearch-ss4o --oshost=... --osport=... --ca_certs=... --client_cert=... --client_key=...
+$ RH_TELEMETRY_API_BASE_URL=http://127.0.0.1:12345 RH_TELEMETRY_API_OPEN_ID_CONNECT_URL=https://iam-auth.develop.eoepca.org/realms/eoepca/.well-known/openid-configuration OPEN_ID_CONNECT_AUDIENCE=account python -m python_opentelemetry_access proxy --host 0.0.0.0 --port 12345 opensearch-ss4o --oshost=... --osport=... --ca_certs=... --client_cert=... --client_key=...
 ```
 
 For example:

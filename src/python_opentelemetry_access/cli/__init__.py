@@ -123,6 +123,12 @@ def convert(infile: Path, outfile: Path, from_: str, to: str) -> None:
 def run_proxy(ctx, proxy):
     api.settings._proxy = proxy
     api.settings._base_url = get_env_var_or_throw("RH_TELEMETRY_API_BASE_URL")
+    api.settings._open_id_connect_url = get_env_var_or_throw(
+        "RH_TELEMETRY_API_OPEN_ID_CONNECT_URL"
+    )
+    api.settings._open_id_connect_audience = (
+        environ.get("RH_TELEMETRY_API_OPEN_ID_CONNECT_AUDIENCE") or "account"
+    )
 
     uvicorn.run(
         api.app,

@@ -6,6 +6,7 @@ from datetime import datetime, timedelta
 
 import python_opentelemetry_access.base as base
 import python_opentelemetry_access.util as util
+from eoepca_security import Tokens
 
 
 @dataclass
@@ -17,6 +18,7 @@ class Proxy(ABC):
     @abstractmethod
     async def query_spans_page(
         self,
+        tokens: Optional[Tokens],
         from_time: Optional[datetime] = None,
         to_time: Optional[datetime] = None,
         span_ids: Optional[List[Tuple[Optional[str], Optional[str]]]] = None,
@@ -34,6 +36,7 @@ class Proxy(ABC):
 
     async def query_spans_async(
         self,
+        tokens: Optional[Tokens],
         from_time: Optional[datetime] = None,
         to_time: Optional[datetime] = None,
         span_ids: Optional[List[Tuple[Optional[str], Optional[str]]]] = None,
@@ -44,6 +47,7 @@ class Proxy(ABC):
         starting_page_token: Optional[PageToken] = None,
     ) -> AsyncIterable[base.SpanCollection]:
         async for spans_or_page_token in self.query_spans_page(
+            tokens,
             from_time,
             to_time,
             span_ids,
@@ -55,6 +59,7 @@ class Proxy(ABC):
         ):
             if isinstance(spans_or_page_token, PageToken):
                 async for spans in self.query_spans_async(
+                    tokens,
                     from_time,
                     to_time,
                     span_ids,
@@ -76,6 +81,7 @@ class Proxy(ABC):
     ) -> AsyncIterable[util.CheckData]:
         now = datetime.now()
         async for spanCollection in self.query_spans_async(
+            tokens=None,
             from_time=now - max_data_age,
             to_time=now,
             span_attributes=span_attributes,
@@ -239,6 +245,7 @@ class MockProxy(Proxy):
     @override
     async def query_spans_page(
         self,
+        _tokens: Optional[Tokens],
         from_time: Optional[datetime] = None,
         to_time: Optional[datetime] = None,
         span_ids: Optional[List[Tuple[Optional[str], Optional[str]]]] = None,

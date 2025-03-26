@@ -12,6 +12,7 @@ import python_opentelemetry_access.base as base
 import python_opentelemetry_access.opensearch.ss4o as ss4o
 from python_opentelemetry_access.util import InvalidPageTokenException
 import python_opentelemetry_access.proxy as proxy
+from eoepca_security import Tokens
 
 
 class OpenSearchSS40Proxy(proxy.Proxy):
@@ -23,6 +24,7 @@ class OpenSearchSS40Proxy(proxy.Proxy):
     @override
     async def query_spans_page(
         self,
+        tokens: Optional[Tokens],
         from_time: Optional[datetime] = None,
         to_time: Optional[datetime] = None,
         span_ids: Optional[List[Tuple[Optional[str], Optional[str]]]] = None,
@@ -32,6 +34,11 @@ class OpenSearchSS40Proxy(proxy.Proxy):
         span_name: Optional[str] = None,
         page_token: Optional[proxy.PageToken] = None,
     ) -> AsyncIterable[base.SpanCollection | proxy.PageToken]:
+        headers: dict[str, str] = {}
+        if tokens is not None and tokens["auth"] is not None:
+            print(f"Auth header: 'Bearer {tokens['auth'].raw}'")
+            headers["Authorization"] = f"Bearer {tokens['auth'].raw}"
+
         filter: list[object] = []
         if from_time is not None:
             filter.append({"range": {"startTime": {"gte": from_time.isoformat()}}})
@@ -116,7 +123,9 @@ class OpenSearchSS40Proxy(proxy.Proxy):
 
         # results = await self.client.search(body=q, index=self.index_name)
         try:
-            results = await self.client.search(body=q, index=self.index_name)
+            results = await self.client.search(
+                body=q, index=self.index_name, headers=headers
+            )
         # Don't want to turn all connection exceptions to something visible to the end user
         # to not expose implementation details and things that might be secret
         except opensearchpy.AuthenticationException as e:
