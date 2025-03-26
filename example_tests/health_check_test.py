@@ -68,8 +68,6 @@ def proxy() -> Proxy:
 
 
 def test_requests_duration(proxy: Proxy) -> None:
-    # proxy = get_opensearch_proxy()
-    proxy = get_mock_proxy("example_tests/test_spans.json")
     duration_sum = timedelta()
     duration_count = 0
     for span in proxy.load_span_data_sync(
@@ -89,7 +87,7 @@ def test_generate_data() -> None:
     report_with_name(data_name="my_data", data={"results": [1.0, 2.0, 2.0]})
 
 
-def test_get_requests_sync(proxy: Proxy) -> None:
+def test_using_past_data_sync(proxy: Proxy) -> None:
     sum_sum = 0.0
     sum_count = 0
     for span in load_spans_from_data_name_sync(
@@ -103,7 +101,7 @@ def test_get_requests_sync(proxy: Proxy) -> None:
 
 
 @pytest.mark.asyncio
-async def test_get_requests_async(proxy: Proxy) -> None:
+async def test_using_past_data_async(proxy: Proxy) -> None:
     sum_sum = 0.0
     sum_count = 0
     async for span in load_spans_from_data_name_async(
