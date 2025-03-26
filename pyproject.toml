@@ -13,11 +13,7 @@ dependencies = [
     "fastapi>=0.115.4",
     "opensearch-py[async]>=2.7.1",
     "opentelemetry-betterproto",
-    "opentelemetry-container-distro==0.2.0",
-    "opentelemetry-exporter-otlp==1.25.0",
     "pandas>=2.2.3",
-    "pytest-asyncio>=0.25.3",
-    "types-python-dateutil>=2.9.0.20241206",
     "uvicorn>=0.32.0",
 ]
 
@@ -37,4 +33,3 @@ eoepca-security = { git = "https://github.com/EOEPCA/python-eoepca-security/" }
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
-asyncio_default_fixture_loop_scope = "function"

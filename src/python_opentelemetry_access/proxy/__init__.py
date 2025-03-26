@@ -78,7 +78,7 @@ class Proxy(ABC):
         span_name: Optional[str],
         span_attributes: Optional[util.AttributesFilter],
         max_data_age: timedelta,
-    ) -> AsyncIterable[util.CheckData]:
+    ) -> AsyncIterable[base.ReifiedSpan]:
         now = datetime.now()
         async for spanCollection in self.query_spans_async(
             tokens=None,
@@ -88,35 +88,16 @@ class Proxy(ABC):
             span_name=span_name,
         ):
             for _resource, _scope, span in spanCollection.iter_spans():
-                yield util.CheckData(
-                    span_duration=span.duration(),
-                    attributes=span.otlp_attributes,
-                )
+                yield span.to_reified()
 
     def load_span_data_sync(
         self,
         span_name: str | None,
         span_attributes: util.AttributesFilter | None,
         max_data_age: timedelta,
-    ) -> Iterable[util.CheckData]:
+    ) -> Iterable[base.ReifiedSpan]:
         return util.async_to_sync_iterable(
             self.load_span_data_async(span_name, span_attributes, max_data_age)
-        )
-
-    def load_data_from_fields_async(
-        self, data_fields: list[str], max_data_age: timedelta
-    ) -> AsyncIterable[util.CheckData]:
-        return self.load_span_data_async(
-            span_name=None,
-            span_attributes={field: None for field in data_fields},
-            max_data_age=max_data_age,
-        )
-
-    def load_data_from_fields_sync(
-        self, data_fields: list[str], max_data_age: timedelta
-    ) -> Iterable[util.CheckData]:
-        return util.async_to_sync_iterable(
-            self.load_data_from_fields_async(data_fields, max_data_age)
         )
 
     # Close connections, release resources and such
