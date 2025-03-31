@@ -70,8 +70,9 @@ class Proxy(ABC):
 
     async def load_span_data_async(
         self,
-        span_name: Optional[str],
-        span_attributes: Optional[util.AttributesFilter],
+        span_name: Optional[str] = None,
+        span_attributes: Optional[util.AttributesFilter] = None,
+        *,
         max_data_age: timedelta,
     ) -> AsyncIterable[base.ReifiedSpan]:
         now = datetime.now()
@@ -86,12 +87,13 @@ class Proxy(ABC):
 
     def load_span_data_sync(
         self,
-        span_name: str | None,
-        span_attributes: util.AttributesFilter | None,
+        span_name: Optional[str] = None,
+        span_attributes: Optional[util.AttributesFilter] = None,
+        *,
         max_data_age: timedelta,
     ) -> Iterable[base.ReifiedSpan]:
         return util.async_to_sync_iterable(
-            self.load_span_data_async(span_name, span_attributes, max_data_age)
+            self.load_span_data_async(span_name, span_attributes, max_data_age=max_data_age)
         )
 
     # Close connections, release resources and such
