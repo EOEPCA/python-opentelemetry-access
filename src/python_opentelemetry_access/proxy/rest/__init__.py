@@ -6,32 +6,49 @@ from urllib.parse import urljoin
 
 from python_opentelemetry_access import base as base, proxy as proxy
 from python_opentelemetry_access.otlpjson import OTLPJsonSpanCollection
-
+import python_opentelemetry_access.util as util
 
 def _query_obj(
     from_time: typing.Optional[datetime] = None,
     to_time: typing.Optional[datetime] = None,
-    resource_attributes: typing.Optional[dict[str, list[str]]] = None,
-    scope_attributes: typing.Optional[dict[str, list[str]]] = None,
-    span_attributes: typing.Optional[dict[str, list[str]]] = None,
-) -> dict[str, str]:
-    params = {}
+    resource_attributes: typing.Optional[util.AttributesFilter] = None,
+    scope_attributes: typing.Optional[util.AttributesFilter] = None,
+    span_attributes: typing.Optional[util.AttributesFilter] = None,
+    span_name: typing.Optional[str] = None,
+    page_token: typing.Optional[str] = None,
+) -> list[tuple[str, str | int | float | typing.Any]]:
+    params : list[tuple[str, str | int | float | typing.Any]] = []
 
     if from_time is not None:
-        params["from_time"] = from_time.isoformat()
+        params.append(("from_time", from_time.isoformat()))
     if to_time is not None:
-        params["to_time"] = to_time.isoformat()
-    if resource_attributes is not None and len(resource_attributes) > 0:
-        raise NotImplementedError("")
-        # params["resource_attributes"] = [
-        #
-        # ]
-    if scope_attributes is not None and len(scope_attributes) > 0:
-        raise NotImplementedError("")
-        pass
-    if span_attributes is not None and len(span_attributes) > 0:
-        raise NotImplementedError("")
-        pass
+        params.append(("to_time", to_time.isoformat()))
+    if resource_attributes:
+        #params.append(*[
+        #    (key, val)
+        #    for key,vals in resource_attributes.items()
+        #    for val in vals
+        #])
+        raise NotImplementedError()
+    if scope_attributes:
+        #params.append(*[
+        #    (key, val)
+        #    for key,vals in scope_attributes.items()
+        #    for val in vals
+        #])
+        raise NotImplementedError()
+    if span_attributes:
+        #params.append(*[
+        #    (key, val)
+        #    for key,vals in span_attributes.items()
+        #    for val in vals
+        #])
+        raise NotImplementedError()
+    if span_name is not None:
+        raise NotImplementedError()
+
+    if page_token is not None:
+        params.append(("page_token", page_token))
 
     return params
 
@@ -98,12 +115,11 @@ class RESTProxy(proxy.Proxy):
         self,
         from_time: typing.Optional[datetime] = None,
         to_time: typing.Optional[datetime] = None,
-        span_ids: typing.Optional[
-            list[tuple[typing.Optional[str], typing.Optional[str]]]
-        ] = None,
-        resource_attributes: typing.Optional[dict[str, list[str]]] = None,
-        scope_attributes: typing.Optional[dict[str, list[str]]] = None,
-        span_attributes: typing.Optional[dict[str, list[str]]] = None,
+        span_ids: typing.Optional[typing.List[typing.Tuple[typing.Optional[str], typing.Optional[str]]]] = None,
+        resource_attributes: typing.Optional[util.AttributesFilter] = None,
+        scope_attributes: typing.Optional[util.AttributesFilter] = None,
+        span_attributes: typing.Optional[util.AttributesFilter] = None,
+        span_name: typing.Optional[str] = None,
         page_token: typing.Optional[proxy.PageToken] = None,
     ) -> AsyncIterable[base.SpanCollection | proxy.PageToken]:
         skip_to_idx, remote_token = _decode_rest_proxy_token(
@@ -119,14 +135,13 @@ class RESTProxy(proxy.Proxy):
             resource_attributes=resource_attributes,
             scope_attributes=scope_attributes,
             span_attributes=span_attributes,
+            span_name=span_name,
+            page_token=remote_token
         )
-
-        if remote_token is not None:
-            params["page_token"] = remote_token
 
         (trace_id, span_id) = span_ids[skip_to_idx]
 
-        # If our data always corresponed to the type it says id does,
+        # If our data always corresponed to the type it says it does,
         # i.e. APIOKResponseList[otlpjson.OTLPJsonSpanCollection.Representation, ResponseMeta]
         # then I would use the following code
         # result = APIOKResponseList[
@@ -141,9 +156,12 @@ class RESTProxy(proxy.Proxy):
         result = self._session.get(
             self._span_url(trace_id, span_id), params=params
         ).json()
+
         for spans in result["data"]:
             yield OTLPJsonSpanCollection(spans["attributes"])
+        
         next_page_token = result["meta"]["page"]["next_page_token"]
+        
         if next_page_token is not None:
             yield proxy.PageToken(
                 _encode_rest_proxy_token(skip_to_idx, next_page_token)
@@ -156,14 +174,14 @@ class RESTProxy(proxy.Proxy):
         self,
         from_time: typing.Optional[datetime] = None,
         to_time: typing.Optional[datetime] = None,
-        span_ids: typing.Optional[
-            list[tuple[typing.Optional[str], typing.Optional[str]]]
-        ] = None,
-        resource_attributes: typing.Optional[dict[str, list[str]]] = None,
-        scope_attributes: typing.Optional[dict[str, list[str]]] = None,
-        span_attributes: typing.Optional[dict[str, list[str]]] = None,
+        span_ids: typing.Optional[typing.List[typing.Tuple[typing.Optional[str], typing.Optional[str]]]] = None,
+        resource_attributes: typing.Optional[util.AttributesFilter] = None,
+        scope_attributes: typing.Optional[util.AttributesFilter] = None,
+        span_attributes: typing.Optional[util.AttributesFilter] = None,
+        span_name: typing.Optional[str] = None,
         starting_page_token: typing.Optional[proxy.PageToken] = None,
     ) -> AsyncIterable[base.SpanCollection]:
+
         skip_to_idx, remote_token = _decode_rest_proxy_token(
             starting_page_token.token if starting_page_token is not None else None
         )
@@ -171,36 +189,29 @@ class RESTProxy(proxy.Proxy):
         if span_ids is None:
             span_ids = [(None, None)]
 
-        params = _query_obj(
+        base_params = _query_obj(
             from_time=from_time,
             to_time=to_time,
             resource_attributes=resource_attributes,
             scope_attributes=scope_attributes,
             span_attributes=span_attributes,
+            span_name=span_name,
+            page_token=None
         )
 
-        for idx, (trace_id, span_id) in enumerate(span_ids):
-            if idx < skip_to_idx:
-                pass
+        for (trace_id, span_id) in span_ids[skip_to_idx:]:
+            request: requests.Request = requests.Request(
+                "GET", url=self._span_url(trace_id, span_id), params=base_params.copy()
+            )
 
-            if remote_token is not None:
-                params["page_token"] = remote_token
-
-            next_request: requests.PreparedRequest | None = requests.Request(
-                "GET", url=self._span_url(trace_id, span_id), params=params
-            ).prepare()
-
-            if remote_token is not None:
-                del params["page_token"]
-                remote_token = None
-
-            while next_request is not None:
-                result = self._session.send(next_request).json()
+            while True:
+                if remote_token is not None:
+                    request.params["page_token"] = remote_token
+                
+                result = self._session.send(request.prepare()).json()
                 yield result["data"]
 
-                next_url = result["links"]["next"]
-                next_request = (
-                    requests.Request("GET", next_url).prepare()
-                    if next_url is not None
-                    else None
-                )
+                remote_token = result["meta"]["page"]["next_page_token"]
+                
+                if remote_token is None:
+                    break
