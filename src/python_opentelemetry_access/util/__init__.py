@@ -1,11 +1,27 @@
+import asyncio
 from collections.abc import Iterator
-from typing import Optional, Self, Tuple, TypeVar, List, Union, Dict, Generic, override
+from dataclasses import dataclass
+from datetime import timedelta
+from typing import (
+    Any,
+    AsyncIterable,
+    Iterable,
+    Optional,
+    Self,
+    Tuple,
+    TypeVar,
+    List,
+    Union,
+    Dict,
+    Generic,
+    override,
+)
 from itertools import chain, groupby
 
 import opentelemetry_betterproto.opentelemetry.proto.common.v1 as common
 
-from api_utils.exceptions import APIException
-from api_utils.json_api_types import Error
+from python_opentelemetry_access.api_utils.exceptions import APIException
+from python_opentelemetry_access.api_utils.json_api_types import Error
 
 
 class InvalidPageTokenException(APIException):
@@ -133,7 +149,18 @@ def to_otlp_any_value_iter(jval: JSONLikeIter) -> JSONLikeDictIter:
                 [
                     (
                         "arrayValue",
-                        JSONLikeListIter((to_otlp_any_value_iter(x) for x in jval)),
+                        JSONLikeDictIter(
+                            iter(
+                                [
+                                    (
+                                        "values",
+                                        JSONLikeListIter(
+                                            (to_otlp_any_value_iter(x) for x in jval)
+                                        ),
+                                    )
+                                ]
+                            )
+                        ),
                     )
                 ]
             )
@@ -355,19 +382,62 @@ def normalise_attributes_deep(jobj: JSONLikeDict) -> JSONLikeDict:
     )
 
 
+type AttributesFilter = dict[
+    str, Optional[list[str] | list[int] | list[float] | list[bool]]
+]
+"""If some key is None, that means the key must exist, and the value can be anything"""
+
+
 def match_attributes(
-    actual_attributes: JSONLikeDict, expected_attributes: Optional[dict[str, list[str]]]
+    actual_attributes: JSONLikeDict,
+    # spell out the type to avoid circular imports
+    expected_attributes: Optional[AttributesFilter],
 ) -> bool:
     if expected_attributes is None:
         return True
 
+    def attr_to_str(attr: object) -> str:
+        attr = expect_literal(attr)
+        if isinstance(attr, bool):
+            # This is because OpenSearch uses "true" and "false"
+            return str(attr).lower()
+        return str(attr)
+
+    expected_attributes_str = {
+        key: [attr_to_str(value) for value in values] if values is not None else None
+        for key, values in expected_attributes.items()
+    }
+
     normalized_attributes = dict(
         normalise_attributes_shallow_iter(iter_jsonlike_dict(actual_attributes))
     )
+
     return all(
         (
             k in normalized_attributes
-            and str(expect_literal(normalized_attributes[k])) in vs
+            and (vs is None or attr_to_str(normalized_attributes[k]) in vs)
         )
-        for k, vs in expected_attributes.items()
+        for k, vs in expected_attributes_str.items()
     )
+
+
+@dataclass
+class CheckData:
+    span_duration: timedelta
+    attributes: dict[str, Any]
+
+
+async def _async_list[T](
+    async_iterable: AsyncIterable[T],
+) -> Iterable[T]:
+    # TODO: would be nice to return the values as they become available, not accumulate them all first
+    results: list[T] = []
+    async for data in async_iterable:
+        results.append(data)
+    return results
+
+
+def async_to_sync_iterable[T](
+    async_iterable: AsyncIterable[T],
+) -> Iterable[T]:
+    return asyncio.run(_async_list(async_iterable))

@@ -7,8 +7,8 @@ from fastapi.exceptions import RequestValidationError
 from fastapi.openapi.utils import get_openapi
 from fastapi.responses import JSONResponse
 
-from api_utils.exceptions import get_status_code_and_errors
-from api_utils.json_api_types import APIErrorResponse, Error
+from .exceptions import get_status_code_and_errors
+from .json_api_types import APIErrorResponse, Error
 
 
 class JSONAPIResponse(JSONResponse):
@@ -104,12 +104,31 @@ def add_exception_handlers(app: FastAPI) -> None:
     app.add_exception_handler(RequestValidationError, _validation_exception_handler)
 
 
-def set_custom_json_schema(app: FastAPI, title: str, version: str, **args) -> None:
+def set_custom_json_schema(
+    app: FastAPI,
+    title: str,
+    version: str,
+    summary: str | None = None,
+    description: str | None = None,
+) -> None:
     def custom_openapi() -> dict[str, Any]:
         if app.openapi_schema:
             return app.openapi_schema
+
         openapi_schema = get_openapi(
-            title=title, version=version, routes=app.routes, **args
+            title=title,
+            version=version,
+            openapi_version=app.openapi_version,
+            summary=summary,
+            description=description,
+            terms_of_service=app.terms_of_service,
+            contact=app.contact,
+            license_info=app.license_info,
+            routes=app.routes,
+            webhooks=app.webhooks.routes,
+            tags=app.openapi_tags,
+            servers=app.servers,
+            separate_input_output_schemas=app.separate_input_output_schemas,
         )
 
         for _, path_schema in openapi_schema["paths"].items():

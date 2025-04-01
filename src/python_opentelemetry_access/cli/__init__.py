@@ -7,6 +7,7 @@ import python_opentelemetry_access.proxy as proxy_mod
 import python_opentelemetry_access.proxy.opensearch.ss4o as ss4o_proxy
 import python_opentelemetry_access.proxy.rest as rest_proxy
 import python_opentelemetry_access.api as api
+from python_opentelemetry_access.api_utils.api_utils import get_env_var_or_throw
 
 import uvicorn
 from opensearchpy import AsyncOpenSearch
@@ -122,6 +123,7 @@ def convert(infile: Path, outfile: Path, from_: str, to: str) -> None:
 
 def run_proxy(ctx, proxy):
     api.settings._proxy = proxy
+    api.settings._base_url = get_env_var_or_throw("RH_TELEMETRY_API_BASE_URL")
 
     uvicorn.run(
         api.app,

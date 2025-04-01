@@ -1,8 +1,8 @@
 from dataclasses import dataclass
 from abc import ABC, abstractmethod
 from collections.abc import AsyncIterable
-from typing import List, Optional, Tuple, override
-from datetime import datetime
+from typing import Iterable, List, Optional, Tuple, override
+from datetime import datetime, timedelta
 
 import python_opentelemetry_access.base as base
 import python_opentelemetry_access.util as util
@@ -20,9 +20,10 @@ class Proxy(ABC):
         from_time: Optional[datetime] = None,
         to_time: Optional[datetime] = None,
         span_ids: Optional[List[Tuple[Optional[str], Optional[str]]]] = None,
-        resource_attributes: Optional[dict[str, list[str]]] = None,
-        scope_attributes: Optional[dict[str, list[str]]] = None,
-        span_attributes: Optional[dict[str, list[str]]] = None,
+        resource_attributes: Optional[util.AttributesFilter] = None,
+        scope_attributes: Optional[util.AttributesFilter] = None,
+        span_attributes: Optional[util.AttributesFilter] = None,
+        span_name: Optional[str] = None,
         page_token: Optional[PageToken] = None,
     ) -> AsyncIterable[base.SpanCollection | PageToken]:
         # A trick to make the type of the function what I want
@@ -36,9 +37,10 @@ class Proxy(ABC):
         from_time: Optional[datetime] = None,
         to_time: Optional[datetime] = None,
         span_ids: Optional[List[Tuple[Optional[str], Optional[str]]]] = None,
-        resource_attributes: Optional[dict[str, list[str]]] = None,
-        scope_attributes: Optional[dict[str, list[str]]] = None,
-        span_attributes: Optional[dict[str, list[str]]] = None,
+        resource_attributes: Optional[util.AttributesFilter] = None,
+        scope_attributes: Optional[util.AttributesFilter] = None,
+        span_attributes: Optional[util.AttributesFilter] = None,
+        span_name: Optional[str] = None,
         starting_page_token: Optional[PageToken] = None,
     ) -> AsyncIterable[base.SpanCollection]:
         async for spans_or_page_token in self.query_spans_page(
@@ -48,6 +50,7 @@ class Proxy(ABC):
             resource_attributes,
             scope_attributes,
             span_attributes,
+            span_name,
             page_token=starting_page_token,
         ):
             if isinstance(spans_or_page_token, PageToken):
@@ -58,20 +61,59 @@ class Proxy(ABC):
                     resource_attributes,
                     scope_attributes,
                     span_attributes,
+                    span_name,
                     starting_page_token=spans_or_page_token,
                 ):
                     yield spans
             else:
                 yield spans_or_page_token
 
+    async def load_span_data_async(
+        self,
+        span_name: Optional[str] = None,
+        span_attributes: Optional[util.AttributesFilter] = None,
+        *,
+        max_data_age: timedelta,
+    ) -> AsyncIterable[base.ReifiedSpan]:
+        now = datetime.now()
+        async for spanCollection in self.query_spans_async(
+            from_time=now - max_data_age,
+            to_time=now,
+            span_attributes=span_attributes,
+            span_name=span_name,
+        ):
+            for _resource, _scope, span in spanCollection.iter_spans():
+                yield span.to_reified()
+
+    def load_span_data_sync(
+        self,
+        span_name: Optional[str] = None,
+        span_attributes: Optional[util.AttributesFilter] = None,
+        *,
+        max_data_age: timedelta,
+    ) -> Iterable[base.ReifiedSpan]:
+        return util.async_to_sync_iterable(
+            self.load_span_data_async(span_name, span_attributes, max_data_age=max_data_age)
+        )
+
+    # Close connections, release resources and such
+    # aclose is the standard name such methods when they are asynchronous
+    @abstractmethod
+    async def aclose(self) -> None:
+        pass
+
 
 def _match_span(
     span: base.ReifiedSpan,
-    from_time: Optional[datetime] = None,
-    to_time: Optional[datetime] = None,
-    span_ids: Optional[List[Tuple[Optional[str], Optional[str]]]] = None,
-    span_attributes: Optional[dict[str, list[str]]] = None,
+    from_time: Optional[datetime],
+    to_time: Optional[datetime],
+    span_ids: Optional[List[Tuple[Optional[str], Optional[str]]]],
+    span_attributes: Optional[util.AttributesFilter],
+    span_name: Optional[str],
 ) -> bool:
+    if span_name is not None and span.name != span_name:
+        return False
+
     if (
         to_time is not None
         and span.start_time_unix_nano > to_time.timestamp() * 1000000000
@@ -98,15 +140,16 @@ def _match_span(
 
 def _filter_scope_span_collection(
     spans: base.ReifiedScopeSpanCollection,
-    from_time: Optional[datetime] = None,
-    to_time: Optional[datetime] = None,
-    span_ids: Optional[List[Tuple[Optional[str], Optional[str]]]] = None,
-    span_attributes: Optional[dict[str, list[str]]] = None,
+    from_time: Optional[datetime],
+    to_time: Optional[datetime],
+    span_ids: Optional[List[Tuple[Optional[str], Optional[str]]]],
+    span_attributes: Optional[util.AttributesFilter],
+    span_name: Optional[str],
 ) -> base.ReifiedScopeSpanCollection:
     spans.spans = [
         span
         for span in spans.spans
-        if _match_span(span, from_time, to_time, span_ids, span_attributes)
+        if _match_span(span, from_time, to_time, span_ids, span_attributes, span_name)
     ]
 
     return spans
@@ -114,15 +157,16 @@ def _filter_scope_span_collection(
 
 def _filter_resource_span_collection(
     spans: base.ReifiedResourceSpanCollection,
-    from_time: Optional[datetime] = None,
-    to_time: Optional[datetime] = None,
-    span_ids: Optional[List[Tuple[Optional[str], Optional[str]]]] = None,
-    scope_attributes: Optional[dict[str, list[str]]] = None,
-    span_attributes: Optional[dict[str, list[str]]] = None,
+    from_time: Optional[datetime],
+    to_time: Optional[datetime],
+    span_ids: Optional[List[Tuple[Optional[str], Optional[str]]]],
+    scope_attributes: Optional[util.AttributesFilter],
+    span_attributes: Optional[util.AttributesFilter],
+    span_name: Optional[str],
 ) -> base.ReifiedResourceSpanCollection:
     spans.scope_spans = [
         _filter_scope_span_collection(
-            inner_spans, from_time, to_time, span_ids, span_attributes
+            inner_spans, from_time, to_time, span_ids, span_attributes, span_name
         )
         for inner_spans in spans.scope_spans
         if util.match_attributes(
@@ -140,12 +184,13 @@ def _filter_resource_span_collection(
 
 def _filter_span_collection(
     spans: base.ReifiedSpanCollection,
-    from_time: Optional[datetime] = None,
-    to_time: Optional[datetime] = None,
-    span_ids: Optional[List[Tuple[Optional[str], Optional[str]]]] = None,
-    resource_attributes: Optional[dict[str, list[str]]] = None,
-    scope_attributes: Optional[dict[str, list[str]]] = None,
-    span_attributes: Optional[dict[str, list[str]]] = None,
+    from_time: Optional[datetime],
+    to_time: Optional[datetime],
+    span_ids: Optional[List[Tuple[Optional[str], Optional[str]]]],
+    resource_attributes: Optional[util.AttributesFilter],
+    scope_attributes: Optional[util.AttributesFilter],
+    span_attributes: Optional[util.AttributesFilter],
+    span_name: Optional[str],
 ) -> base.ReifiedSpanCollection:
     spans.resource_spans = [
         _filter_resource_span_collection(
@@ -155,6 +200,7 @@ def _filter_span_collection(
             span_ids,
             scope_attributes,
             span_attributes,
+            span_name,
         )
         for inner_spans in spans.resource_spans
         if util.match_attributes(
@@ -180,9 +226,10 @@ class MockProxy(Proxy):
         from_time: Optional[datetime] = None,
         to_time: Optional[datetime] = None,
         span_ids: Optional[List[Tuple[Optional[str], Optional[str]]]] = None,
-        resource_attributes: Optional[dict[str, list[str]]] = None,
-        scope_attributes: Optional[dict[str, list[str]]] = None,
-        span_attributes: Optional[dict[str, list[str]]] = None,
+        resource_attributes: Optional[util.AttributesFilter] = None,
+        scope_attributes: Optional[util.AttributesFilter] = None,
+        span_attributes: Optional[util.AttributesFilter] = None,
+        span_name: Optional[str] = None,
         page_token: Optional[PageToken] = None,
     ) -> AsyncIterable[base.SpanCollection | PageToken]:
         if page_token is not None:
@@ -207,6 +254,7 @@ class MockProxy(Proxy):
             resource_attributes,
             scope_attributes,
             span_attributes,
+            span_name,
         )
 
         new_skip_to = skip_to+self._page_size
@@ -218,3 +266,7 @@ class MockProxy(Proxy):
 
         if remaining > 0:
             yield PageToken(new_skip_to.to_bytes(4, "little", signed=False))
+
+    @override
+    async def aclose(self) -> None:
+        pass
