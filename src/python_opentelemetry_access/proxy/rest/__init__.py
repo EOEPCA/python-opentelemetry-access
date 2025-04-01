@@ -24,28 +24,28 @@ def _query_obj(
     if to_time is not None:
         params.append(("to_time", to_time.isoformat()))
     if resource_attributes:
-        #params.append(*[
-        #    (key, val)
-        #    for key,vals in resource_attributes.items()
-        #    for val in vals
-        #])
-        raise NotImplementedError()
+        for key,vals in resource_attributes.items():
+            if vals is None:
+                params.append(("resource_attributes", key))
+            else:
+                for val in vals:
+                    params.append(("resource_attributes", f"{key}={val}"))
     if scope_attributes:
-        #params.append(*[
-        #    (key, val)
-        #    for key,vals in scope_attributes.items()
-        #    for val in vals
-        #])
-        raise NotImplementedError()
+        for key,vals in scope_attributes.items():
+            if vals is None:
+                params.append(("scope_attributes", key))
+            else:
+                for val in vals:
+                    params.append(("scope_attributes", f"{key}={val}"))
     if span_attributes:
-        #params.append(*[
-        #    (key, val)
-        #    for key,vals in span_attributes.items()
-        #    for val in vals
-        #])
-        raise NotImplementedError()
+        for key,vals in span_attributes.items():
+            if vals is None:
+                params.append(("span_attributes", key))
+            else:
+                for val in vals:
+                    params.append(("span_attributes", f"{key}={val}"))
     if span_name is not None:
-        raise NotImplementedError()
+        params.append(("span_name", span_name))
 
     if page_token is not None:
         params.append(("page_token", page_token))
@@ -209,9 +209,14 @@ class RESTProxy(proxy.Proxy):
                     request.params["page_token"] = remote_token
                 
                 result = self._session.send(request.prepare()).json()
-                yield result["data"]
+                for spans in result["data"]:
+                    yield OTLPJsonSpanCollection(spans["attributes"])
 
                 remote_token = result["meta"]["page"]["next_page_token"]
                 
                 if remote_token is None:
                     break
+
+    @typing.override
+    async def aclose(self) -> None:
+        pass
