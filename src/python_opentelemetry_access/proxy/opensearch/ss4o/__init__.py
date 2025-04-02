@@ -153,7 +153,7 @@ class OpenSearchSS40Proxy(proxy.Proxy):
                 results = {
                     "took": 10,
                     "timed_out": False,
-                    "_shards": {"total": 1, "successful": 1, "skipped": 0, "failed": 0},
+                    "_shards": {"total": 0, "successful": 0, "skipped": 0, "failed": 0},
                     "hits": {
                         "total": {"value": 0, "relation": "eq"},
                         "max_score": None,
