@@ -27,9 +27,11 @@ def raise_error_from_transport_error(
 
     raise APIException(
         Error(
-            status="404" if e.status_code == "N/A" else str(e.status_code),
+            status=str(default_status)
+            if e.status_code == "N/A"
+            else str(e.status_code),
             code=e.error,
-            title="Not Found Error",
+            title=e.__class__.__name__,
             detail=detail,
         )
     )
