@@ -38,7 +38,7 @@ def raise_error_from_transport_error(
 class OpenSearchSS40Proxy(proxy.Proxy):
     def __init__(self, client: AsyncOpenSearch, page_size: int = 100):
         self.client = client
-        self.index_name = "ss4o_traces-default-namespace_TYPO"
+        self.index_name = "ss4o_traces-default-namespace"
         self.page_size = page_size
 
     @override
