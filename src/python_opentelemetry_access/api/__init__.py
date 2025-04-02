@@ -83,9 +83,35 @@ type APIOKResponse = APIOKResponseList[
 ]
 
 
+def convert_value(value: str, exception: APIException) -> str | int | float | bool:
+    if value.startswith('"') and value.endswith('"'):
+        return value[1:-1]
+    try:
+        return int(value)
+    except ValueError:
+        pass
+    try:
+        return float(value)
+    except ValueError:
+        pass
+    if value.lower() == "true":
+        return True
+    if value.lower() == "false":
+        return False
+    raise exception
+
+
 def list_to_dict(values: list[str]) -> util.AttributesFilter:
-    result: dict[str, Optional[list[str]]] = {}
+    result: util.AttributesFilter = {}
     for value in values:
+        exception = APIException(
+            Error(
+                status="400",
+                code="AttributeFilterParameterMalformed",
+                title="Malformed Attribute Filter Parameter",
+                detail=f"""Attribute filter parameter must be of the shape 'my key="my string value"' or 'my key=value' where value is an int, or float, or boolean. '{value}' is of incorrect shape.""",
+            )
+        )
         match value.split("="):
             case [key]:
                 if key not in result:
@@ -100,18 +126,10 @@ def list_to_dict(values: list[str]) -> util.AttributesFilter:
                 cur_values = result[key]
                 if cur_values is None:
                     cur_values = result[key] = []
-                cur_values.append(value)
+                cur_values.append(convert_value(value, exception))
             case _:
-                raise APIException(
-                    Error(
-                        status="400",
-                        code="AttributeFilterParameterMalformed",
-                        title="Malformed Attribute Filter Parameter",
-                        detail=f"Attribute filter parameter must be of the shape 'my awesome key=my awesome value'. '{value}' is of incorrect shape.",
-                    )
-                )
-    # To satisfy Mypy
-    return {key: value for key, value in result.items()}
+                raise exception
+    return result
 
 
 settings = Settings(_proxy=None, _base_url=None)
@@ -327,6 +345,7 @@ async def get_span(
         query_params=query_params,
     )
 
+
 @router.get(
     "/livez",
     status_code=status.HTTP_200_OK,
@@ -334,12 +353,14 @@ async def get_span(
 async def livez() -> str:
     return "OK"
 
+
 @router.get(
     "/readyz",
     status_code=status.HTTP_200_OK,
 )
 async def readyz() -> str:
     return "OK"
+
 
 app.include_router(router)
 

@@ -68,10 +68,16 @@ class OpenSearchSS40Proxy(proxy.Proxy):
             (trace_id, span_id) = span_ids[0]
 
             if trace_id is not None:
-                filter.append({"match": {"traceId": trace_id}})
+                filter.append({"term": {"traceId": trace_id}})
 
             if span_id is not None:
-                filter.append({"match": {"spanId": span_id}})
+                filter.append({"term": {"spanId": span_id}})
+
+        def attribbute_to_filter(
+            key_prefix: str, key: str, value: str | int | float | bool
+        ) -> dict[str, object]:
+            key_suffix = ".keyword" if isinstance(value, str) else ""
+            return {"term": {key_prefix + key + key_suffix: {"value": value}}}
 
         def attributes_to_filters(
             attributes: util.AttributesFilter, key_prefix: str
@@ -84,7 +90,7 @@ class OpenSearchSS40Proxy(proxy.Proxy):
                     case []:
                         pass
                     case [value]:
-                        result.append({"match": {key_prefix + key: value}})
+                        result.append(attribbute_to_filter(key_prefix, key, value))
                     case list(values):
                         result.append(
                             {
@@ -92,7 +98,7 @@ class OpenSearchSS40Proxy(proxy.Proxy):
                                     # should acts as an OR here, as explained in
                                     # https://discuss.elastic.co/t/how-do-i-create-a-boolean-or-filter/282281
                                     "should": [
-                                        {"match": {key_prefix + key: value}}
+                                        attribbute_to_filter(key_prefix, key, value)
                                         for value in values
                                     ]
                                 }
