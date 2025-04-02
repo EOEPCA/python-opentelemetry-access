@@ -28,7 +28,7 @@ class Params:
         Params(
             expected_spans=["res1_scope1_trace1_span1", "res1_scope2_trace1_span1"],
             resource_attributes={
-                "int_resource_attr": ["100"],
+                "int_resource_attr": [100],
                 "string_resource_attr": None,
             },
             span_attributes={"string_span_attr": ["span string 1"]},
@@ -36,14 +36,14 @@ class Params:
         Params(
             expected_spans=[],
             resource_attributes={
-                "int_resource_attr": ["100"],
+                "int_resource_attr": [100],
                 "string_resource_attr_typo": None,
             },
             span_attributes={"string_span_attr": ["span string 1"]},
         ),
         Params(
             expected_spans=["res1_scope1_trace1_span1", "res1_scope2_trace1_span1"],
-            resource_attributes={"int_resource_attr": ["100"]},
+            resource_attributes={"int_resource_attr": [100]},
             span_attributes={"string_span_attr": ["span string 1"]},
         ),
         Params(
@@ -53,7 +53,7 @@ class Params:
                 "res2_scope1_trace1_span1",
             ],
             resource_attributes={
-                "int_resource_attr": ["100", "200"],
+                "int_resource_attr": [100, 200],
                 "string_resource_attr": ["resource string 1", "resource string 2"],
             },
             scope_attributes={"string_scope_attr": ["scope string 1"]},

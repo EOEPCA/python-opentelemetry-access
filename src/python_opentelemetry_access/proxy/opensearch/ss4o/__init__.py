@@ -1,6 +1,6 @@
 import opensearchpy
 from collections.abc import AsyncIterable
-from typing import List, Optional, Tuple, override, assert_never
+from typing import List, Never, Optional, Tuple, override, assert_never
 from datetime import datetime
 from opensearchpy import AsyncOpenSearch
 
@@ -12,6 +12,29 @@ import python_opentelemetry_access.base as base
 import python_opentelemetry_access.opensearch.ss4o as ss4o
 from python_opentelemetry_access.util import InvalidPageTokenException
 import python_opentelemetry_access.proxy as proxy
+
+
+def raise_error_from_transport_error(
+    e: opensearchpy.TransportError, default_status: int
+) -> Never:
+    match e.info:
+        case Exception():
+            detail = repr(e.info)
+        case {"error": {"root_cause": [{"reason": reason}]}}:
+            detail = reason
+        case _:
+            detail = e.error
+
+    raise APIException(
+        Error(
+            status=str(default_status)
+            if e.status_code == "N/A"
+            else str(e.status_code),
+            code=e.error,
+            title=e.__class__.__name__,
+            detail=detail,
+        )
+    )
 
 
 class OpenSearchSS40Proxy(proxy.Proxy):
@@ -47,10 +70,16 @@ class OpenSearchSS40Proxy(proxy.Proxy):
             (trace_id, span_id) = span_ids[0]
 
             if trace_id is not None:
-                filter.append({"match": {"traceId": trace_id}})
+                filter.append({"term": {"traceId": trace_id}})
 
             if span_id is not None:
-                filter.append({"match": {"spanId": span_id}})
+                filter.append({"term": {"spanId": span_id}})
+
+        def attribbute_to_filter(
+            key_prefix: str, key: str, value: str | int | float | bool
+        ) -> dict[str, object]:
+            key_suffix = ".keyword" if isinstance(value, str) else ""
+            return {"term": {key_prefix + key + key_suffix: {"value": value}}}
 
         def attributes_to_filters(
             attributes: util.AttributesFilter, key_prefix: str
@@ -63,7 +92,7 @@ class OpenSearchSS40Proxy(proxy.Proxy):
                     case []:
                         pass
                     case [value]:
-                        result.append({"match": {key_prefix + key: value}})
+                        result.append(attribbute_to_filter(key_prefix, key, value))
                     case list(values):
                         result.append(
                             {
@@ -71,7 +100,7 @@ class OpenSearchSS40Proxy(proxy.Proxy):
                                     # should acts as an OR here, as explained in
                                     # https://discuss.elastic.co/t/how-do-i-create-a-boolean-or-filter/282281
                                     "should": [
-                                        {"match": {key_prefix + key: value}}
+                                        attribbute_to_filter(key_prefix, key, value)
                                         for value in values
                                     ]
                                 }
@@ -114,47 +143,33 @@ class OpenSearchSS40Proxy(proxy.Proxy):
                 raise InvalidPageTokenException.create()
             q["search_after"] = [token]
 
-        # results = await self.client.search(body=q, index=self.index_name)
         try:
             results = await self.client.search(body=q, index=self.index_name)
+
         # Don't want to turn all connection exceptions to something visible to the end user
         # to not expose implementation details and things that might be secret
         except opensearchpy.AuthenticationException as e:
-            raise APIException(
-                Error(
-                    status="401" if e.status_code == "N/A" else str(e.status_code),
-                    code=e.__class__.__name__,
-                    title="Authentication Exception",
-                    detail=e.error,
-                )
-            )
+            raise_error_from_transport_error(e, 401)
         except opensearchpy.AuthorizationException as e:
-            raise APIException(
-                Error(
-                    status="403" if e.status_code == "N/A" else str(e.status_code),
-                    code=e.__class__.__name__,
-                    title="Authorization Exception",
-                    detail=e.error,
-                )
-            )
+            raise_error_from_transport_error(e, 403)
         except opensearchpy.ConnectionTimeout as e:
-            raise APIException(
-                Error(
-                    status="500" if e.status_code == "N/A" else str(e.status_code),
-                    code=e.__class__.__name__,
-                    title="Connection Timeout",
-                    detail=e.error,
-                )
-            )
+            raise_error_from_transport_error(e, 500)
         except opensearchpy.NotFoundError as e:
-            raise APIException(
-                Error(
-                    status="404" if e.status_code == "N/A" else str(e.status_code),
-                    code=e.__class__.__name__,
-                    title="Not Found Error",
-                    detail=e.error,
-                )
-            )
+            # At least for now a non-existent index is considered empty
+            if e.error == "index_not_found_exception":
+                # TODO: do we to put these hardcoded things in here just to keep the format consistent?
+                results = {
+                    "took": 10,
+                    "timed_out": False,
+                    "_shards": {"total": 0, "successful": 0, "skipped": 0, "failed": 0},
+                    "hits": {
+                        "total": {"value": 0, "relation": "eq"},
+                        "max_score": None,
+                        "hits": [],
+                    },
+                }
+            else:
+                raise_error_from_transport_error(e, 404)
 
         ## There should be a more clever way of doing this, but
         ## we cannot rely on results['hits']['total']['value'], since

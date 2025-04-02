@@ -382,9 +382,7 @@ def normalise_attributes_deep(jobj: JSONLikeDict) -> JSONLikeDict:
     )
 
 
-type AttributesFilter = dict[
-    str, Optional[list[str] | list[int] | list[float] | list[bool]]
-]
+type AttributesFilter = dict[str, Optional[list[str | int | float | bool]]]
 """If some key is None, that means the key must exist, and the value can be anything"""
 
 
@@ -396,28 +394,13 @@ def match_attributes(
     if expected_attributes is None:
         return True
 
-    def attr_to_str(attr: object) -> str:
-        attr = expect_literal(attr)
-        if isinstance(attr, bool):
-            # This is because OpenSearch uses "true" and "false"
-            return str(attr).lower()
-        return str(attr)
-
-    expected_attributes_str = {
-        key: [attr_to_str(value) for value in values] if values is not None else None
-        for key, values in expected_attributes.items()
-    }
-
     normalized_attributes = dict(
         normalise_attributes_shallow_iter(iter_jsonlike_dict(actual_attributes))
     )
 
     return all(
-        (
-            k in normalized_attributes
-            and (vs is None or attr_to_str(normalized_attributes[k]) in vs)
-        )
-        for k, vs in expected_attributes_str.items()
+        k in normalized_attributes and (vs is None or normalized_attributes[k] in vs)
+        for k, vs in expected_attributes.items()
     )
 
 
