@@ -1,6 +1,6 @@
 import opensearchpy
 from collections.abc import AsyncIterable
-from typing import List, Optional, Tuple, override, assert_never
+from typing import List, Never, Optional, Tuple, override, assert_never
 from datetime import datetime
 from opensearchpy import AsyncOpenSearch
 
@@ -14,10 +14,31 @@ from python_opentelemetry_access.util import InvalidPageTokenException
 import python_opentelemetry_access.proxy as proxy
 
 
+def raise_error_from_transport_error(
+    e: opensearchpy.TransportError, default_status: int
+) -> Never:
+    match e.info:
+        case Exception():
+            detail = repr(e.info)
+        case {"error": {"root_cause": [{"reason": reason}]}}:
+            detail = reason
+        case _:
+            detail = e.error
+
+    raise APIException(
+        Error(
+            status="404" if e.status_code == "N/A" else str(e.status_code),
+            code=e.error,
+            title="Not Found Error",
+            detail=detail,
+        )
+    )
+
+
 class OpenSearchSS40Proxy(proxy.Proxy):
     def __init__(self, client: AsyncOpenSearch, page_size: int = 100):
         self.client = client
-        self.index_name = "ss4o_traces-default-namespace"
+        self.index_name = "ss4o_traces-default-namespace_TYPO"
         self.page_size = page_size
 
     @override
@@ -114,47 +135,33 @@ class OpenSearchSS40Proxy(proxy.Proxy):
                 raise InvalidPageTokenException.create()
             q["search_after"] = [token]
 
-        # results = await self.client.search(body=q, index=self.index_name)
         try:
             results = await self.client.search(body=q, index=self.index_name)
+
         # Don't want to turn all connection exceptions to something visible to the end user
         # to not expose implementation details and things that might be secret
         except opensearchpy.AuthenticationException as e:
-            raise APIException(
-                Error(
-                    status="401" if e.status_code == "N/A" else str(e.status_code),
-                    code=e.__class__.__name__,
-                    title="Authentication Exception",
-                    detail=e.error,
-                )
-            )
+            raise_error_from_transport_error(e, 401)
         except opensearchpy.AuthorizationException as e:
-            raise APIException(
-                Error(
-                    status="403" if e.status_code == "N/A" else str(e.status_code),
-                    code=e.__class__.__name__,
-                    title="Authorization Exception",
-                    detail=e.error,
-                )
-            )
+            raise_error_from_transport_error(e, 403)
         except opensearchpy.ConnectionTimeout as e:
-            raise APIException(
-                Error(
-                    status="500" if e.status_code == "N/A" else str(e.status_code),
-                    code=e.__class__.__name__,
-                    title="Connection Timeout",
-                    detail=e.error,
-                )
-            )
+            raise_error_from_transport_error(e, 500)
         except opensearchpy.NotFoundError as e:
-            raise APIException(
-                Error(
-                    status="404" if e.status_code == "N/A" else str(e.status_code),
-                    code=e.__class__.__name__,
-                    title="Not Found Error",
-                    detail=e.error,
-                )
-            )
+            # At least for now a non-existent index is considered empty
+            if e.error == "index_not_found_exception":
+                # TODO: do we to put these hardcoded things in here just to keep the format consistent?
+                results = {
+                    "took": 10,
+                    "timed_out": False,
+                    "_shards": {"total": 1, "successful": 1, "skipped": 0, "failed": 0},
+                    "hits": {
+                        "total": {"value": 0, "relation": "eq"},
+                        "max_score": None,
+                        "hits": [],
+                    },
+                }
+            else:
+                raise_error_from_transport_error(e, 404)
 
         ## There should be a more clever way of doing this, but
         ## we cannot rely on results['hits']['total']['value'], since
