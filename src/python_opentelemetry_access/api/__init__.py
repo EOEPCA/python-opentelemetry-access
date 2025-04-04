@@ -3,6 +3,7 @@ from typing import Optional, Annotated, List, Tuple
 from dataclasses import dataclass
 from fastapi import FastAPI, Query, Request, Response, status
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.middleware.gzip import GZipMiddleware
 from pydantic import BaseModel, Field
 import base64
 from datetime import datetime
@@ -251,6 +252,11 @@ app.add_middleware(
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
+)
+app.add_middleware(
+    GZipMiddleware,
+    minimum_size=1000,
+    compresslevel=9
 )
 add_exception_handlers(app)
 
