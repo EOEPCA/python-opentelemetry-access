@@ -197,8 +197,10 @@ def opensearch_ss4o(
         hosts=[{"host": oshost, "port": osport}], use_ssl=True, **opensearch_params
     )
 
+
+
     try:
-        proxy = ss4o_proxy.OpenSearchSS40Proxy(client)
+        proxy = ss4o_proxy.OpenSearchSS40Proxy(client, page_size=environ.get("RH_TELEMETRY_API_PAGE_SIZE") or 400)
         run_proxy(ctx, proxy)
     finally:
         asyncio.run(client.close())
