@@ -90,6 +90,11 @@ and/or mTLS
 ```
 $ RH_TELEMETRY_API_BASE_URL=http://127.0.0.1:12345 python -m python_opentelemetry_access proxy --host 0.0.0.0 --port 12345 opensearch-ss4o --oshost=... --osport=... --ca_certs=... --client_cert=... --client_key=...
 ```
+Alternatively the OpenSearch configuration can be set in a callback hook, which is useful, for example,
+if the credentials depend on authentication credentials contained in the incoming request. See [example_hooks](./example_hooks/) for examples.
+```
+$ RH_TELEMETRY_HOOK_DIR_PATH=./example_hooks/oidc_auth RH_TELEMETRY_API_BASE_URL=http://127.0.0.1:12345 python -m python_opentelemetry_access proxy --host 0.0.0.0 --port 12345 opensearch-ss4o
+``` 
 
 For example:
 ```

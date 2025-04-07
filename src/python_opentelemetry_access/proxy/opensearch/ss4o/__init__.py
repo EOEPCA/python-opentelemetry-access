@@ -1,7 +1,9 @@
 import opensearchpy
 from collections.abc import AsyncIterable
-from typing import List, Never, Optional, Tuple, override, assert_never
+from typing import List, Never, Optional, Tuple, override, assert_never, Any
 from datetime import datetime
+import os
+
 from opensearchpy import AsyncOpenSearch
 
 from python_opentelemetry_access import util
@@ -12,6 +14,8 @@ import python_opentelemetry_access.base as base
 import python_opentelemetry_access.opensearch.ss4o as ss4o
 from python_opentelemetry_access.util import InvalidPageTokenException
 import python_opentelemetry_access.proxy as proxy
+
+from python_opentelemetry_access.telemetry_hooks import Hook, run_hook_async
 
 
 def raise_error_from_transport_error(
@@ -37,15 +41,22 @@ def raise_error_from_transport_error(
     )
 
 
+GET_OPENSEARCH_CONFIG_HOOK_NAME = (
+    os.environ.get("RH_TELEMETRY_GET_OPENSEARCH_CONFIG_HOOK_NAME")
+    or "get_opensearch_config"
+)
+
+
 class OpenSearchSS40Proxy(proxy.Proxy):
-    def __init__(self, client: AsyncOpenSearch, page_size: int = 100):
-        self.client = client
+    def __init__(self, hooks: dict[str, Hook], page_size: int = 100):
+        self.hooks = hooks
         self.index_name = "ss4o_traces-default-namespace"
         self.page_size = page_size
 
     @override
     async def query_spans_page(
         self,
+        auth_info: Any,
         from_time: Optional[datetime] = None,
         to_time: Optional[datetime] = None,
         span_ids: Optional[List[Tuple[Optional[str], Optional[str]]]] = None,
@@ -143,9 +154,22 @@ class OpenSearchSS40Proxy(proxy.Proxy):
                 raise InvalidPageTokenException.create()
             q["search_after"] = [token]
 
-        try:
-            results = await self.client.search(body=q, index=self.index_name)
+        if GET_OPENSEARCH_CONFIG_HOOK_NAME not in self.hooks:
+            raise ValueError(
+                f"Must set hook {GET_OPENSEARCH_CONFIG_HOOK_NAME} ($GET_OPENSEARCH_CONFIG_HOOK_NAME) when using the OpenSearch backend"
+            )
 
+        client_config = await run_hook_async(
+            self.hooks[GET_OPENSEARCH_CONFIG_HOOK_NAME], auth_info
+        )
+
+        try:
+            client = AsyncOpenSearch(**client_config)
+            results = await client.search(
+                body=q,
+                index=self.index_name,
+                headers=client_config.get("extra_headers"),
+            )
         # Don't want to turn all connection exceptions to something visible to the end user
         # to not expose implementation details and things that might be secret
         except opensearchpy.AuthenticationException as e:
@@ -170,6 +194,8 @@ class OpenSearchSS40Proxy(proxy.Proxy):
                 }
             else:
                 raise_error_from_transport_error(e, 404)
+        finally:
+            await client.close()
 
         ## There should be a more clever way of doing this, but
         ## we cannot rely on results['hits']['total']['value'], since
@@ -190,4 +216,4 @@ class OpenSearchSS40Proxy(proxy.Proxy):
 
     @override
     async def aclose(self) -> None:
-        await self.client.close()
+        pass

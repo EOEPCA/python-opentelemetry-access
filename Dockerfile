@@ -15,7 +15,7 @@ COPY --from=build /app/.venv /app/.venv
 
 EXPOSE 8080
 
-ENTRYPOINT ["/app/.venv/bin/python"]
+ENTRYPOINT ["/app/.venv/bin/python", "-m", "python_opentelemetry_access"]
 
 #CMD ["-m", "python_opentelemetry_access", "proxy", "--host", "0.0.0.0", "--port", "8080", "opensearch-ss4o", "--oshost", ""${OPENSEARCH_HOST}"", "--osport", ""${OPENSEARCH_PORT}"", "--ca_certs", "/certs/ca.crt", "--client_cert", "/certs/tls.crt", "--client_key", "/certs/tls.key"]
-CMD ["-m", "python_opentelemetry_access", "proxy","--host", "0.0.0.0", "--port", "8080", "opensearch-ss4o", "--oshost", "opensearch-cluster-master-headless", "--osport", "9200", "--ca_certs", "/certs/ca.crt", "--client_cert", "/certs/tls.crt", "--client_key", "/certs/tls.key"]
+CMD ["proxy","--host", "0.0.0.0", "--port", "8080", "opensearch-ss4o"]

@@ -1,12 +1,15 @@
 import binascii
-from typing import Optional, Annotated, List, Tuple
+from typing import Optional, Annotated, List, Tuple, Any, Callable
 from dataclasses import dataclass
-from fastapi import FastAPI, Query, Request, Response, status
+from fastapi import FastAPI, Query, Request, Response, status, Depends
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.gzip import GZipMiddleware
 from pydantic import BaseModel, Field
 import base64
 from datetime import datetime
+import os
+
+from python_opentelemetry_access.telemetry_hooks import Hook, load_hooks, run_hook_async
 
 from python_opentelemetry_access.api_utils.api_utils import (
     JSONAPIResponse,
@@ -135,8 +138,24 @@ def list_to_dict(values: list[str]) -> util.AttributesFilter:
 
 settings = Settings(_proxy=None, _base_url=None)
 
+GET_FASTAPI_SECURITY_HOOK_NAME = (
+    os.environ.get("RH_TELEMETRY_GET_FASTAPI_SECURITY_HOOK_NAME")
+    or "get_fastapi_security"
+)
+ON_AUTH_HOOK_NAME = os.environ.get("RH_TELEMETRY_ON_AUTH_HOOK_NAME") or "on_auth"
+
+loaded_hooks: dict[str, Hook] = load_hooks()
+if GET_FASTAPI_SECURITY_HOOK_NAME in loaded_hooks:
+    security_scheme: Callable[[], Any] = loaded_hooks[GET_FASTAPI_SECURITY_HOOK_NAME]()
+
+else:
+
+    def security_scheme() -> Any:
+        return None
+
 
 async def run_query(
+    auth_info: Any,
     request: Request,
     path: str,
     span_ids: Optional[List[Tuple[Optional[str], Optional[str]]]],
@@ -171,6 +190,7 @@ async def run_query(
 
     for page_token in page_tokens:
         async for res in settings.proxy.query_spans_page(
+            auth_info=auth_info,
             span_ids=span_ids,
             from_time=query_params.from_time,
             to_time=query_params.to_time,
@@ -253,11 +273,7 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
-app.add_middleware(
-    GZipMiddleware,
-    minimum_size=1000,
-    compresslevel=9
-)
+app.add_middleware(GZipMiddleware, minimum_size=1000, compresslevel=9)
 add_exception_handlers(app)
 
 router = get_api_router_with_defaults()
@@ -270,7 +286,12 @@ router = get_api_router_with_defaults()
     response_model_exclude_unset=True,
     response_class=JSONAPIResponse,
 )
-async def root(request: Request) -> APIOKResponseList[None, None]:
+async def root(
+    auth_info: Annotated[Any, Depends(security_scheme)], request: Request
+) -> APIOKResponseList[None, None]:
+    if ON_AUTH_HOOK_NAME in loaded_hooks:
+        auth_info = await run_hook_async(loaded_hooks[ON_AUTH_HOOK_NAME], auth_info)
+
     return APIOKResponseList[None, None](
         data=[
             JSONAPIResource[None](
@@ -303,11 +324,17 @@ async def root(request: Request) -> APIOKResponseList[None, None]:
     response_model_exclude_unset=True,
 )
 async def get_spans(
-    request: Request, response: Response, query_params: Annotated[QueryParams, Query()]
+    auth_info: Annotated[Any, Depends(security_scheme)],
+    request: Request,
+    response: Response,
+    query_params: Annotated[QueryParams, Query()],
 ) -> APIOKResponse:
+    if ON_AUTH_HOOK_NAME in loaded_hooks:
+        auth_info = await run_hook_async(loaded_hooks[ON_AUTH_HOOK_NAME], auth_info)
+
     response.headers["Allow"] = "GET"
     return await run_query(
-        request, path="/v1/spans", span_ids=None, query_params=query_params
+        auth_info, request, path="/v1/spans", span_ids=None, query_params=query_params
     )
 
 
@@ -317,13 +344,18 @@ async def get_spans(
     response_model_exclude_unset=True,
 )
 async def get_trace(
+    auth_info: Annotated[Any, Depends(security_scheme)],
     request: Request,
     response: Response,
     trace_id: str,
     query_params: Annotated[QueryParams, Query()],
 ) -> APIOKResponse:
+    if ON_AUTH_HOOK_NAME in loaded_hooks:
+        auth_info = await run_hook_async(loaded_hooks[ON_AUTH_HOOK_NAME], auth_info)
+
     response.headers["Allow"] = "GET"
     return await run_query(
+        auth_info,
         request,
         path="/v1/spans/{trace_id}",
         span_ids=[(trace_id, None)],
@@ -337,14 +369,19 @@ async def get_trace(
     response_model_exclude_unset=True,
 )
 async def get_span(
+    auth_info: Annotated[Any, Depends(security_scheme)],
     request: Request,
     response: Response,
     trace_id: str,
     span_id: str,
     query_params: Annotated[QueryParams, Query()],
 ) -> APIOKResponse:
+    if ON_AUTH_HOOK_NAME in loaded_hooks:
+        auth_info = await run_hook_async(loaded_hooks[ON_AUTH_HOOK_NAME], auth_info)
+
     response.headers["Allow"] = "GET"
     return await run_query(
+        auth_info,
         request,
         path="/v1/spans/{trace_id}/{span_id}",
         span_ids=[(trace_id, span_id)],

@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 from abc import ABC, abstractmethod
 from collections.abc import AsyncIterable
-from typing import Iterable, List, Optional, Tuple, override
+from typing import Iterable, List, Optional, Tuple, override, Any
 from datetime import datetime, timedelta
 
 import python_opentelemetry_access.base as base
@@ -17,6 +17,7 @@ class Proxy(ABC):
     @abstractmethod
     async def query_spans_page(
         self,
+        auth_info: Any,
         from_time: Optional[datetime] = None,
         to_time: Optional[datetime] = None,
         span_ids: Optional[List[Tuple[Optional[str], Optional[str]]]] = None,
@@ -34,6 +35,7 @@ class Proxy(ABC):
 
     async def query_spans_async(
         self,
+        auth_info: Any,
         from_time: Optional[datetime] = None,
         to_time: Optional[datetime] = None,
         span_ids: Optional[List[Tuple[Optional[str], Optional[str]]]] = None,
@@ -44,6 +46,7 @@ class Proxy(ABC):
         starting_page_token: Optional[PageToken] = None,
     ) -> AsyncIterable[base.SpanCollection]:
         async for spans_or_page_token in self.query_spans_page(
+            auth_info,
             from_time,
             to_time,
             span_ids,
@@ -55,6 +58,7 @@ class Proxy(ABC):
         ):
             if isinstance(spans_or_page_token, PageToken):
                 async for spans in self.query_spans_async(
+                    auth_info,
                     from_time,
                     to_time,
                     span_ids,
@@ -70,6 +74,7 @@ class Proxy(ABC):
 
     async def load_span_data_async(
         self,
+        auth_info: Any,
         span_name: Optional[str] = None,
         span_attributes: Optional[util.AttributesFilter] = None,
         *,
@@ -77,6 +82,7 @@ class Proxy(ABC):
     ) -> AsyncIterable[base.ReifiedSpan]:
         now = datetime.now()
         async for spanCollection in self.query_spans_async(
+            auth_info,
             from_time=now - max_data_age,
             to_time=now,
             span_attributes=span_attributes,
@@ -87,13 +93,16 @@ class Proxy(ABC):
 
     def load_span_data_sync(
         self,
+        auth_info: Any,
         span_name: Optional[str] = None,
         span_attributes: Optional[util.AttributesFilter] = None,
         *,
         max_data_age: timedelta,
     ) -> Iterable[base.ReifiedSpan]:
         return util.async_to_sync_iterable(
-            self.load_span_data_async(span_name, span_attributes, max_data_age=max_data_age)
+            self.load_span_data_async(
+                auth_info, span_name, span_attributes, max_data_age=max_data_age
+            )
         )
 
     # Close connections, release resources and such
@@ -222,6 +231,7 @@ class MockProxy(Proxy):
     @override
     async def query_spans_page(
         self,
+        auth_info: Any,
         from_time: Optional[datetime] = None,
         to_time: Optional[datetime] = None,
         span_ids: Optional[List[Tuple[Optional[str], Optional[str]]]] = None,

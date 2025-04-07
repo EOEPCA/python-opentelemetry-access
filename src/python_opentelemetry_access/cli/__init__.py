@@ -8,15 +8,20 @@ import python_opentelemetry_access.proxy.opensearch.ss4o as ss4o_proxy
 import python_opentelemetry_access.api as api
 from python_opentelemetry_access.api_utils.api_utils import get_env_var_or_throw
 
-import uvicorn
-from opensearchpy import AsyncOpenSearch
+from python_opentelemetry_access.telemetry_hooks import load_hooks, Hook
+from python_opentelemetry_access.telemetry_hooks.utils import OpensearchConfig
 
-from typing import Optional
-import asyncio
+import uvicorn
+# from opensearchpy import AsyncOpenSearch
+
+from typing import Optional, Any
+
+# import asyncio
 import logging
 from os import environ
 from pathlib import Path
 from sys import stdin, stdout
+import os
 
 import click
 
@@ -120,9 +125,10 @@ def convert(infile: Path, outfile: Path, from_: str, to: str) -> None:
                 writer(rep, f)
 
 
-def run_proxy(ctx, proxy):
+def run_proxy(ctx: Any, proxy: proxy_mod.Proxy, hooks: dict[str, Hook]) -> None:
     api.settings._proxy = proxy
     api.settings._base_url = get_env_var_or_throw("RH_TELEMETRY_API_BASE_URL")
+    api.settings._hooks = hooks
 
     uvicorn.run(
         api.app,
@@ -157,7 +163,7 @@ def mock(ctx, file) -> None:
     with open(file, "r") as f:
         this_proxy = proxy_mod.MockProxy(otlpjson.load(f))
 
-    run_proxy(ctx, this_proxy)
+    run_proxy(ctx, this_proxy, hooks=load_hooks())
 
 
 @proxy.command()
@@ -171,36 +177,47 @@ def mock(ctx, file) -> None:
 @click.pass_context
 def opensearch_ss4o(
     ctx,
-    oshost: str,
-    osport: str,
+    oshost: Optional[str],
+    osport: Optional[str],
     osuser: Optional[str],
     ospass: Optional[str],
-    ca_certs: click.Path(exists=True, path_type=Path, allow_dash=False),
-    client_cert: click.Path(exists=True, path_type=Path, allow_dash=False),
-    client_key: click.Path(exists=True, path_type=Path, allow_dash=False),
+    ca_certs: Optional[click.Path(exists=True, path_type=Path, allow_dash=False)],
+    client_cert: Optional[click.Path(exists=True, path_type=Path, allow_dash=False)],
+    client_key: Optional[click.Path(exists=True, path_type=Path, allow_dash=False)],
 ) -> None:
-    opensearch_params = {"verify_certs": False, "ssl_show_warn": False}
-
-    if osuser is not None and ospass is not None:
-        opensearch_params["http_auth"] = (osuser, ospass)
-    if ca_certs is not None:
-        opensearch_params["ca_certs"] = str(ca_certs)
-        opensearch_params.update({"verify_certs": True, "ssl_show_warn": True})
-    if client_cert is not None:
-        opensearch_params["client_cert"] = str(client_cert)
-        opensearch_params.update({"verify_certs": True, "ssl_show_warn": True})
-    if client_key is not None:
-        opensearch_params["client_key"] = str(client_key)
-        opensearch_params.update({"verify_certs": True, "ssl_show_warn": True})
-
-    client = AsyncOpenSearch(
-        hosts=[{"host": oshost, "port": osport}], use_ssl=True, **opensearch_params
+    hooks = load_hooks()
+    GET_OPENSEARCH_CONFIG_HOOK_NAME = (
+        os.environ.get("RH_TELEMETRY_GET_OPENSEARCH_CONFIG_HOOK_NAME")
+        or "get_opensearch_config"
     )
 
+    if oshost is not None and GET_OPENSEARCH_CONFIG_HOOK_NAME not in hooks:
 
+        def get_opensearch_config(userinfo: Any) -> OpensearchConfig:
+            opensearch_params = OpensearchConfig(
+                hosts=[{"host": oshost, "port": osport}],
+                verify_certs=False,
+                ssl_show_warn=False,
+                use_ssl=True,
+            )
 
-    try:
-        proxy = ss4o_proxy.OpenSearchSS40Proxy(client, page_size=environ.get("RH_TELEMETRY_API_PAGE_SIZE") or 400)
-        run_proxy(ctx, proxy)
-    finally:
-        asyncio.run(client.close())
+            if osuser is not None and ospass is not None:
+                opensearch_params["http_auth"] = (osuser, ospass)
+            if ca_certs is not None:
+                opensearch_params["ca_certs"] = str(ca_certs)
+                opensearch_params.update({"verify_certs": True, "ssl_show_warn": True})
+            if client_cert is not None:
+                opensearch_params["client_cert"] = str(client_cert)
+                opensearch_params.update({"verify_certs": True, "ssl_show_warn": True})
+            if client_key is not None:
+                opensearch_params["client_key"] = str(client_key)
+                opensearch_params.update({"verify_certs": True, "ssl_show_warn": True})
+
+            return opensearch_params
+
+        hooks[GET_OPENSEARCH_CONFIG_HOOK_NAME] = get_opensearch_config
+
+    proxy = ss4o_proxy.OpenSearchSS40Proxy(
+        hooks, page_size=environ.get("RH_TELEMETRY_API_PAGE_SIZE") or 400
+    )
+    run_proxy(ctx, proxy, hooks)
