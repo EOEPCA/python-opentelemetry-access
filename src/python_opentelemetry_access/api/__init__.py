@@ -264,11 +264,14 @@ async def run_query(
 
 
 app = FastAPI()
-app.add_middleware(
-    CORSMiddleware,
-    # Might need to replace allow_origins=["*"] with the below line, as was done in CheckManager
-    # allow_origin_regex=".*",
-    allow_origins=["*"],
+# A solution to make CORS headers appear in error responses too, based on
+# https://github.com/fastapi/fastapi/discussions/8027#discussioncomment-5146484
+wrapped_app = CORSMiddleware(
+    app=app,
+    allow_origin_regex=".*",
+    # Even though the below allows all things too, it disables returns Access-Control-Allow-Origin=* in the header
+    # and borwsers don't allow to use that with withCredentials=True
+    # allow_origins=["*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

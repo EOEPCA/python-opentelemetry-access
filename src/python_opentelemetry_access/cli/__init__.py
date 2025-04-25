@@ -131,7 +131,7 @@ def run_proxy(ctx: Any, proxy: proxy_mod.Proxy, hooks: dict[str, Hook]) -> None:
     api.settings._hooks = hooks
 
     uvicorn.run(
-        api.app,
+        api.wrapped_app,
         host=ctx.obj.get("host") or "127.0.0.1",
         port=ctx.obj.get("port") or 12345,
         reload=False,
