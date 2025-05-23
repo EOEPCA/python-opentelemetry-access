@@ -1,8 +1,4 @@
-from python_opentelemetry_access.telemetry_hooks.utils import (
-    APIException,
-    Error,
-    OpensearchConfig,
-)
+import python_opentelemetry_access.telemetry_hooks.utils as th
 
 from eoepca_security import OIDCProxyScheme, Tokens
 from typing import TypedDict
@@ -31,8 +27,8 @@ def on_auth(tokens: Tokens | None) -> UserInfo:
     print("ON AUTH")
 
     if tokens is None or tokens["auth"] is None:
-        raise APIException(
-            Error(
+        raise th.APIException(
+            th.Error(
                 status="403",
                 code="MissingTokens",
                 title="Missing authentication token",
@@ -55,8 +51,8 @@ def on_auth(tokens: Tokens | None) -> UserInfo:
 ## For the OpenSearch proxy/backend
 
 
-def get_opensearch_config(userinfo: UserInfo) -> OpensearchConfig:
-    return OpensearchConfig(
+def get_opensearch_config(userinfo: UserInfo) -> th.OpensearchConfig:
+    return th.OpensearchConfig(
         ## Host to connect to
         # hosts=[{"host": "localhost", "port": 9200}],
         hosts=[{"host": "opensearch-cluster-master-headless", "port": 9200}],
