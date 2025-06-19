@@ -217,9 +217,11 @@ def opensearch_ss4o(
 
         hooks[GET_OPENSEARCH_CONFIG_HOOK_NAME] = get_opensearch_config
 
+    default_page_size_str = environ.get("RH_TELEMETRY_API_DEFAULT_PAGE_SIZE")
+    max_page_size_str = environ.get("RH_TELEMETRY_API_MAX_PAGE_SIZE")
     proxy = ss4o_proxy.OpenSearchSS40Proxy(
         hooks,
-        default_page_size=environ.get("RH_TELEMETRY_API_DEFAULT_PAGE_SIZE") or 100,
-        max_page_size=environ.get("RH_TELEMETRY_API_MAX_PAGE_SIZE") or 10000,
+        default_page_size=int(default_page_size_str) if default_page_size_str else 100,
+        max_page_size=int(max_page_size_str) if max_page_size_str else 10000,
     )
     run_proxy(ctx, proxy, hooks)
