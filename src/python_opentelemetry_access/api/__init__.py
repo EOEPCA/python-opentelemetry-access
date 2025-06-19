@@ -69,6 +69,7 @@ class QueryParams(BaseModel):
     ## Pagination parameters
     ## TODO: (Maybe?) expand this with max_results hint
 
+    page_size: Optional[int] = Field(None, gt=0)
     ## NOTE: Should be Optional[Base64Bytes], but this makes /docs
     ##       add a file upload field...
     page_token: Optional[str] = Field(None)
@@ -198,6 +199,7 @@ async def run_query(
             scope_attributes=scope_attributes,
             span_attributes=span_attributes,
             span_name=query_params.span_name,
+            page_size=query_params.page_size,
             page_token=page_token,
         ):
             if isinstance(res, proxy.PageToken):

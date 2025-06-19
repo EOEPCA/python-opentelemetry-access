@@ -48,10 +48,13 @@ GET_OPENSEARCH_CONFIG_HOOK_NAME = (
 
 
 class OpenSearchSS40Proxy(proxy.Proxy):
-    def __init__(self, hooks: dict[str, Hook], page_size: int = 100):
+    def __init__(
+        self, hooks: dict[str, Hook], default_page_size: int, max_page_size: int
+    ) -> None:
         self.hooks = hooks
         self.index_name = "ss4o_traces-default-namespace"
-        self.page_size = page_size
+        self.default_page_size = default_page_size
+        self.max_page_size = max_page_size
 
     @override
     async def query_spans_page(
@@ -64,8 +67,16 @@ class OpenSearchSS40Proxy(proxy.Proxy):
         scope_attributes: Optional[util.AttributesFilter] = None,
         span_attributes: Optional[util.AttributesFilter] = None,
         span_name: Optional[str] = None,
+        page_size: Optional[int] | None = None,
         page_token: Optional[proxy.PageToken] = None,
     ) -> AsyncIterable[base.SpanCollection | proxy.PageToken]:
+        if page_size is None:
+            page_size = self.default_page_size
+        if page_size < 1:
+            page_size = 1
+        if page_size > self.max_page_size:
+            page_size = self.max_page_size
+
         filter: list[object] = []
         if from_time is not None:
             filter.append({"range": {"startTime": {"gte": from_time.isoformat()}}})
@@ -135,8 +146,8 @@ class OpenSearchSS40Proxy(proxy.Proxy):
         if span_name is not None:
             filter.append({"term": {"name.keyword": {"value": span_name}}})
 
-        q = {
-            "size": self.page_size,
+        q: dict[str, Any] = {
+            "size": page_size,
             "query": {"bool": {"filter": filter}},
             "sort": [
                 {"startTime": {"order": "asc"}}
@@ -200,7 +211,7 @@ class OpenSearchSS40Proxy(proxy.Proxy):
         ## There should be a more clever way of doing this, but
         ## we cannot rely on results['hits']['total']['value'], since
         ## it does not take search_after into account
-        if len(results["hits"]["hits"]) == self.page_size:
+        if len(results["hits"]["hits"]) == page_size:
             # next_page_token = \
             #    (last_hit["_source"]["traceId"]+'__'+last_hit["_source"]["spanId"]).encode('ascii')
             next_page_token = results["hits"]["hits"][-1]["_source"][

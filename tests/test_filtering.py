@@ -16,6 +16,7 @@ class Params:
     scope_attributes: util.AttributesFilter | None = None
     span_attributes: util.AttributesFilter | None = None
     span_name: str | None = None
+    page_size: int | None = None
 
 
 @mark.parametrize(
@@ -78,6 +79,7 @@ def test_filtering(params: Params) -> None:
         scope_attributes=params.scope_attributes,
         span_attributes=params.span_attributes,
         span_name=params.span_name,
+        page_size=params.page_size,
     )
 
     span_ids = set(

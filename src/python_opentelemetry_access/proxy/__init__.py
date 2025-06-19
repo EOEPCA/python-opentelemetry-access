@@ -25,6 +25,7 @@ class Proxy(ABC):
         scope_attributes: Optional[util.AttributesFilter] = None,
         span_attributes: Optional[util.AttributesFilter] = None,
         span_name: Optional[str] = None,
+        page_size: Optional[int] | None = None,
         page_token: Optional[PageToken] = None,
     ) -> AsyncIterable[base.SpanCollection | PageToken]:
         # A trick to make the type of the function what I want
@@ -43,6 +44,7 @@ class Proxy(ABC):
         scope_attributes: Optional[util.AttributesFilter] = None,
         span_attributes: Optional[util.AttributesFilter] = None,
         span_name: Optional[str] = None,
+        page_size: Optional[int] | None = None,
         starting_page_token: Optional[PageToken] = None,
     ) -> AsyncIterable[base.SpanCollection]:
         async for spans_or_page_token in self.query_spans_page(
@@ -54,6 +56,7 @@ class Proxy(ABC):
             scope_attributes,
             span_attributes,
             span_name,
+            page_size,
             page_token=starting_page_token,
         ):
             if isinstance(spans_or_page_token, PageToken):
@@ -66,6 +69,7 @@ class Proxy(ABC):
                     scope_attributes,
                     span_attributes,
                     span_name,
+                    page_size,
                     starting_page_token=spans_or_page_token,
                 ):
                     yield spans
@@ -200,6 +204,7 @@ def _filter_span_collection(
     scope_attributes: Optional[util.AttributesFilter],
     span_attributes: Optional[util.AttributesFilter],
     span_name: Optional[str],
+    page_size: Optional[int],
 ) -> base.ReifiedSpanCollection:
     spans.resource_spans = [
         _filter_resource_span_collection(
@@ -216,12 +221,32 @@ def _filter_span_collection(
             inner_spans.resource.attributes, expected_attributes=resource_attributes
         )
     ]
-
-    spans.resource_spans = [
-        inner_spans for inner_spans in spans.resource_spans if inner_spans.scope_spans
-    ]
-
-    return spans
+    # Could take page_size into account using something like the below code.
+    # But in that case would also need to neturn a next_page_token in case not all spans were returned
+    # result_resource_spans: list[base.ReifiedResourceSpanCollection] = []
+    # result_span_count = 0
+    # for inner_spans in spans.resource_spans:
+    #     if not inner_spans.scope_spans:
+    #         continue
+    #     if (
+    #         page_size is not None
+    #         and result_span_count + len(inner_spans.scope_spans) >= page_size
+    #     ):
+    #         take_count = page_size - result_span_count
+    #         result_resource_spans.append(
+    #             base.ReifiedResourceSpanCollection(
+    #                 inner_spans.resource,
+    #                 inner_spans.scope_spans[:take_count],
+    #                 inner_spans.schema_url,
+    #             )
+    #         )
+    #         result_span_count += take_count
+    #         break
+    #     result_resource_spans.append(inner_spans)
+    #     result_span_count += len(inner_spans.scope_spans)
+    return base.ReifiedSpanCollection(
+        [inner_spans for inner_spans in spans.resource_spans if inner_spans.scope_spans]
+    )
 
 
 class MockProxy(Proxy):
@@ -239,6 +264,7 @@ class MockProxy(Proxy):
         scope_attributes: Optional[util.AttributesFilter] = None,
         span_attributes: Optional[util.AttributesFilter] = None,
         span_name: Optional[str] = None,
+        page_size: Optional[int] | None = None,
         page_token: Optional[PageToken] = None,
     ) -> AsyncIterable[base.SpanCollection | PageToken]:
         if page_token is not None:
@@ -261,6 +287,7 @@ class MockProxy(Proxy):
             scope_attributes,
             span_attributes,
             span_name,
+            page_size,
         )
 
     @override
