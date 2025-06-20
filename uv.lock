@@ -333,7 +333,7 @@ wheels = [
 [[package]]
 name = "eoepca-security"
 version = "0.2.0"
-source = { git = "https://github.com/EOEPCA/python-eoepca-security.git?branch=jp%2Fcache-openid-connect-config#b71b9dc0c6c7b3b8c4e03c4ea0e89316b53c9519" }
+source = { git = "https://github.com/EOEPCA/python-eoepca-security.git?branch=jp%2Fcache-openid-connect-config#d3ebcce91994dea1e47c3e5e4e89e0bd240b353c" }
 dependencies = [
     { name = "cryptography" },
     { name = "fastapi", extra = ["standard"] },
