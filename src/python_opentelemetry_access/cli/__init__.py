@@ -6,9 +6,9 @@ import python_opentelemetry_access.otlpproto as otlpproto
 import python_opentelemetry_access.proxy as proxy_mod
 import python_opentelemetry_access.proxy.opensearch.ss4o as ss4o_proxy
 import python_opentelemetry_access.api as api
-from python_opentelemetry_access.api_utils.api_utils import get_env_var_or_throw
+from api_utils.api_utils import get_env_var_or_throw
 
-from python_opentelemetry_access.telemetry_hooks import load_hooks, Hook
+from python_opentelemetry_access.telemetry_hooks import load_hooks, Hooks
 from python_opentelemetry_access.telemetry_hooks.utils import OpensearchConfig
 
 import uvicorn
@@ -125,7 +125,7 @@ def convert(infile: Path, outfile: Path, from_: str, to: str) -> None:
                 writer(rep, f)
 
 
-def run_proxy(ctx: Any, proxy: proxy_mod.Proxy, hooks: dict[str, Hook]) -> None:
+def run_proxy(ctx: Any, proxy: proxy_mod.Proxy, hooks: dict[str, Hooks]) -> None:
     api.settings._proxy = proxy
     api.settings._base_url = get_env_var_or_throw("RH_TELEMETRY_API_BASE_URL")
     api.settings._hooks = hooks
@@ -215,7 +215,7 @@ def opensearch_ss4o(
 
             return opensearch_params
 
-        hooks[GET_OPENSEARCH_CONFIG_HOOK_NAME] = get_opensearch_config
+        hooks[GET_OPENSEARCH_CONFIG_HOOK_NAME] = [get_opensearch_config]
 
     default_page_size_str = environ.get("RH_TELEMETRY_API_DEFAULT_PAGE_SIZE")
     max_page_size_str = environ.get("RH_TELEMETRY_API_MAX_PAGE_SIZE")

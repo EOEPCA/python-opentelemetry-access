@@ -2,36 +2,36 @@ from functools import cache
 from inspect import isfunction
 import logging
 import pathlib
-from typing import Callable, Any
+from typing import Callable
 import os
-from plugin_utils.loader import load_plugins
-import inspect
+from plugin_utils.loader import (
+    load_plugins,
+    convert_file_based_hooks_to_name_based_hooks,
+)
 
 logger = logging.getLogger("OTEL_ACCESS")
 
-Hook = Callable[..., Any]
+Hooks = list[Callable]
 
 
 @cache
-def load_hooks(hooks_dir: pathlib.Path | str | None = None) -> dict[str, Hook]:
+def load_hooks(
+    hooks_dir: pathlib.Path | str | None = None,
+) -> dict[str, Hooks]:
+    """
+    Each hook might have multiple functions. The files with earlier alphanumeric names
+    will have their hooks called earlier.
+    """
     hooks_dir = hooks_dir or os.environ.get("RH_TELEMETRY_HOOK_DIR_PATH")
 
     if hooks_dir is None:
-        logger.warn("No hook path specified")
+        logger.warning("No hook path specified")
         return {}
 
-    return load_plugins(
+    file_to_hooks: dict[str, dict[str, Callable]] = load_plugins(
         pathlib.Path(hooks_dir),
         value=(lambda x: x if isfunction(x) else None),
         logger=logger,
-        perfile=False,
+        perfile=True,
     )
-
-
-async def run_hook_async(hook_to_run: Hook, *args: Any, **kvargs: Any) -> Any:
-    x = hook_to_run(*args, **kvargs)
-
-    if inspect.isawaitable(x):
-        return await x
-
-    return x
+    return convert_file_based_hooks_to_name_based_hooks(file_to_hooks)

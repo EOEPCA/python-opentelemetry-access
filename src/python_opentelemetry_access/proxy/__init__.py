@@ -268,15 +268,7 @@ class MockProxy(Proxy):
         page_token: Optional[PageToken] = None,
     ) -> AsyncIterable[base.SpanCollection | PageToken]:
         if page_token is not None:
-            raise util.InvalidPageTokenException.create()
-            # raise APIException(
-            #     Error(
-            #         status="400",
-            #         code="UnexpectedPageToken",
-            #         title="Unexpected Page Token",
-            #         detail="Mock Proxy doesn't support page token (as it never issues next page tokens)",
-            #     )
-            # )
+            raise util.InvalidPageTokenException()
 
         yield _filter_span_collection(
             self._all_spans.to_reified(),

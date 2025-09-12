@@ -14,7 +14,8 @@ dependencies = [
     "opensearch-py[async]>=2.7.1",
     "opentelemetry-betterproto",
     "pandas>=2.2.3",
-    "plugin-utils",
+    "api-utils>=0.1.0",
+    "plugin-utils>=0.1.1",
     "uvicorn>=0.32.0",
 ]
 
@@ -35,8 +36,9 @@ dev-dependencies = [
 
 [tool.uv.sources]
 opentelemetry-betterproto = { git = "https://github.com/EOEPCA/opentelemetry-betterproto.git", branch = "2.0.0-beta2" }
+api-utils = { git = "https://github.com/EOEPCA/resource-health/", subdirectory = "api-utils"}
 plugin-utils = { git = "https://github.com/EOEPCA/resource-health/", subdirectory = "plugin-utils" }
-eoepca-security = { git = "https://github.com/EOEPCA/python-eoepca-security.git", branch = "jp/cache-openid-connect-config" }
+eoepca-security = { git = "https://github.com/EOEPCA/python-eoepca-security.git", branch = "2.0.0-rc2" }
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
