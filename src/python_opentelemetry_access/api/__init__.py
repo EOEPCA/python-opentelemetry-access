@@ -14,7 +14,7 @@ from python_opentelemetry_access.telemetry_hooks import (
     Hooks,
     load_hooks,
 )
-from api_utils.api_utils import (
+from eoepca_api_utils.api_utils import (
     JSONAPIResponse,
     add_exception_handlers,
     get_api_router_with_defaults,
@@ -22,12 +22,12 @@ from api_utils.api_utils import (
     get_url_str,
     set_custom_json_schema,
 )
-from api_utils.exceptions import (
+from eoepca_api_utils.exceptions import (
     APIException,
     APIUserInputError,
     APIInternalError,
 )
-from api_utils.json_api_types import (
+from eoepca_api_utils.json_api_types import (
     APIOKResponseList,
     LinkObject,
     Links,

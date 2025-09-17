@@ -6,7 +6,7 @@ import python_opentelemetry_access.otlpproto as otlpproto
 import python_opentelemetry_access.proxy as proxy_mod
 import python_opentelemetry_access.proxy.opensearch.ss4o as ss4o_proxy
 import python_opentelemetry_access.api as api
-from api_utils.api_utils import get_env_var_or_throw
+from eoepca_api_utils.api_utils import get_env_var_or_throw
 
 from python_opentelemetry_access.telemetry_hooks import load_hooks, Hooks
 from python_opentelemetry_access.telemetry_hooks.utils import OpensearchConfig

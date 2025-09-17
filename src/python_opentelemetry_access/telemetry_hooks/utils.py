@@ -1,4 +1,4 @@
-from api_utils.exceptions import (
+from eoepca_api_utils.exceptions import (
     APIException,  # noqa: F401 used by hooks which import this
     APIForbiddenError,  # noqa: F401 used by hooks which import this
     APIUnauthorizedError,  # noqa: F401 used by hooks which import this

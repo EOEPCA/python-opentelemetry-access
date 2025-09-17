@@ -7,7 +7,7 @@ import os
 from opensearchpy import AsyncOpenSearch
 
 from python_opentelemetry_access import util
-from api_utils.exceptions import APIException
+from eoepca_api_utils.exceptions import APIException
 
 import python_opentelemetry_access.base as base
 import python_opentelemetry_access.opensearch.ss4o as ss4o

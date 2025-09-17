@@ -18,7 +18,7 @@ from typing import (
 from itertools import chain, groupby
 
 import opentelemetry_betterproto.opentelemetry.proto.common.v1 as common
-from api_utils.exceptions import APIException
+from eoepca_api_utils.exceptions import APIException
 
 
 class InvalidPageTokenException(APIException):
