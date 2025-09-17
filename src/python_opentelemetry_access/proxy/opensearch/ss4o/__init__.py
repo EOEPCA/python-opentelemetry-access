@@ -7,15 +7,15 @@ import os
 from opensearchpy import AsyncOpenSearch
 
 from python_opentelemetry_access import util
-from python_opentelemetry_access.api_utils.exceptions import APIException
-from python_opentelemetry_access.api_utils.json_api_types import Error
+from eoepca_api_utils.exceptions import APIException
 
 import python_opentelemetry_access.base as base
 import python_opentelemetry_access.opensearch.ss4o as ss4o
 from python_opentelemetry_access.util import InvalidPageTokenException
 import python_opentelemetry_access.proxy as proxy
 
-from python_opentelemetry_access.telemetry_hooks import Hook, run_hook_async
+from python_opentelemetry_access.telemetry_hooks import Hooks
+from plugin_utils.runner import call_hooks_until_not_none
 
 
 def raise_error_from_transport_error(
@@ -30,14 +30,10 @@ def raise_error_from_transport_error(
             detail = e.error
 
     raise APIException(
-        Error(
-            status=str(default_status)
-            if e.status_code == "N/A"
-            else str(e.status_code),
-            code=e.error,
-            title=e.__class__.__name__,
-            detail=detail,
-        )
+        status=str(default_status) if e.status_code == "N/A" else str(e.status_code),
+        code=e.error,
+        title=e.__class__.__name__,
+        detail=detail,
     )
 
 
@@ -49,7 +45,7 @@ GET_OPENSEARCH_CONFIG_HOOK_NAME = (
 
 class OpenSearchSS40Proxy(proxy.Proxy):
     def __init__(
-        self, hooks: dict[str, Hook], default_page_size: int, max_page_size: int
+        self, hooks: dict[str, Hooks], default_page_size: int, max_page_size: int
     ) -> None:
         self.hooks = hooks
         self.index_name = "ss4o_traces-default-namespace"
@@ -162,7 +158,7 @@ class OpenSearchSS40Proxy(proxy.Proxy):
             try:
                 _ = datetime.fromisoformat(token)
             except ValueError:
-                raise InvalidPageTokenException.create()
+                raise InvalidPageTokenException()
             q["search_after"] = [token]
 
         if GET_OPENSEARCH_CONFIG_HOOK_NAME not in self.hooks:
@@ -170,7 +166,7 @@ class OpenSearchSS40Proxy(proxy.Proxy):
                 f"Must set hook {GET_OPENSEARCH_CONFIG_HOOK_NAME} ($GET_OPENSEARCH_CONFIG_HOOK_NAME) when using the OpenSearch backend"
             )
 
-        client_config = await run_hook_async(
+        client_config = await call_hooks_until_not_none(
             self.hooks[GET_OPENSEARCH_CONFIG_HOOK_NAME], auth_info
         )
 

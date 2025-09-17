@@ -1,5 +1,5 @@
 import binascii
-from typing import Optional, Annotated, List, Tuple, Any, Callable
+from typing import Optional, Annotated, List, Tuple, Any
 from dataclasses import dataclass
 from fastapi import FastAPI, Query, Request, Response, status, Depends
 from fastapi.middleware.cors import CORSMiddleware
@@ -9,9 +9,12 @@ import base64
 from datetime import datetime
 import os
 
-from python_opentelemetry_access.telemetry_hooks import Hook, load_hooks, run_hook_async
-
-from python_opentelemetry_access.api_utils.api_utils import (
+from plugin_utils.runner import call_hooks_until_not_none
+from python_opentelemetry_access.telemetry_hooks import (
+    Hooks,
+    load_hooks,
+)
+from eoepca_api_utils.api_utils import (
     JSONAPIResponse,
     add_exception_handlers,
     get_api_router_with_defaults,
@@ -19,13 +22,13 @@ from python_opentelemetry_access.api_utils.api_utils import (
     get_url_str,
     set_custom_json_schema,
 )
-from python_opentelemetry_access.api_utils.exceptions import (
+from eoepca_api_utils.exceptions import (
     APIException,
+    APIUserInputError,
     APIInternalError,
 )
-from python_opentelemetry_access.api_utils.json_api_types import (
+from eoepca_api_utils.json_api_types import (
     APIOKResponseList,
-    Error,
     LinkObject,
     Links,
     Resource as JSONAPIResource,
@@ -43,13 +46,13 @@ class Settings:
     @property
     def proxy(self) -> proxy.Proxy:
         if self._proxy is None:
-            raise APIInternalError.create("No proxy initialised")
+            raise APIInternalError(detail="No proxy initialised")
         return self._proxy
 
     @property
     def base_url(self) -> str:
         if self._base_url is None:
-            raise APIInternalError.create("Base URL must be set")
+            raise APIInternalError(detail="Base URL must be set")
         return self._base_url
 
 
@@ -109,13 +112,9 @@ def convert_value(value: str, exception: APIException) -> str | int | float | bo
 def list_to_dict(values: list[str]) -> util.AttributesFilter:
     result: util.AttributesFilter = {}
     for value in values:
-        exception = APIException(
-            Error(
-                status="400",
-                code="AttributeFilterParameterMalformed",
-                title="Malformed Attribute Filter Parameter",
-                detail=f"""Attribute filter parameter must be of the shape 'my key="my string value"' or 'my key=value' where value is an int, or float, or boolean. '{value}' is of incorrect shape.""",
-            )
+        exception = APIUserInputError(
+            title="Malformed Attribute Filter Parameter",
+            detail=f"""Attribute filter parameter must be of the shape 'my key="my string value"' or 'my key=value' where value is an int, or float, or boolean. '{value}' is of incorrect shape.""",
         )
         match value.split("="):
             case [key]:
@@ -145,13 +144,15 @@ GET_FASTAPI_SECURITY_HOOK_NAME = (
 )
 ON_AUTH_HOOK_NAME = os.environ.get("RH_TELEMETRY_ON_AUTH_HOOK_NAME") or "on_auth"
 
-loaded_hooks: dict[str, Hook] = load_hooks()
-if GET_FASTAPI_SECURITY_HOOK_NAME in loaded_hooks:
-    security_scheme: Callable[[], Any] = loaded_hooks[GET_FASTAPI_SECURITY_HOOK_NAME]()
+loaded_hooks: dict[str, Hooks] = load_hooks()
 
-else:
 
-    def security_scheme() -> Any:
+async def security_scheme(request: Request) -> Any | None:
+    if GET_FASTAPI_SECURITY_HOOK_NAME in loaded_hooks:
+        return await call_hooks_until_not_none(
+            loaded_hooks[GET_FASTAPI_SECURITY_HOOK_NAME], request
+        )
+    else:
         return None
 
 
@@ -172,15 +173,7 @@ async def run_query(
                 for token in query_params.page_token.split(".")
             ]
         except binascii.Error:
-            raise util.InvalidPageTokenException.create()
-            # raise APIException(
-            #     Error(
-            #         status="400",
-            #         code="PageTokenMalformed",
-            #         title="Page Token is in Incorrect Format",
-            #         detail=f"Expected page token to be dot (.) separated base 64 encoded strings. '{query_params.page_token}' doesn't comply to that.",
-            #     )
-            # )
+            raise util.InvalidPageTokenException()
 
     else:
         page_tokens = [None]
@@ -295,7 +288,9 @@ async def root(
     auth_info: Annotated[Any, Depends(security_scheme)], request: Request
 ) -> APIOKResponseList[None, None]:
     if ON_AUTH_HOOK_NAME in loaded_hooks:
-        auth_info = await run_hook_async(loaded_hooks[ON_AUTH_HOOK_NAME], auth_info)
+        auth_info = await call_hooks_until_not_none(
+            loaded_hooks[ON_AUTH_HOOK_NAME], auth_info
+        )
 
     return APIOKResponseList[None, None](
         data=[
@@ -335,7 +330,9 @@ async def get_spans(
     query_params: Annotated[QueryParams, Query()],
 ) -> APIOKResponse:
     if ON_AUTH_HOOK_NAME in loaded_hooks:
-        auth_info = await run_hook_async(loaded_hooks[ON_AUTH_HOOK_NAME], auth_info)
+        auth_info = await call_hooks_until_not_none(
+            loaded_hooks[ON_AUTH_HOOK_NAME], auth_info
+        )
 
     response.headers["Allow"] = "GET"
     return await run_query(
@@ -356,7 +353,9 @@ async def get_trace(
     query_params: Annotated[QueryParams, Query()],
 ) -> APIOKResponse:
     if ON_AUTH_HOOK_NAME in loaded_hooks:
-        auth_info = await run_hook_async(loaded_hooks[ON_AUTH_HOOK_NAME], auth_info)
+        auth_info = await call_hooks_until_not_none(
+            loaded_hooks[ON_AUTH_HOOK_NAME], auth_info
+        )
 
     response.headers["Allow"] = "GET"
     return await run_query(
@@ -382,7 +381,9 @@ async def get_span(
     query_params: Annotated[QueryParams, Query()],
 ) -> APIOKResponse:
     if ON_AUTH_HOOK_NAME in loaded_hooks:
-        auth_info = await run_hook_async(loaded_hooks[ON_AUTH_HOOK_NAME], auth_info)
+        auth_info = await call_hooks_until_not_none(
+            loaded_hooks[ON_AUTH_HOOK_NAME], auth_info
+        )
 
     response.headers["Allow"] = "GET"
     return await run_query(

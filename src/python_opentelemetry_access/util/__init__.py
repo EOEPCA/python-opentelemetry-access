@@ -7,7 +7,6 @@ from typing import (
     AsyncIterable,
     Iterable,
     Optional,
-    Self,
     Tuple,
     TypeVar,
     List,
@@ -19,23 +18,15 @@ from typing import (
 from itertools import chain, groupby
 
 import opentelemetry_betterproto.opentelemetry.proto.common.v1 as common
-
-from python_opentelemetry_access.api_utils.exceptions import APIException
-from python_opentelemetry_access.api_utils.json_api_types import Error
+from eoepca_api_utils.exceptions import APIException
 
 
 class InvalidPageTokenException(APIException):
-    """Page token is invalid"""
-
-    @classmethod
-    def create(cls) -> Self:
-        return cls(
-            Error(
-                status="400",
-                code=cls._create_code(),
-                title=cls._create_title_from_doc(),
-                detail="This page token was not issued by the Telemetry Proxy, and is thus invalid.",
-            )
+    def __init__(self) -> None:
+        super().__init__(
+            status="400",
+            title="Page token is invalid",
+            detail="This page token was not issued by the Telemetry Proxy, and is thus invalid.",
         )
 
 

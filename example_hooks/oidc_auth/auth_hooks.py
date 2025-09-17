@@ -1,5 +1,5 @@
+from fastapi import Request
 import python_opentelemetry_access.telemetry_hooks.utils as hu
-
 from eoepca_security import OIDCProxyScheme, Tokens
 from typing import TypedDict
 import os
@@ -10,30 +10,29 @@ class UserInfo(TypedDict):
     access_token: str
 
 
-def get_fastapi_security() -> OIDCProxyScheme:
-    return OIDCProxyScheme(
-        openIdConnectUrl=os.environ["OPEN_ID_CONNECT_URL"],
-        audience=os.environ["OPEN_ID_CONNECT_AUDIENCE"],
-        id_token_header="x-id-token",
-        refresh_token_header="x-refresh-token",
-        auth_token_header="Authorization",
-        auth_token_in_authorization=True,
-        auto_error=True,  ## Set False to allow unauthenticated access!
-        scheme_name="OIDC behind auth proxy",
-    )
+oidc_proxy_scheme = OIDCProxyScheme(
+    openIdConnectUrl=os.environ["OPEN_ID_CONNECT_URL"],
+    audience=os.environ["OPEN_ID_CONNECT_AUDIENCE"],
+    id_token_header="x-id-token",
+    refresh_token_header="x-refresh-token",
+    auth_token_header="Authorization",
+    auth_token_in_authorization=True,
+    auto_error=True,  ## Set False to allow unauthenticated access!
+    scheme_name="OIDC behind auth proxy",
+)
+
+
+async def get_fastapi_security(request: Request) -> Tokens | None:
+    return await oidc_proxy_scheme(request)
 
 
 def on_auth(tokens: Tokens | None) -> UserInfo:
     print("ON AUTH")
 
     if tokens is None or tokens["auth"] is None:
-        raise hu.APIException(
-            hu.Error(
-                status="403",
-                code="MissingTokens",
-                title="Missing authentication token",
-                detail="Potentially missing authenticating proxy",
-            )
+        raise hu.APIForbiddenError(
+            title="Missing authentication token",
+            detail="Potentially missing authenticating proxy",
         )
 
     username_claim = (
@@ -63,7 +62,8 @@ def get_opensearch_config(userinfo: UserInfo) -> hu.OpensearchConfig:
         ## For verified tls
         verify_certs=True,
         ssl_show_warn=True,
-        ca_certs="/certs/ca.crt",
+        # ca_certs="/certs/ca.crt",
+        ca_certs="tmp/tmp_certs/ca.crt",
         ## For mTLS auth
         # client_cert = "/certs/tls.crt"
         # client_key = "/certs/tls.key"

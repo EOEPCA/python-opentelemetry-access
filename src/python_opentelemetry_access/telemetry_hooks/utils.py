@@ -1,6 +1,9 @@
-from python_opentelemetry_access.api_utils.exceptions import APIException
-from python_opentelemetry_access.api_utils.json_api_types import Error
-
+from eoepca_api_utils.exceptions import (
+    APIException,  # noqa: F401 used by hooks which import this
+    APIForbiddenError,  # noqa: F401 used by hooks which import this
+    APIUnauthorizedError,  # noqa: F401 used by hooks which import this
+    APIUserInputError,  # noqa: F401 used by hooks which import this
+)
 from typing import TypedDict, Any, NotRequired
 
 
@@ -18,6 +21,3 @@ class OpensearchConfig(TypedDict):
     client_key: NotRequired[str]
 
     extra_headers: NotRequired[dict[str, str]]
-
-
-__all__ = ["APIException", "Error", "OpensearchConfig"]
