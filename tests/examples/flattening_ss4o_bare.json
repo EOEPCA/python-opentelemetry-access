@@ -1,0 +1,48 @@
+[
+  {
+    "attributes": {
+      "my": {
+        "span.attr": 10,
+        "span.attr2": "value",
+        "list": [
+          10,
+          20
+        ]
+      },
+      "my.span.attr": "some value",
+      "my.list[0]": 30,
+      "attr.list": [
+        "value",
+        "some-other-value"
+      ]
+    },
+    "droppedAttributesCount": 0,
+    "droppedEventsCount": 0,
+    "droppedLinksCount": 0,
+    "endTime": "2018-12-13T14:51:01Z",
+    "instrumentationScope": {
+      "attributes": {
+        "my.scope.attribute": "some scope attribute"
+      },
+      "droppedAttributesCount": 0,
+      "name": "my.library",
+      "schemaUrl": "",
+      "version": "1.0.0"
+    },
+    "kind": "Server",
+    "name": "I'm a server span",
+    "parentSpanId": "eee19b7ec3c1b173",
+    "resource": {
+      "service.name": "my.service"
+    },
+    "spanId": "eee19b7ec3c1b174",
+    "startTime": "2018-12-13T14:51:00Z",
+    "status": {
+      "code": "Unset",
+      "message": ""
+    },
+    "@timestamp": "0001-01-01T00:00:00Z",
+    "traceId": "5b8efff798038103d269b633813fc60c",
+    "traceState": ""
+  }
+]

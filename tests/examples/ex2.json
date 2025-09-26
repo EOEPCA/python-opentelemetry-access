@@ -140,6 +140,24 @@
                   "value": {
                     "stringValue": "test"
                   }
+                },
+                {
+                  "key": "data_stream.dataset",
+                  "value": {
+                    "stringValue": "default"
+                  }
+                },
+                {
+                  "key": "data_stream.namespace",
+                  "value": {
+                    "stringValue": "namespace"
+                  }
+                },
+                {
+                  "key": "data_stream.type",
+                  "value": {
+                    "stringValue": "span"
+                  }
                 }
               ],
               "status": {}
@@ -183,6 +201,24 @@
                   "value": {
                     "stringValue": "test"
                   }
+                },
+                {
+                  "key": "data_stream.dataset",
+                  "value": {
+                    "stringValue": "default"
+                  }
+                },
+                {
+                  "key": "data_stream.namespace",
+                  "value": {
+                    "stringValue": "namespace"
+                  }
+                },
+                {
+                  "key": "data_stream.type",
+                  "value": {
+                    "stringValue": "span"
+                  }
                 }
               ],
               "status": {}
@@ -225,6 +261,24 @@
                   "key": "pytest.span_type",
                   "value": {
                     "stringValue": "test"
+                  }
+                },
+                {
+                  "key": "data_stream.dataset",
+                  "value": {
+                    "stringValue": "default"
+                  }
+                },
+                {
+                  "key": "data_stream.namespace",
+                  "value": {
+                    "stringValue": "namespace"
+                  }
+                },
+                {
+                  "key": "data_stream.type",
+                  "value": {
+                    "stringValue": "span"
                   }
                 }
               ],
@@ -274,6 +328,24 @@
                   "key": "test.case.result.status",
                   "value": {
                     "stringValue": "fail"
+                  }
+                },
+                {
+                  "key": "data_stream.dataset",
+                  "value": {
+                    "stringValue": "default"
+                  }
+                },
+                {
+                  "key": "data_stream.namespace",
+                  "value": {
+                    "stringValue": "namespace"
+                  }
+                },
+                {
+                  "key": "data_stream.type",
+                  "value": {
+                    "stringValue": "span"
                   }
                 }
               ],
@@ -359,6 +431,24 @@
                   "value": {
                     "intValue": "4"
                   }
+                },
+                {
+                  "key": "data_stream.dataset",
+                  "value": {
+                    "stringValue": "default"
+                  }
+                },
+                {
+                  "key": "data_stream.namespace",
+                  "value": {
+                    "stringValue": "namespace"
+                  }
+                },
+                {
+                  "key": "data_stream.type",
+                  "value": {
+                    "stringValue": "span"
+                  }
                 }
               ],
               "status": {}
@@ -408,6 +498,24 @@
                   "value": {
                     "intValue": "4"
                   }
+                },
+                {
+                  "key": "data_stream.dataset",
+                  "value": {
+                    "stringValue": "default"
+                  }
+                },
+                {
+                  "key": "data_stream.namespace",
+                  "value": {
+                    "stringValue": "namespace"
+                  }
+                },
+                {
+                  "key": "data_stream.type",
+                  "value": {
+                    "stringValue": "span"
+                  }
                 }
               ],
               "status": {}
@@ -456,6 +564,24 @@
                   "key": "code.lineno",
                   "value": {
                     "intValue": "4"
+                  }
+                },
+                {
+                  "key": "data_stream.dataset",
+                  "value": {
+                    "stringValue": "default"
+                  }
+                },
+                {
+                  "key": "data_stream.namespace",
+                  "value": {
+                    "stringValue": "namespace"
+                  }
+                },
+                {
+                  "key": "data_stream.type",
+                  "value": {
+                    "stringValue": "span"
                   }
                 }
               ],
@@ -512,6 +638,24 @@
                   "value": {
                     "stringValue": "pass"
                   }
+                },
+                {
+                  "key": "data_stream.dataset",
+                  "value": {
+                    "stringValue": "default"
+                  }
+                },
+                {
+                  "key": "data_stream.namespace",
+                  "value": {
+                    "stringValue": "namespace"
+                  }
+                },
+                {
+                  "key": "data_stream.type",
+                  "value": {
+                    "stringValue": "span"
+                  }
                 }
               ],
               "status": {
@@ -532,6 +676,24 @@
                   "key": "pytest.span_type",
                   "value": {
                     "stringValue": "run"
+                  }
+                },
+                {
+                  "key": "data_stream.dataset",
+                  "value": {
+                    "stringValue": "default"
+                  }
+                },
+                {
+                  "key": "data_stream.namespace",
+                  "value": {
+                    "stringValue": "namespace"
+                  }
+                },
+                {
+                  "key": "data_stream.type",
+                  "value": {
+                    "stringValue": "span"
                   }
                 }
               ],

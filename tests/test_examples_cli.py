@@ -29,6 +29,11 @@ def test_list_formats():
             "tests/examples/ex2.json",
             "tests/examples/ex2_ss4o_bare.json",
         ),
+        (
+            "tests/examples/flattening.binpb",
+            "tests/examples/flattening.json",
+            "tests/examples/flattening_ss4o_bare.json",
+        ),
     ],
 )
 @mark.parametrize("to", [to for to in cli.OUT_FORMATS])

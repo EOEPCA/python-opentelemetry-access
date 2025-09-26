@@ -395,7 +395,7 @@ class Span(OTLPData, Protocol):
             json: util.JSONLike,
             result_dict: dict[str, util.JSONLikeLiteral | list[util.JSONLikeLiteral]],
             path: str,
-            flatten_top_level_lists: bool,
+            not_flatten_list_levels: int,
         ) -> None:
             """
             Very similar to normalise_attributes_shallow, but makes sure that
@@ -419,22 +419,21 @@ class Span(OTLPData, Protocol):
                             json=v,
                             result_dict=result_dict,
                             path=f"{path_prefix}{k}",
-                            flatten_top_level_lists=True,
+                            not_flatten_list_levels=not_flatten_list_levels - 1,
                         )
                 case list():
-                    result_dict[path] = json  # type: ignore
-                    # if flatten_top_level_lists or any(
-                    #     isinstance(v, (dict, list)) for v in json
-                    # ):
-                    #     for i, v in enumerate(json):
-                    #         normalize_attributes(
-                    #             json=v,
-                    #             result_dict=result_dict,
-                    #             path=f"{path}[{i}]",
-                    #             flatten_top_level_lists=True,
-                    #         )
-                    # else:
-                    #     result_dict[path] = json  # type: ignore
+                    # result_dict[path] = json  # type: ignore
+                    if not_flatten_list_levels <= 0:
+                        # or any(isinstance(v, (dict, list)) for v in json)
+                        for i, v in enumerate(json):
+                            normalize_attributes(
+                                json=v,
+                                result_dict=result_dict,
+                                path=f"{path}[{i}]",
+                                not_flatten_list_levels=not_flatten_list_levels - 1,
+                            )
+                    else:
+                        result_dict[path] = json  # type: ignore
                 case str() | bool() | int() | float():
                     result_dict[path] = json
                 case unreachable:
@@ -445,7 +444,7 @@ class Span(OTLPData, Protocol):
             json=self.otlp_attributes,
             result_dict=result_dict,
             path="",
-            flatten_top_level_lists=False,
+            not_flatten_list_levels=2,
         )
         return result_dict  # type: ignore
 

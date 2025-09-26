@@ -27,6 +27,11 @@ from pytest import mark
             "tests/examples/ex2.json",
             "tests/examples/ex2_ss4o_bare.json",
         ),
+        (
+            "tests/examples/flattening.binpb",
+            "tests/examples/flattening.json",
+            "tests/examples/flattening_ss4o_bare.json",
+        ),
     ],
 )
 def test_example_trace(proto_rep_path: str, json_rep_path: str, ss4o_rep_path: str):
@@ -71,14 +76,7 @@ def test_example_trace(proto_rep_path: str, json_rep_path: str, ss4o_rep_path: s
         )
         for sss in rss["scopeSpans"]:
             for scope in sss["spans"]:
-                scope["attributes"] = sort_otlp_attributes(
-                    # scope["attributes"]
-                    [
-                        attribute
-                        for attribute in scope["attributes"]
-                        if not attribute["key"].startswith("data_stream.")
-                    ]
-                )
+                scope["attributes"] = sort_otlp_attributes(scope["attributes"])
 
                 if "events" in scope:
                     for event in scope["events"]:
