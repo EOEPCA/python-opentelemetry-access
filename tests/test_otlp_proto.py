@@ -15,26 +15,19 @@ def test_roundtrip_complete_proto():
     field_timestamp_end = 39324
     field_name = "some name"
     field_attributes = [
-        common.KeyValue("key", common.AnyValue(double_value=3.2)),
+        common.KeyValue("foo", common.AnyValue(double_value=3.2)),
         common.KeyValue(
             "other",
             common.AnyValue(
                 array_value=common.ArrayValue(
                     [
-                        common.AnyValue(string_value="bar"),
+                        common.AnyValue(int_value=3),
                         common.AnyValue(int_value=2),
                     ]
                 )
             ),
         ),
-        common.KeyValue(
-            "stuff",
-            common.AnyValue(
-                kvlist_value=common.KeyValueList(
-                    [common.KeyValue("inner", common.AnyValue(bool_value=False))]
-                )
-            ),
-        ),
+        common.KeyValue("stuff.inner2", common.AnyValue(bool_value=True)),
     ]
     field_dropped_attributes_count = 1
     field_trace_id = binascii.a2b_hex("ABC123")

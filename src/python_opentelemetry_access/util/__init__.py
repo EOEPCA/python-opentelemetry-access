@@ -8,11 +8,9 @@ from typing import (
     Iterable,
     Optional,
     Tuple,
-    TypeVar,
     List,
     Union,
     Dict,
-    Generic,
     override,
 )
 from itertools import chain, groupby
@@ -30,10 +28,7 @@ class InvalidPageTokenException(APIException):
         )
 
 
-T = TypeVar("T")
-
-
-class DumpIterator(Generic[T], Iterator[T]):
+class DumpIterator[T](Iterator[T]):
     iterator: Iterator[T]
 
     def __init__(self, iterable):
@@ -60,7 +55,7 @@ class DumpIterator(Generic[T], Iterator[T]):
         return self._has_head
 
 
-class ListLikeDumpIterator(DumpIterator[T], list):
+class ListLikeDumpIterator[T](DumpIterator[T], list):
     @override
     def __len__(self):
         raise NotImplementedError("JSONLikeListIter has no length")
@@ -82,13 +77,13 @@ class JSONLikeListIter(ListLikeDumpIterator["JSONLikeIter"]):
     pass
 
 
-JSONLikeLiteralIter = Union[str, bool, int, float]
-JSONLikeIter = Union[JSONLikeLiteralIter, JSONLikeDictIter, JSONLikeListIter]
+type JSONLikeLiteralIter = Union[str, bool, int, float]
+type JSONLikeIter = Union[JSONLikeLiteralIter, JSONLikeDictIter, JSONLikeListIter]
 
-JSONLikeDict = Dict[str, "JSONLike"]
-JSONLikeList = List["JSONLike"]
-JSONLikeLiteral = Union[str, bool, int, float]
-JSONLike = Union[JSONLikeLiteral, JSONLikeDict, JSONLikeList]
+type JSONLikeDict = Dict[str, "JSONLike"]
+type JSONLikeList = List["JSONLike"]
+type JSONLikeLiteral = Union[str, bool, int, float]
+type JSONLike = Union[JSONLikeLiteral, JSONLikeDict, JSONLikeList]
 
 
 def jsonlike_iter_to_any_value(jsiter: JSONLikeIter) -> common.AnyValue:
@@ -203,7 +198,13 @@ def from_kv_list(jsobj: JSONLikeList) -> JSONLikeDict:
     return force_jsonlike_dict_iter(from_kv_list_iter(iter_jsonlike_list(jsobj)))
 
 
-def _expect_field_type(jobj, field, type_, optional=False, default=None):
+def _expect_field_type[T](
+    jobj: Any,
+    field: str,
+    type_: type[T],
+    optional: bool = False,
+    default: T | None = None,
+) -> Any:
     if field not in jobj:
         if optional:
             return default
@@ -299,7 +300,7 @@ def iter_jsonlike_dict(jobj: JSONLikeDict) -> JSONLikeDictIter:
     return JSONLikeDictIter((k, iter_jsonlike(v)) for k, v in jobj.items())
 
 
-def peek_iterator(iter: Iterator[T]) -> Optional[Tuple[T, Iterator[T]]]:
+def peek_iterator[T](iter: Iterator[T]) -> Optional[Tuple[T, Iterator[T]]]:
     try:
         x = next(iter)
         return (x, chain([x], iter))

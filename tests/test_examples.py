@@ -72,11 +72,11 @@ def test_example_trace(proto_rep_path: str, json_rep_path: str, ss4o_rep_path: s
         for sss in rss["scopeSpans"]:
             for scope in sss["spans"]:
                 scope["attributes"] = sort_otlp_attributes(
+                    # scope["attributes"]
                     [
                         attribute
                         for attribute in scope["attributes"]
-                        if attribute["key"]
-                        != "data_stream"  ## Additional attribute set by OpenSearch
+                        if not attribute["key"].startswith("data_stream.")
                     ]
                 )
 
