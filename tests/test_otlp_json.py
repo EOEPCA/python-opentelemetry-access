@@ -10,25 +10,10 @@ def test_roundtrip_complete_json():
     field_name = "some name"
     field_attributes = [
         {"key": "foo", "value": {"doubleValue": 3.2}},
-        # {
-        #     "key": "bar",
-        #     "value": {
-        #         "arrayValue": {"values": [{"stringValue": "bar"}, {"intValue": "2"}]}
-        #     },
-        # },
         {
             "key": "other",
             "value": {"arrayValue": {"values": [{"intValue": "3"}, {"intValue": "2"}]}},
         },
-        # {
-        #     "key": "stuff",
-        #     "value": {
-        #         "kvlistValue": [
-        #             {"key": "inner", "value": {"boolValue": False}},
-        #             {"key": "inner2", "value": {"intValue": "10"}},
-        #         ]
-        #     },
-        # },
         {"key": "stuff.inner2", "value": {"boolValue": True}},
     ]
     field_dropped_attributes_count = 1
