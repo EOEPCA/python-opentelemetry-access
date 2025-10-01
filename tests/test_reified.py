@@ -6,19 +6,14 @@ def test_roundtrip_complete_proto():
     field_timestamp_start = 21412
     field_timestamp_end = 39324
     field_name = "some name"
-    field_attributes = {"foo": 3.2, "other": ["bar", 2], "stuff": {"inner": False}}
+    field_attributes = {"foo": 3.2, "other": [3, 2], "stuff.inner2": True}
     field_attributes_kvlist = [
         {"key": "foo", "value": {"doubleValue": 3.2}},
         {
             "key": "other",
-            "value": {
-                "arrayValue": {"values": [{"stringValue": "bar"}, {"intValue": "2"}]}
-            },
+            "value": {"arrayValue": {"values": [{"intValue": "3"}, {"intValue": "2"}]}},
         },
-        {
-            "key": "stuff",
-            "value": {"kvlistValue": [{"key": "inner", "value": {"boolValue": False}}]},
-        },
+        {"key": "stuff.inner2", "value": {"boolValue": True}},
     ]
     field_dropped_attributes_count = 1
     field_trace_id = "ABC123"

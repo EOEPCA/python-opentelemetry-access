@@ -1,6 +1,6 @@
 from collections.abc import Iterator
 from datetime import timedelta
-from typing import Union, Protocol, Optional, Tuple, List, override
+from typing import Union, Protocol, Optional, Tuple, List, assert_never, override
 from abc import abstractmethod
 import json
 from dataclasses import dataclass
@@ -332,9 +332,15 @@ class Span(OTLPData, Protocol):
             yield ("startTimeUnixNano", str(self.otlp_start_time_unix_nano))
             yield ("endTimeUnixNano", str(self.otlp_end_time_unix_nano))
 
-            attributes = self.otlp_attributes_iter
-            if not attributes.initially_empty():
-                yield ("attributes", util.to_kv_list_iter(attributes))
+            # attributes = self.otlp_attributes_iter
+            # if not attributes.initially_empty():
+            #     yield ("attributes", util.to_kv_list_iter(attributes))
+            attributes = self.otlp_attributes_normalised()
+            if len(attributes) > 0:
+                yield (
+                    "attributes",
+                    util.to_kv_list_iter(util.iter_jsonlike_dict(attributes)),
+                )
 
             dropped = self.otlp_dropped_attributes_count
             if dropped != 0:
@@ -372,7 +378,10 @@ class Span(OTLPData, Protocol):
             kind=self.otlp_kind.to_otlp_protobuf(),
             start_time_unix_nano=self.otlp_start_time_unix_nano,
             end_time_unix_nano=self.otlp_end_time_unix_nano,
-            attributes=util.jsonlike_dict_iter_to_kvlist(self.otlp_attributes_iter),
+            attributes=util.jsonlike_dict_iter_to_kvlist(
+                util.iter_jsonlike_dict(self.otlp_attributes_normalised())
+            ),
+            # attributes=util.jsonlike_dict_iter_to_kvlist(self.otlp_attributes_iter),
             dropped_attributes_count=self.otlp_dropped_attributes_count,
             events=[x.to_otlp_protobuf() for x in self.otlp_events],
             dropped_events_count=self.otlp_dropped_events_count,
@@ -380,6 +389,64 @@ class Span(OTLPData, Protocol):
             dropped_links_count=self.otlp_dropped_links_count,
             status=self.otlp_status.to_otlp_protobuf(),
         )
+
+    def otlp_attributes_normalised(self) -> util.JSONLikeDict:
+        def normalize_attributes(
+            json: util.JSONLike,
+            result_dict: dict[str, util.JSONLikeLiteral | list[util.JSONLikeLiteral]],
+            path: str,
+            not_flatten_list_levels: int,
+        ) -> None:
+            """
+            Very similar to normalise_attributes_shallow, but makes sure that
+            {"a.b": 1, "a": {"b": 2}} is normalized to {"a.b": 1}.
+            Other name collisions may happen, such as
+            {"a.b": {"c": 1}, "a": {"b.c": 2}}, and those will be resolved by the last
+            value taking the precedence, so in this case {"a.b.c": 2}
+            """
+            match json:
+                case dict():
+                    # Make sure that {"a.b": 1, "a": {"b": 2}} is flattened to {"a.b": 1} by processing
+                    # "a.b": 1 part last, thus allowing it to override whatever value "a.b" has
+                    sorted_value = sorted(
+                        json.items(),
+                        key=lambda item: 0 if isinstance(item[1], dict) else 1,
+                        # key=lambda item: 0 if isinstance(item[1], (dict, list)) else 1,
+                    )
+                    for k, v in sorted_value:
+                        path_prefix = path if path == "" else path + "."
+                        normalize_attributes(
+                            json=v,
+                            result_dict=result_dict,
+                            path=f"{path_prefix}{k}",
+                            not_flatten_list_levels=not_flatten_list_levels - 1,
+                        )
+                case list():
+                    # result_dict[path] = json  # type: ignore
+                    if not_flatten_list_levels <= 0:
+                        # or any(isinstance(v, (dict, list)) for v in json)
+                        for i, v in enumerate(json):
+                            normalize_attributes(
+                                json=v,
+                                result_dict=result_dict,
+                                path=f"{path}[{i}]",
+                                not_flatten_list_levels=not_flatten_list_levels - 1,
+                            )
+                    else:
+                        result_dict[path] = json  # type: ignore
+                case str() | bool() | int() | float():
+                    result_dict[path] = json
+                case unreachable:
+                    assert_never(unreachable)
+
+        result_dict: dict[str, util.JSONLikeLiteral | list[util.JSONLikeLiteral]] = {}
+        normalize_attributes(
+            json=self.otlp_attributes,
+            result_dict=result_dict,
+            path="",
+            not_flatten_list_levels=2,
+        )
+        return result_dict  # type: ignore
 
     @property
     @abstractmethod

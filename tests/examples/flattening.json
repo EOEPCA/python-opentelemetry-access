@@ -42,21 +42,36 @@
                   }
                 },
                 {
-                  "key": "data_stream.dataset",
+                  "key": "my.span.attr2",
                   "value": {
-                    "stringValue": "default"
+                    "stringValue": "value"
                   }
                 },
                 {
-                  "key": "data_stream.namespace",
+                  "key": "my.list[0]",
                   "value": {
-                    "stringValue": "namespace"
+                    "intValue": "30"
                   }
                 },
                 {
-                  "key": "data_stream.type",
+                  "key": "my.list[1]",
                   "value": {
-                    "stringValue": "span"
+                    "intValue": "20"
+                  }
+                },
+                {
+                  "key": "attr.list",
+                  "value": {
+                    "arrayValue": {
+                      "values": [
+                        {
+                          "stringValue": "value"
+                        },
+                        {
+                          "stringValue": "some-other-value"
+                        }
+                      ]
+                    }
                   }
                 }
               ],

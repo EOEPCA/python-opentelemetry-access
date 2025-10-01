@@ -1,0 +1,17 @@
+receivers:
+  otlp:
+    protocols:
+      http:
+      grpc:
+
+exporters:
+  debug:
+    verbosity: detailed
+  file:
+    path: "telemetry_dump.json"
+
+service:
+  pipelines:
+    traces:
+      receivers: [otlp]
+      exporters: [file]

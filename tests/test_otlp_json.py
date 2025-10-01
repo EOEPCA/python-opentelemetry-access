@@ -12,14 +12,9 @@ def test_roundtrip_complete_json():
         {"key": "foo", "value": {"doubleValue": 3.2}},
         {
             "key": "other",
-            "value": {
-                "arrayValue": {"values": [{"stringValue": "bar"}, {"intValue": "2"}]}
-            },
+            "value": {"arrayValue": {"values": [{"intValue": "3"}, {"intValue": "2"}]}},
         },
-        {
-            "key": "stuff",
-            "value": {"kvlistValue": [{"key": "inner", "value": {"boolValue": False}}]},
-        },
+        {"key": "stuff.inner2", "value": {"boolValue": True}},
     ]
     field_dropped_attributes_count = 1
     field_trace_id = "ABC123"
