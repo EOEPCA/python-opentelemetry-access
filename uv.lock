@@ -320,7 +320,7 @@ wheels = [
 [[package]]
 name = "eoepca-api-utils"
 version = "0.1.0"
-source = { git = "https://github.com/EOEPCA/resource-health/?subdirectory=eoepca-api-utils#4101651a1c42062a9c6c84bfb648f0cc456869e4" }
+source = { git = "https://github.com/EOEPCA/resource-health/?subdirectory=eoepca-api-utils&branch=2.0.0#4708b3802f6c3b14b3a1dab51d8c06d0e5ba49a7" }
 dependencies = [
     { name = "fastapi", extra = ["standard"] },
     { name = "pydantic" },
@@ -330,11 +330,12 @@ dependencies = [
 [[package]]
 name = "eoepca-security"
 version = "0.2.0"
-source = { git = "https://github.com/EOEPCA/python-eoepca-security.git?branch=2.0.0-rc2#6b6a039a79d98fc67387b95a47745796c463697f" }
+source = { git = "https://github.com/EOEPCA/python-eoepca-security.git?branch=2.0.0#858dff9ce7e270a1e193480e8655265482ceb7b4" }
 dependencies = [
     { name = "cryptography" },
     { name = "fastapi", extra = ["standard"] },
     { name = "pyjwt" },
+    { name = "python-dotenv" },
     { name = "requests" },
     { name = "types-requests" },
 ]
@@ -825,7 +826,7 @@ async = [
 [[package]]
 name = "opentelemetry-betterproto"
 version = "0.1.0"
-source = { git = "https://github.com/EOEPCA/opentelemetry-betterproto.git?branch=2.0.0-beta2#29afa0bf0b757512194f86aa7af586da9d33f4fb" }
+source = { git = "https://github.com/EOEPCA/opentelemetry-betterproto.git?branch=2.0.0#29afa0bf0b757512194f86aa7af586da9d33f4fb" }
 dependencies = [
     { name = "betterproto" },
     { name = "grpcio" },
@@ -908,7 +909,7 @@ wheels = [
 [[package]]
 name = "plugin-utils"
 version = "0.1.1"
-source = { git = "https://github.com/EOEPCA/resource-health/?subdirectory=plugin-utils#4101651a1c42062a9c6c84bfb648f0cc456869e4" }
+source = { git = "https://github.com/EOEPCA/resource-health/?subdirectory=plugin-utils&branch=2.0.0#4708b3802f6c3b14b3a1dab51d8c06d0e5ba49a7" }
 
 [[package]]
 name = "propcache"
@@ -1166,13 +1167,13 @@ dev = [
 [package.metadata]
 requires-dist = [
     { name = "click", specifier = ">=8.1.7" },
-    { name = "eoepca-api-utils", git = "https://github.com/EOEPCA/resource-health/?subdirectory=eoepca-api-utils" },
-    { name = "eoepca-security", git = "https://github.com/EOEPCA/python-eoepca-security.git?branch=2.0.0-rc2" },
+    { name = "eoepca-api-utils", git = "https://github.com/EOEPCA/resource-health/?subdirectory=eoepca-api-utils&branch=2.0.0" },
+    { name = "eoepca-security", git = "https://github.com/EOEPCA/python-eoepca-security.git?branch=2.0.0" },
     { name = "fastapi", specifier = ">=0.115.4" },
     { name = "opensearch-py", extras = ["async"], specifier = ">=2.7.1" },
-    { name = "opentelemetry-betterproto", git = "https://github.com/EOEPCA/opentelemetry-betterproto.git?branch=2.0.0-beta2" },
+    { name = "opentelemetry-betterproto", git = "https://github.com/EOEPCA/opentelemetry-betterproto.git?branch=2.0.0" },
     { name = "pandas", specifier = ">=2.2.3" },
-    { name = "plugin-utils", git = "https://github.com/EOEPCA/resource-health/?subdirectory=plugin-utils" },
+    { name = "plugin-utils", git = "https://github.com/EOEPCA/resource-health/?subdirectory=plugin-utils&branch=2.0.0" },
     { name = "uvicorn", specifier = ">=0.32.0" },
 ]
 
