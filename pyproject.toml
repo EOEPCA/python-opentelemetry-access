@@ -1,6 +1,6 @@
 [project]
 name = "python-opentelemetry-access"
-version = "0.1.0"
+version = "2.0.0"
 description = "Add your description here"
 readme = "README.md"
 authors = [
@@ -9,13 +9,13 @@ authors = [
 requires-python = ">=3.12"
 dependencies = [
     "click>=8.1.7",
-    "eoepca-security",
+    "eoepca-security>=2.0.0",
     "fastapi>=0.115.4",
     "opensearch-py[async]>=2.7.1",
-    "opentelemetry-betterproto",
+    "opentelemetry-betterproto>=2.0.0",
     "pandas>=2.2.3",
-    "eoepca-api-utils>=0.1.0",
-    "plugin-utils>=0.1.1",
+    "eoepca-api-utils>=2.0.0",
+    "plugin-utils>=2.0.0",
     "uvicorn>=0.32.0",
 ]
 
@@ -36,8 +36,8 @@ dev-dependencies = [
 
 [tool.uv.sources]
 opentelemetry-betterproto = { git = "https://github.com/EOEPCA/opentelemetry-betterproto.git", branch = "2.0.0" }
-eoepca-api-utils = { git = "https://github.com/EOEPCA/resource-health/", subdirectory = "eoepca-api-utils", branch = "2.0.0"}
-plugin-utils = { git = "https://github.com/EOEPCA/resource-health/", subdirectory = "plugin-utils", branch = "2.0.0" }
+eoepca-api-utils = { git = "https://github.com/EOEPCA/resource-health.git", subdirectory = "eoepca-api-utils", branch = "2.0.0"}
+plugin-utils = { git = "https://github.com/EOEPCA/resource-health.git", subdirectory = "plugin-utils", branch = "2.0.0" }
 eoepca-security = { git = "https://github.com/EOEPCA/python-eoepca-security.git", branch = "2.0.0" }
 
 [tool.pytest.ini_options]
