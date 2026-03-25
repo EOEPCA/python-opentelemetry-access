@@ -222,7 +222,7 @@ def _filter_span_collection(
         )
     ]
     # Could take page_size into account using something like the below code.
-    # But in that case would also need to neturn a next_page_token in case not all spans were returned
+    # But in that case would also need to return a next_page_token in case not all spans were returned
     # result_resource_spans: list[base.ReifiedResourceSpanCollection] = []
     # result_span_count = 0
     # for inner_spans in spans.resource_spans:

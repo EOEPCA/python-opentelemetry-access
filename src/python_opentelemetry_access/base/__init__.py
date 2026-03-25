@@ -818,7 +818,7 @@ def iter_jsonlike(jobj: util.JSONLike) -> util.JSONLikeIter:
     elif isinstance(jobj, int) | isinstance(jobj, str) | isinstance(jobj, float):
         return jobj
     else:
-        raise TypeError(f"Expecte JSONLike, got {type(jobj)}")
+        raise TypeError(f"Expected JSONLike, got {type(jobj)}")
 
 
 def iter_jsonlike_list(jobj: util.JSONLikeList) -> util.JSONLikeListIter:

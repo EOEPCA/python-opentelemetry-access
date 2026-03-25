@@ -214,7 +214,7 @@ def _expect_field_type[T](
     if isinstance(x, type_):
         return x
     else:
-        raise TypeError(f"{field} is expeted to be {type_.__name__}, got {type(x)}")
+        raise TypeError(f"{field} is expected to be {type_.__name__}, got {type(x)}")
 
 
 def expect_dict_iter(x: JSONLike) -> JSONLikeDictIter:
