@@ -45,10 +45,14 @@ GET_OPENSEARCH_CONFIG_HOOK_NAME = (
 
 class OpenSearchSS40Proxy(proxy.Proxy):
     def __init__(
-        self, hooks: dict[str, Hooks], default_page_size: int, max_page_size: int
+        self,
+        hooks: dict[str, Hooks],
+        index_name: str,
+        default_page_size: int,
+        max_page_size: int,
     ) -> None:
         self.hooks = hooks
-        self.index_name = "ss4o_traces-default-namespace"
+        self.index_name = index_name
         self.default_page_size = default_page_size
         self.max_page_size = max_page_size
 
